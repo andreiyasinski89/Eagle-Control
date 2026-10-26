@@ -23,6 +23,7 @@ let owner: string;
 let wsId: string;
 let formKey: string;
 let lockedKey: string;
+let siteKey: string;
 let token: string;
 
 const req = (url: string, init: { method?: string; headers?: Record<string, string>; body?: string } = {}) =>
@@ -43,6 +44,8 @@ beforeAll(async () => {
   const base = { title: "Contact", submitLabel: "Send", successMessage: "Thanks!", consentText: null, redirectUrl: null, fields: [{ key: "email" as const, label: "Email", required: true }], ownerId: owner, stageId: null };
   formKey = (await createLeadForm(owner, ws.id, { name: "Open form", pipelineId: pipeline.id, enabled: true, config: { ...base, allowedOrigins: [] } })).publicKey;
   lockedKey = (await createLeadForm(owner, ws.id, { name: "Locked form", pipelineId: pipeline.id, enabled: true, config: { ...base, allowedOrigins: ["https://client.example"] } })).publicKey;
+  // An address pasted with a trailing slash, as people do, and the www variant: a browser's Origin never has a slash or a path.
+  siteKey = (await createLeadForm(owner, ws.id, { name: "Site form", pipelineId: pipeline.id, enabled: true, config: { ...base, allowedOrigins: ["https://clever-travel.club/", "https://www.clever-travel.club"] } })).publicKey;
   token = (await rotateWebhookToken(owner, ws.id, { pipelineId: pipeline.id })).token;
 }, 120_000);
 
@@ -106,6 +109,20 @@ describe("public form", () => {
     const pre = await optionsLead(req(`/api/public/leads/${lockedKey}`, { method: "OPTIONS", headers: { origin: "https://client.example" } }), ctx(lockedKey));
     expect(pre.status).toBe(204);
     expect(pre.headers.get("access-control-allow-origin")).toBe("https://client.example");
+  });
+
+  it("matches the site's origin even when the allow-list was typed with a slash, and refuses look-alikes", async () => {
+    const body = JSON.stringify({ email: "lead@site.example" });
+    for (const origin of ["https://clever-travel.club", "https://www.clever-travel.club"]) {
+      const ok = await postLead(req(`/api/public/leads/${siteKey}`, { headers: json({ origin }), body }), ctx(siteKey));
+      expect(ok.status, origin).toBe(201);
+      expect(ok.headers.get("access-control-allow-origin")).toBe(origin);
+    }
+    for (const origin of ["https://clever-travel.club.evil.example", "http://clever-travel.club", "https://evil.example"]) {
+      expect((await postLead(req(`/api/public/leads/${siteKey}`, { headers: json({ origin }), body }), ctx(siteKey))).status, origin).toBe(403);
+    }
+    const pre = await optionsLead(req(`/api/public/leads/${siteKey}`, { method: "OPTIONS", headers: { origin: "https://clever-travel.club" } }), ctx(siteKey));
+    expect(pre.headers.get("access-control-allow-origin")).toBe("https://clever-travel.club");
   });
 
   it("honours Idempotency-Key and rate-limits abusive senders", async () => {

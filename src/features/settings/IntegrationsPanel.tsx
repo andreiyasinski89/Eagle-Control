@@ -12,7 +12,7 @@ interface Status {
   canManageSlack: boolean;
   google: { configured: boolean; connected: boolean; email: string | null; needsReconnect: boolean; watching: boolean };
   slack: { configured: boolean; connected: boolean; teamName: string | null; routes: Partial<Record<SlackEvent, string>> };
-  telegram: { configured: boolean; linked: boolean; chatName: string | null };
+  telegram: { configured: boolean; linked: boolean; chatName: string | null; webhook: { ok: boolean; url: string | null; lastError: string | null } | null };
 }
 type SlackEvent = "lead" | "deal_won" | "project_red" | "sprint_ended";
 const EVENTS: SlackEvent[] = ["lead", "deal_won", "project_red", "sprint_ended"];
@@ -168,6 +168,24 @@ export function IntegrationsPanel({ workspaceId, banner }: { workspaceId: string
           unavailable
         ) : (
           <div className="flex flex-col gap-2">
+            {tg.webhook?.ok && (
+              <p className="text-xs text-muted-foreground" data-testid="telegram-webhook-ok">
+                {t("telegram.botConnected")}
+              </p>
+            )}
+            {tg.webhook && !tg.webhook.ok && (
+              <div role="status" data-testid="telegram-webhook-missing" className="flex flex-col gap-2 rounded-md bg-muted p-3 text-sm">
+                <span>{t("telegram.botNotConnected")}</span>
+                {data.canManageSlack ? (
+                  <Button size="sm" className="self-start" onClick={() => run(() => api.post(`${base}/telegram/webhook`))}>
+                    {t("telegram.connectBot")}
+                  </Button>
+                ) : (
+                  <span className="text-xs text-muted-foreground">{t("telegram.askAdmin")}</span>
+                )}
+              </div>
+            )}
+            {tg.webhook?.lastError && <p className="text-xs text-danger">{t("telegram.lastError", { error: tg.webhook.lastError })}</p>}
             <div className="flex flex-wrap gap-2">
               {!tg.linked && (
                 <Button size="sm" onClick={() => api.post<{ code: string; url: string | null; bot: string | null }>(`${base}/telegram/link`).then(setCode).catch(fail)}>

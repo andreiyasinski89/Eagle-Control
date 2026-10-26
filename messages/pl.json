@@ -828,7 +828,12 @@
       "manual": "W Telegramie wyślij /start {code} do @{bot}.",
       "expires": "Kod działa 15 minut.",
       "check": "Nacisnąłem Start",
-      "commands": "Wyślij botowi /help, aby zobaczyć polecenia."
+      "commands": "Wyślij botowi /help, aby zobaczyć polecenia.",
+      "botConnected": "Bot jest połączony z tą instalacją.",
+      "botNotConnected": "Bot nie jest jeszcze połączony z tą instalacją i nie odbiera wiadomości.",
+      "connectBot": "Połącz bota",
+      "askAdmin": "Poproś właściciela lub administratora o połączenie bota.",
+      "lastError": "Telegram zgłasza błąd dostarczania: {error}"
     }
   },
   "billing": {

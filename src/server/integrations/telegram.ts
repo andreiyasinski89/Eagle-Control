@@ -47,9 +47,50 @@ export async function createLinkCode(userId: string, workspaceId: string, now = 
   return { code, expiresAt: pending.expiresAt, url: bot ? `https://t.me/${bot}?start=${code}` : null, bot: bot || null };
 }
 
+/** Where Telegram must send this bot's messages. */
+export const telegramWebhookUrl = () => `${appUrl()}/api/integrations/telegram/webhook`;
+
+export interface WebhookState {
+  /** Telegram sends the bot's messages to this installation. */
+  ok: boolean;
+  /** The address Telegram has now (empty when none), and the last delivery error it reports. */
+  url: string | null;
+  lastError: string | null;
+}
+
+/** Asks Telegram where the bot's messages go. A failure to ask is "unknown" (null), not "not registered". */
+async function webhookState(): Promise<WebhookState | null> {
+  const token = env().TELEGRAM_BOT_TOKEN;
+  if (!token) return null;
+  try {
+    const info = await httpJson<{ result?: { url?: string; last_error_message?: string } }>("telegram", `https://api.telegram.org/bot${token}/getWebhookInfo`, { timeoutMs: 4_000 });
+    const url = info.result?.url || null;
+    return { ok: url === telegramWebhookUrl(), url, lastError: info.result?.last_error_message ?? null };
+  } catch {
+    return null;
+  }
+}
+
 export async function telegramStatus(userId: string, workspaceId: string) {
   const row = await db.userIntegration.findFirst({ where: { userId, kind: "TELEGRAM", workspaceId } });
-  return { configured: telegramConfigured(), linked: !!row?.externalId, chatName: (row?.config as { chatName?: string } | null)?.chatName ?? null };
+  const configured = telegramConfigured();
+  return { configured, linked: !!row?.externalId, chatName: (row?.config as { chatName?: string } | null)?.chatName ?? null, webhook: configured ? await webhookState() : null };
+}
+
+/**
+ * Tells Telegram to send the bot's messages to this installation, with the secret that later proves a call is Telegram's.
+ * Replaces the one-time `setWebhook` command by hand. Safe to repeat; owners and admins only. The bot is shared by the
+ * whole installation, so this only ever sets the one address it must have.
+ */
+export async function registerTelegramWebhook(userId: string, workspaceId: string): Promise<{ url: string }> {
+  await loadWorkspaceMember(db, userId, workspaceId, "member:invite");
+  await requireIntegrations(workspaceId);
+  const { TELEGRAM_BOT_TOKEN: token, TELEGRAM_WEBHOOK_SECRET: secret } = env();
+  if (!token || !secret) throw notConfigured("Telegram");
+  const url = telegramWebhookUrl();
+  if (!url.startsWith("https://")) throw new ApiError(422, "https_required", "Telegram only delivers to https addresses. Set APP_URL to the public https address of this installation.");
+  await httpJson("telegram", `https://api.telegram.org/bot${token}/setWebhook`, { method: "POST", json: { url, secret_token: secret, allowed_updates: ["message"] } });
+  return { url };
 }
 
 export async function disconnectTelegram(userId: string, workspaceId: string): Promise<void> {

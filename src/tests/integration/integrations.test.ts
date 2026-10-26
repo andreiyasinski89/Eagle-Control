@@ -37,7 +37,7 @@ import { notify, deliverPending, setPreference } from "@/server/services/notify"
 import { createDeal, winDeal } from "@/server/services/crm/deals";
 import { decryptJson } from "@/lib/crypto";
 import { signState, verifyState } from "@/server/integrations/common";
-import { createLinkCode, disconnectTelegram, handleUpdate, telegramStatus, verifyTelegramSecret } from "@/server/integrations/telegram";
+import { createLinkCode, disconnectTelegram, handleUpdate, registerTelegramWebhook, telegramStatus, verifyTelegramSecret } from "@/server/integrations/telegram";
 import { announceToSlack, disconnectSlack, handleSlackEvent, listSlackChannels, setSlackRoutes, slackAuthorizeUrl, slackCallback, slackChannel, verifySlackSignature } from "@/server/integrations/slack";
 import { disconnectGoogle, googleAuthorizeUrl, googleCallback, googleEventId, handleGoogleWebhook, pollAll, pull, pushEvent, syncNow } from "@/server/integrations/google";
 import "@/server/integrations/register";
@@ -160,6 +160,42 @@ describe("Telegram", () => {
     expect(verifyTelegramSecret("tg-secret")).toBe(true);
     expect(verifyTelegramSecret("nope")).toBe(false);
     expect(verifyTelegramSecret(null)).toBe(false);
+  });
+
+  describe("connecting the bot to this installation", () => {
+    const url = "https://app.example.test/api/integrations/telegram/webhook";
+
+    it("registers the webhook address and secret with Telegram, for owners and admins", async () => {
+      expect(await registerTelegramWebhook(owner, ws.id)).toEqual({ url });
+      const call = sent(/api\.telegram\.org\/bottg-token\/setWebhook/)[0]!;
+      expect(call.method).toBe("POST");
+      expect(call.body).toEqual({ url, secret_token: "tg-secret", allowed_updates: ["message"] });
+    });
+
+    it("refuses an ordinary member, and a workspace without the Pro plan", async () => {
+      await expect(registerTelegramWebhook(member, ws.id)).rejects.toMatchObject({ status: 403 });
+      await expect(registerTelegramWebhook(owner, freeWs.id)).rejects.toMatchObject({ status: 402, code: "plan_feature" });
+      expect(sent(/setWebhook/)).toEqual([]);
+    });
+
+    it("says what Telegram is doing: connected, not connected, or unknown", async () => {
+      on(/getWebhookInfo/, () => ({ ok: true, result: { url } }));
+      expect((await telegramStatus(owner, ws.id)).webhook).toEqual({ ok: true, url, lastError: null });
+      on(/getWebhookInfo/, () => ({ ok: true, result: { url: "", last_error_message: "Wrong response from the webhook: 401" } }));
+      expect((await telegramStatus(owner, ws.id)).webhook).toEqual({ ok: false, url: null, lastError: "Wrong response from the webhook: 401" });
+      on(/getWebhookInfo/, () => reply(502, { description: "bad gateway" }));
+      expect((await telegramStatus(owner, ws.id)).webhook).toBeNull(); // cannot ask: not the same as "not connected"
+    });
+
+    it("treats a webhook that points somewhere else as not connected", async () => {
+      on(/getWebhookInfo/, () => ({ ok: true, result: { url: "https://old.example/hook" } }));
+      expect((await telegramStatus(owner, ws.id)).webhook).toMatchObject({ ok: false, url: "https://old.example/hook" });
+    });
+
+    it("reports a Telegram failure instead of pretending it worked", async () => {
+      on(/setWebhook/, () => reply(400, { ok: false, description: "bad webhook: HTTPS url must be provided" }));
+      await expect(registerTelegramWebhook(owner, ws.id)).rejects.toThrow(/telegram/i);
+    });
   });
 
   it("lists today's work, adds tasks and leads, and finishes a task by its number", async () => {

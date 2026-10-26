@@ -86,3 +86,10 @@
 - `PRO_OWNER_EMAILS`: workspaces owned by those addresses are Pro without Stripe (on sign-in, workspace creation, ownership handover and daily); the billing page says so.
 - SMTP with login and TLS (Gmail app password), with timeouts.
 - `docs/GO-LIVE.md`. Tests: 496; the test runner is capped at 6 workers because many in-memory databases at once crashed workers.
+
+## 0.7.1 — Integrations made connectable
+
+- Telegram: **Connect the bot** button registers the webhook (no `setWebhook` by hand) and the card shows whether Telegram delivers to this installation, with its last delivery error.
+- Lead forms: allowed origins are compared as origins (a pasted trailing slash or path no longer blocks the site).
+- `docs/integrations/gmail-leads.gs`: Google Apps Script that turns lead e-mails from the website form into CRM leads (English, Russian, Polish field labels, one send per e-mail, dry run).
+- `docs/INTEGRATIONS.md` (Russian): Inngest, Google Calendar (Google Cloud setup, publishing to avoid the 7-day token expiry), Telegram, website leads.

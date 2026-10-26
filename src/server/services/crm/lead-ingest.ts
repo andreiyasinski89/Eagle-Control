@@ -17,6 +17,15 @@ import { createDealIn } from "./deals";
 
 // ── forms ──────────────────────────────────────────────────────────────────
 
+/** A browser sends `Origin: https://site.com` with no path and no slash; a pasted address usually has one. */
+export const normalizeOrigin = (u: string): string => {
+  try {
+    return new URL(u).origin;
+  } catch {
+    return u;
+  }
+};
+
 export const FORM_FIELDS = ["name", "email", "phone", "company", "message", "amount"] as const;
 
 export const leadFormConfigSchema = z.object({
@@ -35,7 +44,7 @@ export const leadFormConfigSchema = z.object({
       { key: "message", label: "Message", required: false },
     ]),
   /** Origins allowed to embed the form and post to it; empty = anywhere (no cookies are involved). */
-  allowedOrigins: z.array(z.string().url()).max(20).default([]),
+  allowedOrigins: z.array(z.string().url().transform(normalizeOrigin)).max(20).default([]),
   ownerId: z.string().nullable().default(null),
   stageId: z.string().nullable().default(null),
 });

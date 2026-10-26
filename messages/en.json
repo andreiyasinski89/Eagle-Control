@@ -828,7 +828,12 @@
       "manual": "In Telegram, send /start {code} to @{bot}.",
       "expires": "The code works for 15 minutes.",
       "check": "I pressed Start",
-      "commands": "Send /help to the bot for the list of commands."
+      "commands": "Send /help to the bot for the list of commands.",
+      "botConnected": "The bot is connected to this installation.",
+      "botNotConnected": "The bot is not connected to this installation yet, so it cannot receive messages.",
+      "connectBot": "Connect the bot",
+      "askAdmin": "Ask an owner or admin to connect the bot.",
+      "lastError": "Telegram reports a delivery error: {error}"
     }
   },
   "billing": {

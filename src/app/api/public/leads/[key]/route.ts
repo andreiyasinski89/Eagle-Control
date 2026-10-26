@@ -1,14 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { env } from "@/lib/env";
 import { assertOriginAllowed, corsHeaders, guard, ipHash, publicError, readLeadBody } from "@/server/http/public";
-import { getPublicForm, ingestLead } from "@/server/services/crm/lead-ingest";
+import { getPublicForm, ingestLead, normalizeOrigin } from "@/server/services/crm/lead-ingest";
 import { db } from "@/server/db";
 
 type Ctx = { params: Promise<{ key: string }> };
 
 export async function OPTIONS(req: NextRequest, { params }: Ctx) {
   const form = await db.leadForm.findUnique({ where: { publicKey: (await params).key } });
-  const allowed = (form?.config as { allowedOrigins?: string[] } | null)?.allowedOrigins ?? null;
+  const allowed = (form?.config as { allowedOrigins?: string[] } | null)?.allowedOrigins?.map(normalizeOrigin) ?? null;
   return new NextResponse(null, { status: 204, headers: corsHeaders(req, allowed) });
 }
 
