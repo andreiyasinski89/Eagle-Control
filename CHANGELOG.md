@@ -101,3 +101,11 @@
 - **Command palette** (Ctrl+K / ⌘K or the search box): pages, projects, other workspaces, switch theme, account.
 - Sign-in: two-column layout with the product pitch. My day: greeting, three summary tiles, loading skeletons and a friendlier empty state.
 - Tests: 3 for the shell helpers.
+
+## 0.8.1 — Mind map cards
+
+- A **status pill** (Backlog, To do, In progress, In review, Done, Cancelled) on task and subtask cards.
+- Three levels of detail: dots only when far away, a **light card with title and status** in between (it used to be dots below 50% zoom), the full card up close.
+- The first view of a map opens at a **readable zoom** with the root at the left, instead of a zoomed-out overview of dots; the fit button still shows the whole tree.
+- Softer cards, themed mini map and controls.
+- Tests: 6 for the first view and the status tones.

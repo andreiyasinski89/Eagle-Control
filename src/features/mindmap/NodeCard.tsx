@@ -17,6 +17,7 @@ import {
 import type { NodeType } from "@prisma/client";
 import { useLocale, useTranslations } from "next-intl";
 import { allowedChildTypes } from "@/modules/nodes/node-rules";
+import { showsStatus, STATUS_TONE, type StatusTone } from "@/modules/nodes/view";
 import { cn } from "@/lib/utils";
 import { createChild, rename, toggleCollapsed } from "./actions";
 import { peopleOn, usePresenceStore } from "@/features/realtime/presence-store";
@@ -49,6 +50,20 @@ export const TYPE_ICON: Record<NodeType, typeof CheckSquare> = {
   CONTACT: FolderKanban,
   DEAL: FolderKanban,
 };
+
+const TONE_CLASS: Record<StatusTone, string> = {
+  neutral: "bg-muted text-muted-foreground",
+  active: "bg-accent text-accent-foreground",
+  review: "bg-[var(--health-yellow)]/15 text-[var(--health-yellow)]",
+  done: "bg-[var(--health-green)]/15 text-[var(--health-green)]",
+  muted: "bg-muted text-muted-foreground line-through",
+};
+
+/** The status of a task as a small coloured pill. */
+export function StatusChip({ status, className }: { status: ClientNode["status"]; className?: string }) {
+  const t = useTranslations("map");
+  return <span className={cn("shrink-0 truncate rounded-full px-1.5 py-px text-[10px] font-medium leading-4", TONE_CLASS[STATUS_TONE[status]], className)}>{t(`status.${status}`)}</span>;
+}
 
 const HEALTH_VAR = {
   GREEN: "var(--health-green)",
@@ -137,7 +152,8 @@ function CardImpl({ data, selected }: NodeProps<CardNode>) {
   const { node, hiddenCount, hasChildren, dim, matched, heatmap, assignee, tags, canWrite } = data;
   const t = useTranslations("map");
   const locale = useLocale();
-  const zoomedOut = useStore((s) => s.transform[2] < 0.5);
+  // Three levels of detail keep a big map cheap to paint: dots when far away, a light card in between, the full card up close.
+  const detail = useStore((s) => (s.transform[2] < 0.28 ? "far" : s.transform[2] < 0.5 ? "mid" : "full"));
   const editing = useMapStore((s) => s.editingId === node.id);
   const hint = useMapStore((s) => (s.dropHint?.targetId === node.id ? s.dropHint : null));
   const others = usePresenceStore((s) => s.others);
@@ -149,10 +165,29 @@ function CardImpl({ data, selected }: NodeProps<CardNode>) {
   const color = HEALTH_VAR[health];
   const Icon = TYPE_ICON[node.type];
   const countable = node.type !== "DOCUMENT" && node.type !== "EVENT";
+  const done = node.status === "DONE" || node.status === "CANCELLED";
+  const tagRoom = showsStatus(node.type) ? 1 : 3; // the status pill takes the room of two tags
   const canAdd = canWrite && allowedChildTypes(node.type).length > 0;
 
   // Far zoom: a coloured dot with the title keeps 2000 nodes cheap to paint and still readable.
-  if (zoomedOut) {
+  if (detail === "mid") {
+    return (
+      <div
+        data-testid={`node-${node.id}`}
+        data-node-type={node.type}
+        data-health={health}
+        className={cn("relative flex h-[76px] w-[240px] flex-col justify-center gap-1.5 rounded-xl border bg-card px-4 shadow-sm", selected ? "border-primary ring-2 ring-primary/40" : "border-border", dim && "opacity-25", done && "opacity-75")}
+        style={{ borderLeftWidth: 8, borderLeftColor: countable ? color : "var(--border)" }}
+      >
+        <Handle type="target" position={Position.Left} className="!opacity-0" />
+        <span className={cn("truncate text-[22px] font-semibold leading-7", node.status === "CANCELLED" && "line-through")}>{node.title}</span>
+        {showsStatus(node.type) && <StatusChip status={node.status} className="self-start px-2 text-[14px] leading-5" />}
+        <Handle type="source" position={Position.Right} className="!opacity-0" />
+      </div>
+    );
+  }
+
+  if (detail === "far") {
     return (
       <div className={cn("flex h-[76px] w-[240px] items-center gap-3", dim && "opacity-25")}>
         <Handle type="target" position={Position.Left} className="!opacity-0" />
@@ -163,14 +198,13 @@ function CardImpl({ data, selected }: NodeProps<CardNode>) {
     );
   }
 
-  const done = node.status === "DONE" || node.status === "CANCELLED";
   return (
     <div
       data-testid={`node-${node.id}`}
       data-node-type={node.type}
       data-health={health}
       className={cn(
-        "group relative h-[76px] w-[240px] rounded-lg border bg-card px-3 py-2 shadow-sm transition-[opacity,box-shadow]",
+        "group relative h-[76px] w-[240px] rounded-xl border bg-card px-3 py-2 shadow-sm transition-[opacity,box-shadow] hover:shadow-md",
         selected ? "border-primary ring-2 ring-primary/40" : "border-border",
         dim && "opacity-30",
         matched && !heatmap && "ring-2 ring-primary/30",
@@ -222,15 +256,16 @@ function CardImpl({ data, selected }: NodeProps<CardNode>) {
             {initials(assignee)}
           </span>
         )}
+        {showsStatus(node.type) && !heatmap && <StatusChip status={node.status} />}
         {node.dueDate && <span>{shortDate(node.dueDate, locale)}</span>}
         {node.blocked && <span className="font-medium text-[var(--health-red)]">{t("blocked")}</span>}
         {!heatmap &&
-          tags.slice(0, 3).map((tag) => (
+          tags.slice(0, tagRoom).map((tag) => (
             <span key={tag.id} className="max-w-[56px] truncate rounded px-1" style={{ background: `${tag.color}33`, color: "inherit" }}>
               {tag.name}
             </span>
           ))}
-        {!heatmap && tags.length > 3 && <span>+{tags.length - 3}</span>}
+        {!heatmap && tags.length > tagRoom && <span>+{tags.length - tagRoom}</span>}
         {countable && <span className="ml-auto tabular-nums">{node.progress}%</span>}
       </div>
 

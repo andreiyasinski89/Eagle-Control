@@ -19,6 +19,7 @@ import { useTheme } from "next-themes";
 import { useTranslations } from "next-intl";
 import type { NodeType } from "@prisma/client";
 import { DEFAULT_LAYOUT, tidyLayout } from "@/modules/nodes/layout";
+import { initialViewport } from "@/modules/nodes/view";
 import { allowedChildTypes } from "@/modules/nodes/node-rules";
 import { archiveNode, createChild, moveDenial, moveNode, redo, undo, updateNode } from "./actions";
 import { api } from "./api";
@@ -362,9 +363,18 @@ function Inner({ rootId }: { rootId: string }) {
   useEffect(() => {
     if (!fitted.current && rfNodes.length > 0) {
       fitted.current = true;
-      setTimeout(() => void flow.fitView({ padding: 0.2, duration: 0, maxZoom: 1 }), 0);
+      setTimeout(() => {
+        const el = wrapRef.current;
+        const root = rfNodes.find((n) => n.id === rootId) ?? rfNodes[0];
+        if (!el || !root || el.clientWidth === 0) return void flow.fitView({ padding: 0.2, duration: 0, maxZoom: 1 });
+        const { nodeWidth: w, nodeHeight: h } = DEFAULT_LAYOUT;
+        const xs = rfNodes.map((n) => n.position.x);
+        const ys = rfNodes.map((n) => n.position.y);
+        const bounds = { x: Math.min(...xs), y: Math.min(...ys), width: Math.max(...xs) + w - Math.min(...xs), height: Math.max(...ys) + h - Math.min(...ys) };
+        void flow.setViewport(initialViewport(bounds, { width: el.clientWidth, height: el.clientHeight }, { x: root.position.x, y: root.position.y, width: w, height: h }), { duration: 0 });
+      }, 0);
     }
-  }, [rfNodes.length, flow]);
+  }, [rfNodes, rootId, flow]);
 
   return (
     <div ref={wrapRef} className="relative h-full w-full outline-none" tabIndex={0} data-testid="mindmap">
@@ -395,12 +405,17 @@ function Inner({ rootId }: { rootId: string }) {
         proOptions={{ hideAttribution: true }}
         zoomOnDoubleClick={false}
       >
-        <Background gap={24} size={1} />
-        <Controls showInteractive={false} position="bottom-left" />
+        <Background gap={24} size={1.2} color="var(--border)" />
+        <Controls showInteractive={false} position="bottom-left" className="overflow-hidden !rounded-xl !border !border-border !shadow-sm" />
         <MiniMap
           pannable
           zoomable
           position="bottom-right"
+          className="!overflow-hidden !rounded-xl !border !border-border !shadow-sm"
+          style={{ width: 150, height: 100 }}
+          bgColor="var(--card)"
+          maskColor="color-mix(in srgb, var(--background) 72%, transparent)"
+          nodeBorderRadius={3}
           nodeColor={(n) => {
             const d = (n as CardNode).data;
             return `var(--health-${(d.node.healthOverride ?? d.node.health).toLowerCase()})`;
