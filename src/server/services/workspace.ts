@@ -1,5 +1,6 @@
 import type { Plan } from "@prisma/client";
 import { db } from "@/server/db";
+import { isGrantedEmail } from "./grants";
 import { slugify } from "@/lib/slug";
 import { checkLimit, PLAN_LIMITS, type LimitKey } from "@/modules/plans";
 import { DEFAULT_LOST_REASONS, DEFAULT_PIPELINE_NAME, DEFAULT_STAGES } from "@/modules/crm/defaults";
@@ -14,9 +15,11 @@ async function uniqueSlug(base: string): Promise<string> {
 
 export async function createWorkspace(userId: string, name: string, slug?: string) {
   const finalSlug = await uniqueSlug(slugify(slug ?? name));
+  const owner = await db.user.findUnique({ where: { id: userId }, select: { email: true } });
   return db.workspace.create({
     data: {
       name,
+      plan: owner && isGrantedEmail(owner.email) ? "PRO" : "FREE",
       slug: finalSlug,
       memberships: { create: { userId, role: "OWNER", crmAccess: true } },
       pipelines: {

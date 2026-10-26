@@ -1,5 +1,7 @@
 # Publish a demo (Vercel + Neon, free)
 
+> For a real installation with e-mail sign-up, see [GO-LIVE.md](GO-LIVE.md).
+
 This gives you a link anyone can open and click through without installing anything. It is a **showcase, not a production
 setup**: everybody who opens it shares one sample workspace (reset every day), there is no e-mail, file storage, billing or
 integrations. For a real installation follow [PRODUCTION.md](PRODUCTION.md).

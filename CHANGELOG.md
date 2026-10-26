@@ -76,3 +76,13 @@
 
 - Calendar: new **Day** view and a rebuilt **Week** view with an hour-by-hour time grid (like Google Calendar): events at their start time and as tall as they last, overlapping events side by side, an "All day" strip for deadlines and items without a time, a red line for the current time, and the grid opens on the working hours.
 - Month view and drag-to-reschedule (project calendar) are unchanged. Pure layout logic in `src/modules/views/timegrid.ts` with 12 tests.
+
+## 0.7.0 — Go live: e-mail sign-up, Pro for the administrator
+
+- Migration 0009: sign-in attempt log (hashes only) and the date terms were agreed.
+- Sign-in link opens a confirmation page; only its button (a POST) uses the one-time link, so mail scanners cannot burn it. Links to localhost are refused in production.
+- Agreeing to the terms is required before a link is sent (checked on the server); draft privacy policy and terms pages with the operator from `LEGAL_*`.
+- Daily sign-in limits kept in the database: 20 per address of the caller, 10 per mailbox, `MAIL_DAILY_LIMIT` in total.
+- `PRO_OWNER_EMAILS`: workspaces owned by those addresses are Pro without Stripe (on sign-in, workspace creation, ownership handover and daily); the billing page says so.
+- SMTP with login and TLS (Gmail app password), with timeouts.
+- `docs/GO-LIVE.md`. Tests: 496; the test runner is capped at 6 workers because many in-memory databases at once crashed workers.

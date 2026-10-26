@@ -10,6 +10,17 @@ const schema = z.object({
   RESEND_API_KEY: z.string().optional(),
   SMTP_HOST: z.string().default("localhost"),
   SMTP_PORT: z.coerce.number().default(1025),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  /** TLS from the first byte (port 465). Unset: on for port 465, off otherwise (587 upgrades with STARTTLS when a login is set). */
+  SMTP_SECURE: z.preprocess((v) => (v === undefined || v === "" ? undefined : v === "true" || v === "1"), z.boolean().optional()),
+  /** Sign-in e-mails the whole installation sends per day (Gmail allows about 500). */
+  MAIL_DAILY_LIMIT: z.coerce.number().int().min(1).default(300),
+  /** Comma-separated e-mail addresses whose owned workspaces get the Pro plan without Stripe. */
+  PRO_OWNER_EMAILS: z.string().optional(),
+  /** Shown in the privacy policy and terms as the party responsible for the service. */
+  LEGAL_OPERATOR_NAME: z.string().optional(),
+  LEGAL_CONTACT_EMAIL: z.string().optional(),
   SECRETS_KEY: z.string().optional(),
   ACCOUNT_DELETION_GRACE_DAYS: z.coerce.number().int().min(0).max(30).default(7),
   DEMO_MODE: z.preprocess((v) => v === "true" || v === "1", z.boolean()),

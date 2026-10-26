@@ -33,7 +33,13 @@
     "sent": "Check your inbox — the sign-in link is on its way.",
     "google": "Continue with Google",
     "demo": "Open the demo",
-    "demoNote": "A public demo: everyone shares the same sample data, which is reset every day. Do not enter personal information."
+    "demoNote": "A public demo: everyone shares the same sample data, which is reset every day. Do not enter personal information.",
+    "terms": "I agree to the <terms>terms</terms> and the <privacy>privacy policy</privacy>",
+    "sendFailed": "We could not send the link. Check the address and try again later.",
+    "confirmTitle": "Confirm sign-in",
+    "confirmHint": "Press the button to finish signing in. The link works once.",
+    "confirmInvalid": "This sign-in link is not valid. Ask for a new one on the sign-in page.",
+    "confirmButton": "Sign in"
   },
   "onboarding": {
     "title": "Create your workspace",
@@ -851,7 +857,8 @@
     "pastDue": "The last payment failed. Update your card by {date} to keep Pro.",
     "graceExpired": "The payment was not received in time; the workspace is on the Free plan. Nothing was deleted.",
     "notConfigured": "Billing is not configured on this server.",
-    "ownerOnly": "Only the workspace owner can change the plan."
+    "ownerOnly": "Only the workspace owner can change the plan.",
+    "granted": "Pro was granted to this workspace by the administrator."
   },
   "developers": {
     "title": "API and webhooks",
@@ -993,5 +1000,13 @@
     "cancelDeletion": "Keep my account",
     "bannerText": "Your account will be deleted on {date}.",
     "bannerCancel": "Cancel deletion"
+  },
+  "legal": {
+    "back": "Back to sign in",
+    "draft": "Draft text: have it reviewed by a lawyer before you rely on it.",
+    "operator": "Responsible for the service",
+    "operatorMissing": "(not set yet)",
+    "privacy": "Privacy policy",
+    "terms": "Terms of use"
   }
 }

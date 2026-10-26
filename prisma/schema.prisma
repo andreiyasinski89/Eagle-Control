@@ -123,6 +123,8 @@ model User {
   /// Set while a deletion is scheduled; the account is erased once the grace period has passed.
   deletionRequestedAt DateTime?
   deletionOptions     Json?
+  /** When this person first signed in after agreeing to the terms and privacy policy. */
+  termsAcceptedAt     DateTime?
 
   accounts          Account[]
   sessions          Session[]
@@ -942,4 +944,16 @@ model AccountEvent {
   at     DateTime @default(now())
 
   @@index([userId, at])
+}
+
+/// One request for a sign-in e-mail. Only salted hashes, so the abuse limits work without keeping addresses.
+model SignInAttempt {
+  id       String   @id @default(cuid())
+  ipHash   String
+  mailHash String
+  at       DateTime @default(now())
+
+  @@index([at])
+  @@index([ipHash, at])
+  @@index([mailHash, at])
 }

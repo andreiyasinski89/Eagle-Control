@@ -13,6 +13,7 @@ import { safeEqual, sha256 } from "@/server/integrations/common";
 import { dueForErasure, planErasure, REMOVED_COMMENT, tombstoneEmail, type WorkspaceFacts } from "@/modules/account/erasure";
 import { cancelSubscriptionNow } from "./billing";
 import { isDemoAddress } from "./demo-mode";
+import { syncGrantedPlans } from "./grants";
 import { loadWorkspaceMember } from "./nodes/access";
 
 const ROLES: Role[] = ["OWNER", "ADMIN", "MEMBER", "GUEST", "CLIENT"];
@@ -205,6 +206,7 @@ export async function transferOwnership(userId: string, workspaceId: string, tar
     db.membership.update({ where: { id: target.id }, data: { role: "OWNER", crmAccess: true } }),
     db.membership.update({ where: { id: me.id }, data: { role: "ADMIN" } }),
   ]);
+  await syncGrantedPlans(targetUserId);
   await record(userId, "ownership_transferred", { workspaceId, to: targetUserId });
 }
 

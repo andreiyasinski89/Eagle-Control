@@ -33,7 +33,13 @@
     "sent": "Sprawdź skrzynkę — link do logowania jest w drodze.",
     "google": "Kontynuuj z Google",
     "demo": "Otwórz demo",
-    "demoNote": "Publiczne demo: wszyscy widzą te same dane testowe, które są codziennie resetowane. Nie wpisuj danych osobowych."
+    "demoNote": "Publiczne demo: wszyscy widzą te same dane testowe, które są codziennie resetowane. Nie wpisuj danych osobowych.",
+    "terms": "Akceptuję <terms>regulamin</terms> i <privacy>politykę prywatności</privacy>",
+    "sendFailed": "Nie udało się wysłać linku. Sprawdź adres i spróbuj później.",
+    "confirmTitle": "Potwierdź logowanie",
+    "confirmHint": "Naciśnij przycisk, aby dokończyć logowanie. Link działa tylko raz.",
+    "confirmInvalid": "Ten link logowania jest nieprawidłowy. Poproś o nowy na stronie logowania.",
+    "confirmButton": "Zaloguj się"
   },
   "onboarding": {
     "title": "Utwórz przestrzeń roboczą",
@@ -851,7 +857,8 @@
     "pastDue": "Ostatnia płatność nie powiodła się. Zaktualizuj kartę do {date}, aby zachować Pro.",
     "graceExpired": "Płatność nie wpłynęła na czas, przestrzeń ma plan Free. Nic nie usunięto.",
     "notConfigured": "Płatności nie są skonfigurowane na tym serwerze.",
-    "ownerOnly": "Plan może zmienić tylko właściciel przestrzeni."
+    "ownerOnly": "Plan może zmienić tylko właściciel przestrzeni.",
+    "granted": "Plan Pro został przyznany tej przestrzeni przez administratora."
   },
   "developers": {
     "title": "API i webhooki",
@@ -993,5 +1000,13 @@
     "cancelDeletion": "Zachowaj konto",
     "bannerText": "Twoje konto zostanie usunięte {date}.",
     "bannerCancel": "Anuluj usunięcie"
+  },
+  "legal": {
+    "back": "Wróć do logowania",
+    "draft": "Wersja robocza: zanim na niej polegasz, pokaż ją prawnikowi.",
+    "operator": "Odpowiedzialny za usługę",
+    "operatorMissing": "(jeszcze nie podano)",
+    "privacy": "Polityka prywatności",
+    "terms": "Regulamin"
   }
 }

@@ -2,6 +2,7 @@ import { db } from "@/server/db";
 import { getMyDay } from "@/server/services/crm/my-day";
 import { announceToSlack } from "@/server/integrations/slack";
 import { notify } from "@/server/services/notify";
+import { syncGrantedPlans } from "@/server/services/grants";
 import { recomputeProject } from "@/server/services/nodes/recompute";
 
 /**
@@ -109,12 +110,14 @@ export async function dispatchReminders(now = new Date()): Promise<{ manual: num
 /** Housekeeping: lead submissions keep personal data, so they are not kept forever. */
 export async function maintenance(now = new Date()): Promise<Record<string, number>> {
   const ago = (days: number) => new Date(now.getTime() - days * DAY);
-  const [leads, sessions, tokens, invites, read] = await Promise.all([
+  const [leads, sessions, tokens, invites, read, attempts, granted] = await Promise.all([
     db.leadIngest.deleteMany({ where: { createdAt: { lt: ago(90) } } }),
     db.session.deleteMany({ where: { expires: { lt: now } } }),
     db.verificationToken.deleteMany({ where: { expires: { lt: now } } }),
     db.invitation.updateMany({ where: { status: "PENDING", expiresAt: { lt: now } }, data: { status: "EXPIRED" } }),
     db.notification.deleteMany({ where: { readAt: { lt: ago(180) } } }),
+    db.signInAttempt.deleteMany({ where: { at: { lt: ago(2) } } }),
+    syncGrantedPlans(),
   ]);
-  return { leadSubmissions: leads.count, sessions: sessions.count, verificationTokens: tokens.count, invitations: invites.count, notifications: read.count };
+  return { leadSubmissions: leads.count, sessions: sessions.count, verificationTokens: tokens.count, invitations: invites.count, notifications: read.count, signInAttempts: attempts.count, grantedPlans: granted.granted };
 }

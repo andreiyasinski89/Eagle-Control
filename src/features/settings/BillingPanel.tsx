@@ -17,6 +17,7 @@ interface Billing {
   graceEndsAt: string | null;
   graceExpired: boolean;
   hasCustomer: boolean;
+  granted: boolean;
   usage: Record<string, { used: number; limit: number | null }>;
 }
 
@@ -74,7 +75,12 @@ export function BillingPanel({ workspaceId, checkout }: { workspaceId: string; c
             </div>
           )}
         </div>
-        {!data.configured && <p className="mt-3 text-sm text-muted-foreground">{t("notConfigured")}</p>}
+        {data.granted && (
+          <p className="mt-3 text-sm text-muted-foreground" data-testid="plan-granted">
+            {t("granted")}
+          </p>
+        )}
+        {!data.configured && !data.granted && <p className="mt-3 text-sm text-muted-foreground">{t("notConfigured")}</p>}
         {!data.canManage && <p className="mt-3 text-sm text-muted-foreground">{t("ownerOnly")}</p>}
       </section>
       <section className="rounded-lg border border-border bg-card p-4">

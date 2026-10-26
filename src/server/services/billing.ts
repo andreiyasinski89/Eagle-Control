@@ -38,6 +38,8 @@ export async function getBilling(userId: string, workspaceId: string, now = new 
     configured: billingConfigured(),
     canManage: can(m, "billing:manage"),
     status: sub?.status ?? "none",
+    /** Pro that the administrator gave (PRO_OWNER_EMAILS), not a Stripe subscription. */
+    granted: !sub && ws.plan !== "FREE",
     renewsAt: sub?.currentPeriodEnd ?? null,
     cancelAtPeriodEnd: sub?.cancelAtPeriodEnd ?? false,
     pastDue: !!grace,
