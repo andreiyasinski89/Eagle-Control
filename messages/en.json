@@ -23,7 +23,10 @@
     "integrations": "Integrations",
     "billing": "Billing",
     "developers": "Developers",
-    "account": "Account"
+    "account": "Account",
+    "groupWork": "Work",
+    "groupCustomers": "Customers",
+    "groupInsights": "Insights"
   },
   "auth": {
     "title": "Sign in to MeetOwl",
@@ -39,7 +42,12 @@
     "confirmTitle": "Confirm sign-in",
     "confirmHint": "Press the button to finish signing in. The link works once.",
     "confirmInvalid": "This sign-in link is not valid. Ask for a new one on the sign-in page.",
-    "confirmButton": "Sign in"
+    "confirmButton": "Sign in",
+    "tagline": "Plan work on a mind map. Win deals in the same place.",
+    "point1": "One map for tasks, sprints and customers",
+    "point2": "Time, calendar and Telegram built in",
+    "point3": "Share progress with clients in their own portal",
+    "footer": "Agile mind map and CRM for small teams"
   },
   "onboarding": {
     "title": "Create your workspace",
@@ -573,7 +581,16 @@
     "needNextStep": "Deals that need a next step",
     "staleDeals": "Deals going cold",
     "coldContacts": "Contacts without a touch",
-    "reminders": "Reminders"
+    "reminders": "Reminders",
+    "hello": "Hello{name}",
+    "morning": "Good morning{name}",
+    "afternoon": "Good afternoon{name}",
+    "evening": "Good evening{name}",
+    "statTasks": "Tasks to do",
+    "statMeetings": "Meetings",
+    "statAttention": "Need attention",
+    "allClearTitle": "Your day is clear",
+    "openProjects": "Open projects"
   },
   "notifications": {
     "title": "Notifications",
@@ -1013,5 +1030,25 @@
     "operatorMissing": "(not set yet)",
     "privacy": "Privacy policy",
     "terms": "Terms of use"
+  },
+  "shell": {
+    "search": "Search or jump to…",
+    "searchPlaceholder": "Type a page, project or action",
+    "noResults": "Nothing found.",
+    "goTo": "Go to",
+    "projects": "Projects",
+    "workspaces": "Workspaces",
+    "actions": "Actions",
+    "toggleTheme": "Switch light or dark theme",
+    "account": "Your account",
+    "signOut": "Sign out",
+    "paletteHint": "Arrows to move, Esc to close",
+    "open": "Open",
+    "switchWorkspace": "Switch workspace",
+    "workspace": "Workspace",
+    "newWorkspace": "New workspace",
+    "userMenu": "Account menu",
+    "menu": "Menu",
+    "close": "Close"
   }
 }

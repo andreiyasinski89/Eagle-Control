@@ -23,7 +23,10 @@
     "integrations": "Integracje",
     "billing": "Płatności",
     "developers": "Dla programistów",
-    "account": "Konto"
+    "account": "Konto",
+    "groupWork": "Praca",
+    "groupCustomers": "Klienci",
+    "groupInsights": "Analizy"
   },
   "auth": {
     "title": "Zaloguj się do MeetOwl",
@@ -39,7 +42,12 @@
     "confirmTitle": "Potwierdź logowanie",
     "confirmHint": "Naciśnij przycisk, aby dokończyć logowanie. Link działa tylko raz.",
     "confirmInvalid": "Ten link logowania jest nieprawidłowy. Poproś o nowy na stronie logowania.",
-    "confirmButton": "Zaloguj się"
+    "confirmButton": "Zaloguj się",
+    "tagline": "Planuj pracę na mapie myśli. Domykaj sprzedaż w tym samym miejscu.",
+    "point1": "Jedna mapa dla zadań, sprintów i klientów",
+    "point2": "Czas, kalendarz i Telegram w środku",
+    "point3": "Pokazuj klientom postępy w ich portalu",
+    "footer": "Mapa Agile i CRM dla małych zespołów"
   },
   "onboarding": {
     "title": "Utwórz przestrzeń roboczą",
@@ -573,7 +581,16 @@
     "needNextStep": "Szanse bez następnego kroku",
     "staleDeals": "Stygnące szanse",
     "coldContacts": "Kontakty bez kontaktu",
-    "reminders": "Przypomnienia"
+    "reminders": "Przypomnienia",
+    "hello": "Cześć{name}",
+    "morning": "Dzień dobry{name}",
+    "afternoon": "Dzień dobry{name}",
+    "evening": "Dobry wieczór{name}",
+    "statTasks": "Zadań do zrobienia",
+    "statMeetings": "Spotkań",
+    "statAttention": "Wymaga uwagi",
+    "allClearTitle": "Na dziś wszystko gotowe",
+    "openProjects": "Otwórz projekty"
   },
   "notifications": {
     "title": "Powiadomienia",
@@ -1013,5 +1030,25 @@
     "operatorMissing": "(jeszcze nie podano)",
     "privacy": "Polityka prywatności",
     "terms": "Regulamin"
+  },
+  "shell": {
+    "search": "Szukaj lub przejdź…",
+    "searchPlaceholder": "Wpisz stronę, projekt lub akcję",
+    "noResults": "Nic nie znaleziono.",
+    "goTo": "Przejdź do",
+    "projects": "Projekty",
+    "workspaces": "Przestrzenie",
+    "actions": "Akcje",
+    "toggleTheme": "Przełącz motyw jasny lub ciemny",
+    "account": "Twoje konto",
+    "signOut": "Wyloguj",
+    "paletteHint": "Strzałki do wyboru, Esc aby zamknąć",
+    "open": "Otwórz",
+    "switchWorkspace": "Zmień przestrzeń",
+    "workspace": "Przestrzeń",
+    "newWorkspace": "Nowa przestrzeń",
+    "userMenu": "Menu konta",
+    "menu": "Menu",
+    "close": "Zamknij"
   }
 }

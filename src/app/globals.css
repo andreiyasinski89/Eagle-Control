@@ -2,36 +2,43 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* "Violet Dusk" (21st.dev community theme) mapped onto the app's tokens. */
 :root {
-  --background: #fafaf9;
-  --foreground: #1c1917;
-  --muted: #f0efed;
-  --muted-foreground: #6b6560;
-  --border: #e4e2de;
-  --card: #ffffff;
-  --primary: #4f46e5;
-  --primary-foreground: #ffffff;
-  --danger: #dc2626;
+  --background: hsl(210 40% 98%);
+  --foreground: hsl(224 71% 4%);
+  --muted: hsl(220 14% 96%);
+  --muted-foreground: hsl(220 9% 40%);
+  --border: hsl(220 13% 90%);
+  --card: hsl(0 0% 100%);
+  --primary: hsl(263 70% 50%);
+  --primary-foreground: hsl(210 40% 98%);
+  --accent: hsl(263 80% 96%);
+  --accent-foreground: hsl(263 70% 42%);
+  --sidebar: hsl(0 0% 100%);
+  --danger: hsl(0 72% 48%);
   --health-green: #16a34a;
   --health-yellow: #d97706;
   --health-red: #dc2626;
-  --edge: #b9b4ad;
+  --edge: hsl(220 13% 78%);
 }
 
 .dark {
-  --background: #131211;
-  --foreground: #f5f4f2;
-  --muted: #211f1d;
-  --muted-foreground: #a09a93;
-  --border: #302d2a;
-  --card: #1a1917;
-  --primary: #818cf8;
-  --primary-foreground: #131211;
+  --background: hsl(260 25% 3%);
+  --foreground: hsl(210 40% 98%);
+  --muted: hsl(260 20% 12%);
+  --muted-foreground: hsl(260 10% 72%);
+  --border: hsl(260 20% 16%);
+  --card: hsl(260 25% 5.5%);
+  --primary: hsl(263 85% 68%);
+  --primary-foreground: hsl(260 25% 4%);
+  --accent: hsl(263 60% 16%);
+  --accent-foreground: hsl(263 90% 80%);
+  --sidebar: hsl(260 25% 4%);
   --danger: #f87171;
   --health-green: #4ade80;
   --health-yellow: #fbbf24;
   --health-red: #f87171;
-  --edge: #4a4641;
+  --edge: hsl(260 12% 30%);
 }
 
 @theme inline {
@@ -43,11 +50,38 @@
   --color-card: var(--card);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-sidebar: var(--sidebar);
   --color-danger: var(--danger);
+  --font-sans: var(--font-inter), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Softer corners than Tailwind's defaults, as in the theme. */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-inter), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  letter-spacing: -0.006em;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* A visible keyboard focus everywhere, in the accent colour. In the base layer so a component's own outline utility still wins. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

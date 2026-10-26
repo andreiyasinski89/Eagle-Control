@@ -93,3 +93,11 @@
 - Lead forms: allowed origins are compared as origins (a pasted trailing slash or path no longer blocks the site).
 - `docs/integrations/gmail-leads.gs`: Google Apps Script that turns lead e-mails from the website form into CRM leads (English, Russian, Polish field labels, one send per e-mail, dry run).
 - `docs/INTEGRATIONS.md` (Russian): Inngest, Google Calendar (Google Cloud setup, publishing to avoid the 7-day token expiry), Telegram, website leads.
+
+## 0.8.0 — New look: Violet Dusk, app shell, command palette
+
+- Theme: the **Violet Dusk** palette from 21st.dev (light and dark) mapped onto the app's tokens, softer corners, the Inter typeface (covers English, Polish and Russian), a focus ring that components can still override.
+- App shell: sidebar with a workspace switcher, grouped navigation and an account menu (Account, Sign out); a top bar with search, timer, notifications, language and theme; a drawer menu on phones.
+- **Command palette** (Ctrl+K / ⌘K or the search box): pages, projects, other workspaces, switch theme, account.
+- Sign-in: two-column layout with the product pitch. My day: greeting, three summary tiles, loading skeletons and a friendlier empty state.
+- Tests: 3 for the shell helpers.

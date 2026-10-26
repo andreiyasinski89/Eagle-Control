@@ -1,5 +1,6 @@
 import { redirect } from "@/i18n/navigation";
-import { Sidebar } from "@/components/layout/sidebar";
+import { CommandPalette } from "@/components/layout/command-palette";
+import { Sidebar, type ShellProps } from "@/components/layout/sidebar";
 import { DeletionBanner } from "@/components/layout/deletion-banner";
 import { Topbar } from "@/components/layout/topbar";
 import { QueryProvider } from "@/components/query-provider";
@@ -30,16 +31,18 @@ export default async function WorkspaceLayout({
   if (membership.role === "CLIENT") return redirect({ href: `/portal/${slug}`, locale }); // clients never see the workspace app
 
   const workspaces = await listWorkspacesForUser(userId);
+  const shell: ShellProps = { slug, showCrm: can(membership, "crm:read"), workspaces, user: { name: session?.user?.name ?? null, email: session?.user?.email ?? "" } };
   return (
-    <div className="flex min-h-screen flex-col">
-      <DeletionBanner userId={userId} />
-      <Topbar current={membership.workspace} workspaces={workspaces} />
-      <div className="flex flex-1">
-        <Sidebar slug={slug} showCrm={can(membership, "crm:read")} />
-        <main className="min-w-0 flex-1">
-          <QueryProvider>{children}</QueryProvider>
-        </main>
+    <QueryProvider>
+      <div className="flex min-h-screen">
+        <Sidebar {...shell} />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <DeletionBanner userId={userId} />
+          <Topbar current={membership.workspace} shell={shell} />
+          <main className="min-w-0 flex-1">{children}</main>
+        </div>
       </div>
-    </div>
+      <CommandPalette workspaceId={membership.workspace.id} {...shell} />
+    </QueryProvider>
   );
 }
