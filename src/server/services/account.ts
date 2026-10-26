@@ -12,6 +12,7 @@ import { disconnectTelegram } from "@/server/integrations/telegram";
 import { safeEqual, sha256 } from "@/server/integrations/common";
 import { dueForErasure, planErasure, REMOVED_COMMENT, tombstoneEmail, type WorkspaceFacts } from "@/modules/account/erasure";
 import { cancelSubscriptionNow } from "./billing";
+import { isDemoAddress } from "./demo-mode";
 import { loadWorkspaceMember } from "./nodes/access";
 
 const ROLES: Role[] = ["OWNER", "ADMIN", "MEMBER", "GUEST", "CLIENT"];
@@ -37,6 +38,7 @@ async function activeUser(userId: string) {
  */
 export async function sendChallenge(userId: string, action: Sensitive, now = new Date()): Promise<{ sentTo: string; expiresAt: Date }> {
   const u = await activeUser(userId);
+  if (env().DEMO_MODE && isDemoAddress(u.email)) throw new ApiError(403, "demo_account", "The demo account cannot be exported or deleted.");
   if ((await db.accountChallenge.count({ where: { userId, createdAt: { gt: new Date(now.getTime() - 3_600_000) } } })) >= 3) throw new ApiError(429, "rate_limited", "Too many codes requested. Try again in an hour.");
   const code = String(randomInt(100_000, 1_000_000));
   const expiresAt = new Date(now.getTime() + CHALLENGE_TTL_MS);

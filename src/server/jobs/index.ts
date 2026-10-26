@@ -1,6 +1,7 @@
 import { env } from "@/lib/env";
 import { deliverPending } from "@/server/services/notify";
 import "@/server/integrations/register";
+import { resetDemo } from "@/server/services/demo-mode";
 import { runDueErasures } from "@/server/services/account";
 import { expireGrace } from "@/server/services/billing";
 import { purgeIdempotency } from "@/server/public-api/dispatch";
@@ -21,6 +22,8 @@ export const handlers = {
   "calendar/poll": async () => pollAll(),
   "billing/expire": async () => expireGrace(),
   "account/erase": async () => runDueErasures(),
+  /** Public demo only: puts the sample workspace back as it was. */
+  "demo/reset": async () => (env().DEMO_MODE ? resetDemo() : { skipped: true }),
   "webhooks/deliver": async () => deliverDue(),
   "api/purge": async () => ({ idempotency: await purgeIdempotency(), deliveries: await purgeDeliveries() }),
 } satisfies Record<string, (data: Record<string, unknown>) => Promise<unknown>>;

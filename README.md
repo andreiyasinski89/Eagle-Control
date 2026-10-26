@@ -12,6 +12,8 @@ The history by phase:
 **Phase 2** (mind map core): projects from templates, node tree with nesting rules, progress roll-up, heatmap, drawer, comments with @mentions, tags, attachments, filters, search, undo/redo.
 **Phase 3** (CRM): pipelines and deal board, companies, contacts, activities, My Day, CSV import/export, duplicate merge, GDPR tools, lead forms and webhook, deal → project from a template, Client Map.
 
+**Want a link to click instead of installing anything?** Publish a demo on Vercel in about ten minutes: see [docs/DEPLOY.md](docs/DEPLOY.md).
+
 ## Run locally (with Docker)
 
 Requirements: Node 20+, Docker (Postgres, Mailpit, MinIO).

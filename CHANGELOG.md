@@ -65,3 +65,9 @@
 - Download my data (JSON) and delete my account, both behind an e-mailed code; cancellable grace period; hourly erasure job; Google access revoked and Stripe subscription cancelled where applicable; anonymisation of authorship; optional removal of own comments and uploads.
 - Ownership handover (**Make owner**) so a sole owner can leave; Account page for everyone including clients; pending-deletion banner.
 - Tests: 452 in total (new: erasure planning, 14 integration tests for codes, export, handover, scheduling and erasure with fakes for Stripe, Google and storage).
+
+## 0.6.1 — Public demo and one-click hosting
+
+- `DEMO_MODE`: "Open the demo" button, shared sample workspace built on first visit, daily reset job.
+- `vercel.json` (cron), `vercel-build` (applies migrations), `postinstall` generates the Prisma client; `docs/DEPLOY.md` step by step.
+- The seed moved into a service so the app and `npm run db:seed` share it.

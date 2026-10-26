@@ -19,6 +19,7 @@ export const functions = [
   job("maintenance/run", { cron: "30 3 * * *" }),
   job("billing/expire", { cron: "15 4 * * *" }),
   job("account/erase", { cron: "20 * * * *" }),
+  job("demo/reset", { cron: "0 3 * * *" }),
   job("webhooks/deliver", { cron: "* * * * *" }),
   job("api/purge", { cron: "45 3 * * *" }),
   job("calendar/push"),

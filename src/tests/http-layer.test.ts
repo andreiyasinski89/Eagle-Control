@@ -111,6 +111,7 @@ function routeFiles(dir: string): string[] {
 const OWN_PROTECTION: Record<string, string> = {
   "api/auth/[...nextauth]/route.ts": "Auth.js; sign-in POSTs are rate limited",
   "api/billing/webhook/route.ts": "Stripe signature",
+  "api/demo/login/route.ts": "404 unless DEMO_MODE; rate limited; only the shared sample workspace",
   "api/health/route.ts": "reveals only up/down",
   "api/inngest/route.ts": "Inngest signing key",
   "api/jobs/[name]/route.ts": "CRON_SECRET bearer, off when unset",

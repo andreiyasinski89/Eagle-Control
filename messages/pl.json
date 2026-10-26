@@ -31,7 +31,9 @@
     "email": "E-mail służbowy",
     "sendLink": "Wyślij link",
     "sent": "Sprawdź skrzynkę — link do logowania jest w drodze.",
-    "google": "Kontynuuj z Google"
+    "google": "Kontynuuj z Google",
+    "demo": "Otwórz demo",
+    "demoNote": "Publiczne demo: wszyscy widzą te same dane testowe, które są codziennie resetowane. Nie wpisuj danych osobowych."
   },
   "onboarding": {
     "title": "Utwórz przestrzeń roboczą",

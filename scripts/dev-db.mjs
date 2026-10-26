@@ -24,7 +24,7 @@ for (const name of readdirSync(root).filter((n) => /^\d{4}_/.test(n)).sort()) {
   console.log("applied", name);
 }
 
-const server = new PGLiteSocketServer({ db, port: 5433, host: "127.0.0.1" });
+const server = new PGLiteSocketServer({ db, port: Number(process.env.PGLITE_PORT ?? 5433), host: "127.0.0.1" });
 await server.start();
 console.log("PGlite listening on postgresql://postgres:postgres@127.0.0.1:5433/postgres?connection_limit=1&pgbouncer=true");
 process.on("SIGINT", async () => { await server.stop(); await db.close(); process.exit(0); });

@@ -31,7 +31,9 @@
     "email": "Work email",
     "sendLink": "Send magic link",
     "sent": "Check your inbox — the sign-in link is on its way.",
-    "google": "Continue with Google"
+    "google": "Continue with Google",
+    "demo": "Open the demo",
+    "demoNote": "A public demo: everyone shares the same sample data, which is reset every day. Do not enter personal information."
   },
   "onboarding": {
     "title": "Create your workspace",

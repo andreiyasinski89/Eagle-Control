@@ -4,6 +4,7 @@
   "description": "",
   "scripts": {
     "postinstall": "prisma generate",
+    "vercel-build": "prisma migrate deploy && prisma generate && next build",
     "dev": "next dev",
     "build": "prisma generate && next build",
     "start": "next start",

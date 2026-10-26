@@ -1,4 +1,6 @@
 import { getTranslations } from "next-intl/server";
+import { env } from "@/lib/env";
+import { Button } from "@/components/ui/button";
 import { SignInForm } from "./sign-in-form";
 
 export default async function SignInPage({
@@ -9,6 +11,9 @@ export default async function SignInPage({
   const [t, sp] = await Promise.all([getTranslations("auth"), searchParams]);
   const googleEnabled = Boolean(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET);
   // Only same-site relative callbacks, never an arbitrary URL.
+  const demo = env().DEMO_MODE;
+  // A public demo may have no mail service: then the demo button is the only way in.
+  const mailEnabled = !demo || Boolean(process.env.RESEND_API_KEY);
   const callbackUrl = sp.callbackUrl?.startsWith("/") && !sp.callbackUrl.startsWith("//") ? sp.callbackUrl : "/";
   return (
     <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 px-4">
@@ -21,7 +26,17 @@ export default async function SignInPage({
           {t("sent")}
         </p>
       ) : (
-        <SignInForm googleEnabled={googleEnabled} callbackUrl={callbackUrl} />
+        <>
+          {demo && (
+            <form method="post" action="/api/demo/login" className="flex flex-col gap-2" data-testid="demo-login">
+              <Button type="submit">
+                {t("demo")}
+              </Button>
+              <p className="text-xs text-muted-foreground">{t("demoNote")}</p>
+            </form>
+          )}
+          {mailEnabled && <SignInForm googleEnabled={googleEnabled} callbackUrl={callbackUrl} />}
+        </>
       )}
     </main>
   );

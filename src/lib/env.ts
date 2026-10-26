@@ -12,6 +12,7 @@ const schema = z.object({
   SMTP_PORT: z.coerce.number().default(1025),
   SECRETS_KEY: z.string().optional(),
   ACCOUNT_DELETION_GRACE_DAYS: z.coerce.number().int().min(0).max(30).default(7),
+  DEMO_MODE: z.preprocess((v) => v === "true" || v === "1", z.boolean()),
   CRON_SECRET: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(16).optional()),
   INNGEST_EVENT_KEY: z.string().optional(),
   INNGEST_SIGNING_KEY: z.string().optional(),
