@@ -19,6 +19,7 @@ import { LoseDialog, NewDealDialog, WinProjectDialog } from "./DealDialogs";
 import { initials, money, moneyLines, shortDate } from "./format";
 import { memberName, useMembers, usePipelines } from "./hooks";
 import type { BoardColumnDto, BoardDto, DealCardDto } from "./types";
+import { SkeletonBoard } from "@/components/ui/skeleton";
 
 interface MoveVars {
   dealId: string;
@@ -354,7 +355,7 @@ export function PipelineBoard({ workspaceId, slug, canWrite, meId }: { workspace
         ) : (
         <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragCancel={() => setDragging(null)}>
           <div className="flex min-h-0 flex-1 gap-3 overflow-x-auto p-4" data-testid="board">
-            {board.isLoading && <p className="text-sm text-muted-foreground">…</p>}
+            {board.isLoading && <SkeletonBoard />}
             {cols.map((c) => (
               <Column key={c.id} col={c} owners={ownerOf} selectedId={dealId} onOpen={(id) => set("deal", id)} locale={locale} />
             ))}

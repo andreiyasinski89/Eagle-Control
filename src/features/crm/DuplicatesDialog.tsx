@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { api, ApiFailure } from "@/features/mindmap/api";
+import { SkeletonRows } from "@/components/ui/skeleton";
 
 interface Item {
   id: string;
@@ -45,7 +46,7 @@ export function DuplicatesDialog({ open, onClose, workspaceId, entity }: { open:
           {error}
         </p>
       )}
-      {groups.isLoading && <p className="text-sm text-muted-foreground">…</p>}
+      {groups.isLoading && <SkeletonRows rows={3} />}
       {groups.data?.length === 0 && <p className="py-6 text-center text-sm text-muted-foreground">{t("noDuplicates")}</p>}
       <div className="flex flex-col gap-3">
         {groups.data?.map((g, gi) => {

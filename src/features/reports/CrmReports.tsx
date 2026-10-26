@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { api, ApiFailure } from "@/features/mindmap/api";
 import { GroupedBars, HBars, SERIES } from "./Charts";
 import { Card, Stat } from "./ui";
+import { SkeletonRows } from "@/components/ui/skeleton";
 
 interface Report {
   pipeline: { id: string; name: string };
@@ -57,7 +58,7 @@ export function CrmReports({ workspaceId, canExport }: { workspaceId: string; ca
           {error.message}
         </p>
       )}
-      {isLoading && <p className="text-sm text-muted-foreground">…</p>}
+      {isLoading && <SkeletonRows rows={4} />}
       {data && (
         <>
           <div className="grid gap-3 sm:grid-cols-4">

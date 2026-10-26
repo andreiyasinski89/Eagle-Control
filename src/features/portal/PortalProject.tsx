@@ -8,6 +8,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { api, ApiFailure } from "@/features/mindmap/api";
 import { cn } from "@/lib/utils";
+import { SkeletonRows } from "@/components/ui/skeleton";
 
 interface PNode {
   id: string;
@@ -87,7 +88,7 @@ export function PortalProject({ projectId }: { projectId: string }) {
     return out;
   }, [data, projectId]);
 
-  if (isLoading) return <p className="p-6 text-sm text-muted-foreground">…</p>;
+  if (isLoading) return <div className="p-6"><SkeletonRows rows={5} /></div>;
   if (error || !data) return <p role="alert" className="p-6 text-sm text-danger">{error instanceof ApiFailure ? error.message : t("error")}</p>;
 
   const pending = data.approvals.filter((a) => a.status === "PENDING");

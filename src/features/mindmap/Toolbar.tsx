@@ -32,7 +32,7 @@ export function Toolbar({ rootId, selectedId, onFit, onSearch }: Props) {
   return (
     <>
       <Panel position="top-left" className="!m-3 flex flex-col gap-2">
-        <div className="flex items-center gap-1 rounded-lg border border-border bg-card p-1 shadow-sm" role="toolbar" aria-label={t("toolbar")}>
+        <div className="flex max-w-[calc(100vw-1.5rem)] items-center gap-1 overflow-x-auto rounded-xl border border-border bg-card p-1 shadow-sm" role="toolbar" aria-label={t("toolbar")}>
           <Button variant="ghost" size="sm" onClick={onFit} aria-label={t("fit")} title={t("fit")}>
             <Maximize className="size-4" />
           </Button>
@@ -56,7 +56,7 @@ export function Toolbar({ rootId, selectedId, onFit, onSearch }: Props) {
             title={t("heatmap")}
           >
             <Flame className="size-4" />
-            {t("heatmap")}
+            <span className="max-md:sr-only">{t("heatmap")}</span>
           </Button>
           <Button
             variant="ghost"
@@ -68,7 +68,7 @@ export function Toolbar({ rootId, selectedId, onFit, onSearch }: Props) {
             title={t("focus")}
           >
             <Focus className="size-4" />
-            {focusId ? t("exitFocus") : t("focus")}
+            <span className="max-md:sr-only">{focusId ? t("exitFocus") : t("focus")}</span>
           </Button>
           <Button
             variant="ghost"
@@ -78,7 +78,7 @@ export function Toolbar({ rootId, selectedId, onFit, onSearch }: Props) {
             onClick={() => setFiltersOpen((v) => !v)}
           >
             <SlidersHorizontal className="size-4" />
-            {t("filters")}
+            <span className="max-md:sr-only">{t("filters")}</span>
             {filtering && <span className="size-1.5 rounded-full bg-primary" />}
           </Button>
         </div>

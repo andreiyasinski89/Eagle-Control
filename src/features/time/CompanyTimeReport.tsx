@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api, ApiFailure } from "@/features/mindmap/api";
 import { formatMinutes } from "@/modules/time/time";
+import { SkeletonRows } from "@/components/ui/skeleton";
 
 interface Report {
   showMoney: boolean;
@@ -68,7 +69,7 @@ export function CompanyTimeReport({ companyId }: { companyId: string }) {
           {error.message}
         </p>
       )}
-      {isLoading && <p className="text-sm text-muted-foreground">…</p>}
+      {isLoading && <SkeletonRows rows={4} />}
 
       {data && (
         <>

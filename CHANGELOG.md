@@ -109,3 +109,8 @@
 - The first view of a map opens at a **readable zoom** with the root at the left, instead of a zoomed-out overview of dots; the fit button still shows the whole tree.
 - Softer cards, themed mini map and controls.
 - Tests: 6 for the first view and the status tones.
+
+## 0.8.2 — Loading states and phone layout
+
+- Loading skeletons instead of a bare ellipsis in 15 places (deal board, deal/contact/company pages, client map, reports, time, billing, integrations, account, portal, calendar); a test keeps new bare loaders out.
+- Phone: the view switcher and the map toolbar fit (icons only, labels from tablet width), the mini map is hidden, member rows stack inside their card, settings tabs scroll with a fade at the edge.

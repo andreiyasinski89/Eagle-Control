@@ -63,7 +63,7 @@ export function MindMapView({ payload, backHref }: { payload: TreePayload; backH
             {t("allProjects")}
           </Link>
           <h1 className="truncate text-base font-semibold">{title}</h1>
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex min-w-0 max-w-full items-center gap-3">
             <PresenceBar />
             {payload.role !== "CLIENT" && payload.role !== "GUEST" && <AiAssistant projectId={payload.project.id} workspaceId={payload.project.workspaceId} />}
             <ViewSwitcher />

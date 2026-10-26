@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { api } from "@/features/mindmap/api";
 import { dayOf, isoDay } from "@/modules/views/views";
 import { CalendarGrid, visibleDays, type CalendarMode, type GridItem } from "./CalendarGrid";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Item {
   id: string;
@@ -56,7 +57,7 @@ export function WorkspaceCalendar({ workspaceId, slug }: { workspaceId: string; 
           <input type="checkbox" checked={mine} onChange={(e) => setMine(e.target.checked)} />
           {t("onlyMine")}
         </label>
-        {isLoading && <span className="text-xs text-muted-foreground">…</span>}
+        {isLoading && <Skeleton className="h-4 w-12" />}
         {isError && (
           <span role="alert" className="text-xs text-danger">
             {t("error")}

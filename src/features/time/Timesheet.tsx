@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { api } from "@/features/mindmap/api";
 import { formatMinutes } from "@/modules/time/time";
+import { SkeletonRows } from "@/components/ui/skeleton";
 
 interface Sheet {
   weekStart: string;
@@ -50,7 +51,7 @@ export function Timesheet({ workspaceId, slug }: { workspaceId: string; slug: st
       </div>
 
       {isLoading || !data ? (
-        <p className="text-sm text-muted-foreground">…</p>
+        <SkeletonRows rows={5} />
       ) : data.tasks.length === 0 ? (
         <p className="rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">{t("emptyWeek")}</p>
       ) : (

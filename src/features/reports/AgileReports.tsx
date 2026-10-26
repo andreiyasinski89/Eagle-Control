@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { api, ApiFailure } from "@/features/mindmap/api";
 import { GroupedBars, HBars, LineChart, SERIES, StackedArea } from "./Charts";
 import { Card, Stat } from "./ui";
+import { SkeletonRows } from "@/components/ui/skeleton";
 
 interface Metrics {
   velocity: { sprints: { sprintId: string; title: string; committed: number; completed: number; finished: boolean }[]; average: number | null };
@@ -46,7 +47,7 @@ export function AgileReports({ projects }: { projects: { id: string; title: stri
           {error.message}
         </p>
       )}
-      {isLoading && <p className="text-sm text-muted-foreground">…</p>}
+      {isLoading && <SkeletonRows rows={4} />}
       {data && (
         <>
           <div className="grid gap-3 sm:grid-cols-4">

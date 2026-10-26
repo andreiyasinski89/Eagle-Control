@@ -10,6 +10,7 @@ import { api } from "@/features/mindmap/api";
 import { cn } from "@/lib/utils";
 import { money, moneyLines } from "./format";
 import { TreeMap, type TreeKind, type TreeMapNode } from "./TreeMap";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface MapNodeDto {
   id: string;
@@ -90,7 +91,7 @@ export function ClientMapView({ companyId, slug }: { companyId: string; workspac
       </div>
       <div className="h-[68vh] min-h-96 overflow-hidden rounded-lg border border-border bg-card" data-testid="client-map">
         {isLoading ? (
-          <p className="p-4 text-sm text-muted-foreground">…</p>
+          <Skeleton className="m-4 h-[calc(100%-2rem)] rounded-xl" />
         ) : (
           <TreeMap
             nodes={nodes}

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "@/i18n/navigation";
 import { api, ApiFailure } from "@/features/mindmap/api";
+import { SkeletonRows } from "@/components/ui/skeleton";
 
 interface Ws {
   workspaceId: string;
@@ -181,7 +182,7 @@ export function AccountPanel({ email, name }: { email: string; name: string | nu
             )}
           </>
         ) : (
-          <p className="text-sm text-muted-foreground">…</p>
+          <SkeletonRows rows={3} />
         )}
         {del.error && <p role="alert" className="text-sm text-danger">{del.error}</p>}
       </section>

@@ -18,6 +18,7 @@ import { dayInput, dayToIso, money } from "./format";
 import { useCompanyOptions, useMembers } from "./hooks";
 import { NodeTags } from "./NodeTags";
 import type { ActivityDto, Paged } from "./types";
+import { SkeletonRows } from "@/components/ui/skeleton";
 
 export interface ContactDetail {
   id: string;
@@ -114,7 +115,7 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
 
   const shell = "z-40 w-[440px] shrink-0 overflow-y-auto border-l border-border bg-card max-md:fixed max-md:inset-0 max-md:w-full";
   if (isError) return <aside className={`${shell} p-4 text-sm text-muted-foreground`}>{t("contactGone")}</aside>;
-  if (!c) return <aside className={`${shell} p-4 text-sm text-muted-foreground`}>…</aside>;
+  if (!c) return <aside className={`${shell} p-4`}><SkeletonRows rows={5} /></aside>;
   const dis = !canWrite;
   const cold = !c.lastContactedAt || Date.now() - new Date(c.lastContactedAt).getTime() > 30 * 86_400_000;
 

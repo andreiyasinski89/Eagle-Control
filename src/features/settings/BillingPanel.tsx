@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { api, ApiFailure } from "@/features/mindmap/api";
+import { SkeletonRows } from "@/components/ui/skeleton";
 
 interface Billing {
   configured: boolean;
@@ -37,7 +38,7 @@ export function BillingPanel({ workspaceId, checkout }: { workspaceId: string; c
       setError(e instanceof ApiFailure ? e.message : t("error"));
     }
   };
-  if (isLoading || !data) return <p className="p-6 text-sm text-muted-foreground">…</p>;
+  if (isLoading || !data) return <div className="mx-auto max-w-2xl p-6"><SkeletonRows rows={5} /></div>;
   const date = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString(locale) : "—");
 
   return (

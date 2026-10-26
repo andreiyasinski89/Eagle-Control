@@ -91,12 +91,12 @@ export function MembersPanel({ workspaceId, meId, canManage, isOwner, members, i
 
       <ul className="divide-y divide-border rounded-lg border border-border bg-card">
         {members.map((m) => (
-          <li key={m.userId} className="flex items-center justify-between gap-3 p-3">
+          <li key={m.userId} className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
             <div>
               <div className="font-medium">{m.name ?? m.email}</div>
               {m.name && <div className="text-sm text-muted-foreground">{m.email}</div>}
             </div>
-            <div className="flex items-center gap-3 text-sm">
+            <div className="flex flex-wrap items-center gap-3 text-sm">
               <span className="rounded bg-muted px-2 py-0.5">{tr(m.role)}</span>
               {m.crmAccess && <span className="text-muted-foreground">CRM</span>}
               {canManage && (

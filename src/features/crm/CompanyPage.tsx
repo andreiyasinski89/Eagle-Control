@@ -23,6 +23,7 @@ import { CompanyTimeReport } from "@/features/time/CompanyTimeReport";
 import { useMembers, usePipelines } from "./hooks";
 import { NodeTags } from "./NodeTags";
 import type { ActivityDto, Paged } from "./types";
+import { SkeletonRows } from "@/components/ui/skeleton";
 
 interface CompanyDetail {
   id: string;
@@ -98,7 +99,7 @@ export function CompanyPage({ workspaceId, slug, companyId, canWrite, meId, init
   });
 
   if (isError) return <div className="p-6 text-sm text-muted-foreground">{t("companyGone")}</div>;
-  if (!c) return <div className="p-6 text-sm text-muted-foreground">…</div>;
+  if (!c) return <div className="p-6"><SkeletonRows rows={5} /></div>;
   const dis = !canWrite;
   const text = (key: keyof CompanyDetail & string, label: string) => (
     <FormField label={label}>

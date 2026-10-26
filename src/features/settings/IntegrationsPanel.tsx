@@ -6,6 +6,7 @@ import { Lock } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { api, ApiFailure } from "@/features/mindmap/api";
+import { SkeletonRows } from "@/components/ui/skeleton";
 
 interface Status {
   allowed: boolean;
@@ -53,7 +54,7 @@ export function IntegrationsPanel({ workspaceId, banner }: { workspaceId: string
     act.mutate(fn);
   };
 
-  if (isLoading || !data) return <p className="p-6 text-sm text-muted-foreground">…</p>;
+  if (isLoading || !data) return <div className="p-6"><SkeletonRows rows={5} /></div>;
   if (!data.allowed) {
     return (
       <div data-testid="paywall" className="m-6 flex flex-col items-center gap-3 rounded-lg border border-dashed border-border p-10 text-center">

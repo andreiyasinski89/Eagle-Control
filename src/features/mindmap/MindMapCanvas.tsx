@@ -411,7 +411,7 @@ function Inner({ rootId }: { rootId: string }) {
           pannable
           zoomable
           position="bottom-right"
-          className="!overflow-hidden !rounded-xl !border !border-border !shadow-sm"
+          className="!overflow-hidden !rounded-xl !border !border-border !shadow-sm max-md:!hidden"
           style={{ width: 150, height: 100 }}
           bgColor="var(--card)"
           maskColor="color-mix(in srgb, var(--background) 72%, transparent)"

@@ -20,6 +20,7 @@ import { dayInput, dayToIso, money, shortDate } from "./format";
 import { useCompanyOptions, useContactOptions, useMembers } from "./hooks";
 import { NodeTags } from "./NodeTags";
 import type { ActivityDto, DealDetailDto } from "./types";
+import { SkeletonRows } from "@/components/ui/skeleton";
 
 const ACTIVITY_ICON = { CALL: Phone, EMAIL: Mail, MEETING: CalendarPlus, NOTE: StickyNote, MESSAGE: MessageSquare, TASK: StickyNote } as const;
 
@@ -104,7 +105,7 @@ export function DealDrawer({ workspaceId, slug, dealId, canWrite, meId, onClose,
       </aside>
     );
   }
-  if (!deal) return <aside className="z-40 w-[440px] shrink-0 border-l border-border bg-card p-4 text-sm text-muted-foreground max-md:fixed max-md:inset-0 max-md:w-full">…</aside>;
+  if (!deal) return <aside className="z-40 w-[440px] shrink-0 border-l border-border bg-card p-4 max-md:fixed max-md:inset-0 max-md:w-full"><SkeletonRows rows={6} /></aside>;
 
   const dis = !canWrite;
   const stage = deal.stages.find((s) => s.id === deal.stageId);
