@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #fafaf9;
+  --foreground: #1c1917;
+  --muted: #f0efed;
+  --muted-foreground: #6b6560;
+  --border: #e4e2de;
+  --card: #ffffff;
+  --primary: #4f46e5;
+  --primary-foreground: #ffffff;
+  --danger: #dc2626;
+  --health-green: #16a34a;
+  --health-yellow: #d97706;
+  --health-red: #dc2626;
+  --edge: #b9b4ad;
+}
+
+.dark {
+  --background: #131211;
+  --foreground: #f5f4f2;
+  --muted: #211f1d;
+  --muted-foreground: #a09a93;
+  --border: #302d2a;
+  --card: #1a1917;
+  --primary: #818cf8;
+  --primary-foreground: #131211;
+  --danger: #f87171;
+  --health-green: #4ade80;
+  --health-yellow: #fbbf24;
+  --health-red: #f87171;
+  --edge: #4a4641;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-card: var(--card);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-danger: var(--danger);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}

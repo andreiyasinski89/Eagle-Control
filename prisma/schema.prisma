@@ -1,0 +1,945 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ───────────────────────── Enums ─────────────────────────
+
+enum Plan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MEMBER
+  GUEST
+  CLIENT
+}
+
+enum NodeType {
+  PROJECT
+  EPIC
+  SPRINT
+  TASK
+  SUBTASK
+  DOCUMENT
+  EVENT
+  COMPANY
+  CONTACT
+  DEAL
+}
+
+enum NodeStatus {
+  BACKLOG
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  DONE
+  CANCELLED
+}
+
+enum ProgressMode {
+  MANUAL
+  AUTO
+}
+
+enum Health {
+  GREEN
+  YELLOW
+  RED
+}
+
+enum LinkKind {
+  BLOCKS
+  RELATES
+  ATTACHED
+  DEAL_PROJECT
+}
+
+enum LifecycleStage {
+  LEAD
+  PROSPECT
+  CUSTOMER
+  CHURNED
+}
+
+enum CrmActivityType {
+  CALL
+  EMAIL
+  MEETING
+  NOTE
+  TASK
+  MESSAGE
+}
+
+enum ReminderChannel {
+  IN_APP
+  EMAIL
+}
+
+enum EstimationUnit {
+  HOURS
+  STORY_POINTS
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  EXPIRED
+}
+
+enum IntegrationKind {
+  GOOGLE_CALENDAR
+  GMAIL
+  SLACK
+  GITHUB
+  TELEGRAM
+  WEBHOOK
+}
+
+// ───────────────────────── Auth.js ─────────────────────────
+
+model User {
+  id                  String    @id @default(cuid())
+  name                String?
+  email               String    @unique
+  emailVerified       DateTime?
+  avatar              String?
+  image               String? // Auth.js OAuth avatar; `avatar` is user-chosen
+  timezone            String    @default("UTC")
+  locale              String    @default("en")
+  skills              String[]
+  createdAt           DateTime  @default(now())
+  /// Set when the account was erased; the row stays as an anonymous "Deleted user" so work they authored keeps its structure.
+  deletedAt           DateTime?
+  /// Set while a deletion is scheduled; the account is erased once the grace period has passed.
+  deletionRequestedAt DateTime?
+  deletionOptions     Json?
+
+  accounts          Account[]
+  sessions          Session[]
+  memberships       Membership[]
+  projectAccess     ProjectMember[]
+  savedFilters      SavedFilter[]
+  assignedNodes     Node[]                   @relation("NodeAssignee")
+  createdNodes      Node[]                   @relation("NodeCreator")
+  comments          Comment[]
+  attachments       Attachment[]
+  timeEntries       TimeEntry[]
+  crmActivities     CrmActivity[]
+  reminders         Reminder[]
+  notifications     Notification[]
+  companiesOwned    Company[]
+  contactsOwned     Contact[]
+  dealsOwned        Deal[]
+  runningTimer      RunningTimer?
+  userIntegrations  UserIntegration[]
+  apiTokens         ApiToken[]
+  notificationPrefs NotificationPreference[]
+  calendarLinks     CalendarLink[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ───────────────────────── Platform ─────────────────────────
+
+model Workspace {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  plan      Plan     @default(FREE)
+  region    String   @default("eu")
+  createdAt DateTime @default(now())
+
+  memberships      Membership[]
+  invitations      Invitation[]
+  nodes            Node[]
+  tags             Tag[]
+  pipelines        Pipeline[]
+  lostReasons      LostReason[]
+  templates        ProjectTemplate[]
+  savedFilters     SavedFilter[]
+  crmActivities    CrmActivity[]
+  leadForms        LeadForm[]
+  integrations     Integration[]
+  aiUsage          AiUsage[]
+  notifications    Notification[]
+  subscription     Subscription?
+  userIntegrations UserIntegration[]
+  apiTokens        ApiToken[]
+  webhookEndpoints WebhookEndpoint[]
+}
+
+model Membership {
+  id          String   @id @default(cuid())
+  userId      String
+  workspaceId String
+  role        Role     @default(MEMBER)
+  crmAccess   Boolean  @default(false) // separate flag: who may see deal amounts / CRM
+  hourlyRate  Decimal? @db.Decimal(10, 2)
+  createdAt   DateTime @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workspaceId])
+  @@index([workspaceId])
+}
+
+model Invitation {
+  id          String           @id @default(cuid())
+  workspaceId String
+  email       String
+  role        Role             @default(MEMBER)
+  crmAccess   Boolean          @default(false)
+  tokenHash   String           @unique // sha256 of the emailed token; the token itself is never stored
+  status      InvitationStatus @default(PENDING)
+  invitedById String
+  projectIds  String[] // for GUEST / CLIENT: projects they get access to
+  expiresAt   DateTime
+  createdAt   DateTime         @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, email])
+}
+
+model ProjectMember {
+  nodeId              String
+  userId              String
+  visibleToClientOnly Boolean @default(false)
+
+  node Node @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([nodeId, userId])
+}
+
+model Tag {
+  id          String @id @default(cuid())
+  workspaceId String
+  name        String
+  color       String
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  nodes     NodeTag[]
+
+  @@unique([workspaceId, name])
+}
+
+model SavedFilter {
+  id          String   @id @default(cuid())
+  userId      String
+  workspaceId String
+  name        String
+  criteria    Json
+  createdAt   DateTime @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+// ───────────────────────── Universal node ─────────────────────────
+
+model Node {
+  id                 String          @id @default(cuid())
+  workspaceId        String
+  parentId           String?
+  rootId             String? // project this node belongs to (null on the project itself)
+  type               NodeType
+  title              String
+  description        String?         @db.Text
+  position           Float           @default(0)
+  status             NodeStatus      @default(TODO)
+  progress           Int             @default(0) // 0–100, enforced by CHECK in migration
+  progressMode       ProgressMode    @default(MANUAL)
+  health             Health          @default(GREEN)
+  healthOverride     Health?
+  healthOverrideNote String? // required whenever healthOverride is set (checked in service)
+  startDate          DateTime?
+  dueDate            DateTime?
+  estimation         Decimal?        @db.Decimal(8, 2)
+  estimationUnit     EstimationUnit?
+  assigneeId         String?
+  createdById        String
+  collapsed          Boolean         @default(false)
+  visibleToClient    Boolean         @default(false)
+  data               Json            @default("{}") // validated by a Zod schema per NodeType
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  archivedAt         DateTime?
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  parent    Node?     @relation("Tree", fields: [parentId], references: [id], onDelete: Cascade)
+  children  Node[]    @relation("Tree")
+  assignee  User?     @relation("NodeAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  createdBy User      @relation("NodeCreator", fields: [createdById], references: [id])
+
+  tags          NodeTag[]
+  comments      Comment[]
+  attachments   Attachment[]
+  approvals     Approval[]
+  timeEntries   TimeEntry[]
+  linksFrom     NodeLink[]      @relation("LinkFrom")
+  linksTo       NodeLink[]      @relation("LinkTo")
+  projectAccess ProjectMember[]
+
+  company       Company?
+  contact       Contact?
+  deal          Deal?
+  statusEvents  NodeStatusEvent[]
+  timers        RunningTimer[]
+  calendarLinks CalendarLink[]
+
+  @@index([workspaceId, type])
+  @@index([rootId])
+  @@index([parentId, position])
+  @@index([workspaceId, assigneeId])
+  @@index([workspaceId, dueDate])
+}
+
+model NodeTag {
+  nodeId String
+  tagId  String
+  node   Node   @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([nodeId, tagId])
+}
+
+model NodeLink {
+  id         String   @id @default(cuid())
+  fromNodeId String
+  toNodeId   String
+  kind       LinkKind
+  createdAt  DateTime @default(now())
+
+  from Node @relation("LinkFrom", fields: [fromNodeId], references: [id], onDelete: Cascade)
+  to   Node @relation("LinkTo", fields: [toNodeId], references: [id], onDelete: Cascade)
+
+  @@unique([fromNodeId, toNodeId, kind])
+  @@index([toNodeId, kind])
+}
+
+model Comment {
+  id              String   @id @default(cuid())
+  nodeId          String
+  authorId        String
+  body            Json // Tiptap document
+  mentions        String[]
+  parentCommentId String?
+  isAiGenerated   Boolean  @default(false)
+  /**
+   * Shown in the client portal. Clients' own comments are always visible to them.
+   */
+  visibleToClient Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  node    Node      @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  author  User      @relation(fields: [authorId], references: [id])
+  parent  Comment?  @relation("Thread", fields: [parentCommentId], references: [id], onDelete: Cascade)
+  replies Comment[] @relation("Thread")
+
+  @@index([nodeId, createdAt])
+}
+
+model Attachment {
+  id              String   @id @default(cuid())
+  nodeId          String
+  fileName        String
+  mime            String
+  size            Int
+  url             String
+  uploadedById    String
+  /**
+   * Shown in the client portal. Files clients upload themselves are always visible to them.
+   */
+  visibleToClient Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  node       Node @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  uploadedBy User @relation(fields: [uploadedById], references: [id])
+}
+
+// No FK to Node on purpose: the audit trail must outlive the node.
+model ActivityLog {
+  id          String   @id @default(cuid())
+  workspaceId String
+  nodeId      String?
+  actorId     String?
+  action      String
+  diff        Json?
+  createdAt   DateTime @default(now())
+
+  @@index([nodeId, createdAt])
+  @@index([workspaceId, createdAt])
+}
+
+model TimeEntry {
+  id       String   @id @default(cuid())
+  nodeId   String
+  userId   String
+  minutes  Int
+  date     DateTime @db.Date
+  billable Boolean  @default(false)
+  note     String?
+
+  node Node @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, date])
+  @@index([nodeId])
+}
+
+// ───────────────────────── CRM ─────────────────────────
+
+model Company {
+  nodeId         String         @id
+  workspaceId    String
+  domain         String? // normalised website host, for duplicate detection
+  legalName      String
+  website        String?
+  industry       String?
+  size           String?
+  country        String?
+  city           String?
+  address        String?
+  taxId          String?
+  source         String?
+  ownerId        String?
+  lifecycleStage LifecycleStage @default(LEAD)
+  customFields   Json           @default("{}")
+
+  node  Node  @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  owner User? @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+
+  contacts   Contact[]
+  deals      Deal[]
+  activities CrmActivity[]
+
+  @@index([workspaceId, domain])
+}
+
+model Contact {
+  nodeId          String    @id
+  workspaceId     String
+  phonesNorm      String[] // last 9 digits of each phone, for duplicate detection
+  firstName       String
+  lastName        String?
+  position        String?
+  emails          String[]
+  phones          String[]
+  messengers      Json      @default("{}") // { telegram, whatsapp, instagram }
+  companyId       String?
+  ownerId         String?
+  birthday        DateTime? @db.Date
+  consentGiven    Boolean   @default(false)
+  consentAt       DateTime?
+  lastContactedAt DateTime?
+
+  node    Node     @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  company Company? @relation(fields: [companyId], references: [nodeId], onDelete: SetNull)
+  owner   User?    @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+
+  primaryForDeals Deal[]
+  activities      CrmActivity[]
+
+  @@index([companyId])
+  @@index([emails], type: Gin)
+  @@index([workspaceId])
+  @@index([phonesNorm], type: Gin)
+}
+
+model Pipeline {
+  id          String  @id @default(cuid())
+  workspaceId String
+  name        String
+  isDefault   Boolean @default(false)
+
+  workspace Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  stages    PipelineStage[]
+  deals     Deal[]
+  leadForms LeadForm[]
+}
+
+model PipelineStage {
+  id          String  @id @default(cuid())
+  pipelineId  String
+  name        String
+  order       Int
+  probability Int     @default(0)
+  isWon       Boolean @default(false)
+  isLost      Boolean @default(false)
+
+  pipeline Pipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  deals    Deal[]
+
+  @@unique([pipelineId, order])
+}
+
+model LostReason {
+  id          String @id @default(cuid())
+  workspaceId String
+  name        String
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  deals     Deal[]
+
+  @@unique([workspaceId, name])
+}
+
+model Deal {
+  nodeId            String    @id
+  workspaceId       String
+  stageEnteredAt    DateTime  @default(now()) // for "stuck in stage"
+  pipelineId        String
+  stageId           String
+  amount            Decimal   @default(0) @db.Decimal(14, 2)
+  currency          String    @default("EUR")
+  expectedCloseDate DateTime?
+  probability       Int?
+  ownerId           String?
+  companyId         String?
+  primaryContactId  String?
+  lostReasonId      String?
+  wonAt             DateTime?
+  lostAt            DateTime?
+  source            String?
+  nextStep          String? // empty → deal is highlighted yellow
+  nextStepAt        DateTime?
+  lastActivityAt    DateTime? // drives the "stagnation" heatmap
+
+  node           Node          @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  pipeline       Pipeline      @relation(fields: [pipelineId], references: [id])
+  stage          PipelineStage @relation(fields: [stageId], references: [id])
+  owner          User?         @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  company        Company?      @relation(fields: [companyId], references: [nodeId], onDelete: SetNull)
+  primaryContact Contact?      @relation(fields: [primaryContactId], references: [nodeId], onDelete: SetNull)
+  lostReason     LostReason?   @relation(fields: [lostReasonId], references: [id])
+
+  activities  CrmActivity[]
+  stageEvents DealStageEvent[]
+
+  @@index([pipelineId, stageId])
+  @@index([companyId])
+  @@index([workspaceId, ownerId])
+}
+
+model CrmActivity {
+  id          String          @id @default(cuid())
+  workspaceId String
+  type        CrmActivityType
+  subject     String
+  body        String?         @db.Text
+  dueAt       DateTime?
+  completedAt DateTime?
+  ownerId     String
+  contactId   String?
+  companyId   String?
+  dealId      String?
+  createdAt   DateTime        @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  owner     User      @relation(fields: [ownerId], references: [id])
+  contact   Contact?  @relation(fields: [contactId], references: [nodeId], onDelete: Cascade)
+  company   Company?  @relation(fields: [companyId], references: [nodeId], onDelete: Cascade)
+  deal      Deal?     @relation(fields: [dealId], references: [nodeId], onDelete: Cascade)
+
+  @@index([workspaceId, ownerId, dueAt])
+  @@index([dealId])
+  @@index([contactId])
+  @@index([companyId])
+}
+
+model Reminder {
+  id           String          @id @default(cuid())
+  userId       String
+  targetNodeId String
+  remindAt     DateTime
+  channel      ReminderChannel @default(IN_APP)
+  done         Boolean         @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([remindAt, done])
+}
+
+model ProjectTemplate {
+  id          String  @id @default(cuid())
+  workspaceId String?
+  name        String
+  structure   Json
+  isBuiltIn   Boolean @default(false)
+
+  workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+// ───────────────────────── Cross-cutting (used from later phases) ─────────────────────────
+
+model Notification {
+  id          String    @id @default(cuid())
+  userId      String
+  workspaceId String
+  kind        String
+  payload     Json
+  readAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  dedupeKey       String?
+  /// Channels (email, slack, telegram) still waiting for delivery: a small outbox drained by a background job.
+  pendingChannels String[]  @default([])
+
+  @@unique([userId, dedupeKey])
+  @@index([userId, readAt])
+}
+
+model LeadForm {
+  id          String  @id @default(cuid())
+  workspaceId String
+  name        String
+  pipelineId  String
+  publicKey   String  @unique
+  config      Json
+  enabled     Boolean @default(true)
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  pipeline  Pipeline  @relation(fields: [pipelineId], references: [id])
+}
+
+model Integration {
+  id          String          @id @default(cuid())
+  workspaceId String
+  kind        IntegrationKind
+  config      Json
+  secretEnc   String? // AES-256-GCM, key from SECRETS_KEY
+  createdAt   DateTime        @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, kind])
+}
+
+model AiUsage {
+  id           String   @id @default(cuid())
+  workspaceId  String
+  userId       String?
+  feature      String
+  model        String
+  inputTokens  Int
+  outputTokens Int
+  createdAt    DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, createdAt])
+}
+
+model Subscription {
+  workspaceId       String    @id
+  provider          String    @default("stripe")
+  externalId        String?
+  status            String    @default("none")
+  seats             Int       @default(1)
+  currentPeriodEnd  DateTime?
+  stripeCustomerId  String?   @unique
+  cancelAtPeriodEnd Boolean   @default(false)
+  /**
+   * First failed payment of the current dunning cycle; the grace period counts from here.
+   */
+  pastDueSince      DateTime?
+  /**
+   * Stripe time of the newest event applied, so an older event arriving late is ignored.
+   */
+  lastEventAt       DateTime?
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+/**
+ * Stripe events already handled (webhooks are delivered at least once).
+ */
+model StripeEvent {
+  id         String   @id
+  type       String
+  receivedAt DateTime @default(now())
+}
+
+model ConsentRecord {
+  id            String    @id @default(cuid())
+  contactNodeId String
+  purpose       String
+  givenAt       DateTime
+  source        String?
+  revokedAt     DateTime?
+
+  @@index([contactNodeId])
+}
+
+// Inbound leads (forms and webhooks): audit trail, idempotency, abuse tracing.
+model LeadIngest {
+  id             String   @id @default(cuid())
+  workspaceId    String
+  source         String // "form:<id>" | "webhook"
+  idempotencyKey String?
+  payload        Json
+  ipHash         String?
+  status         String // created | duplicate | rejected
+  contactId      String?
+  dealId         String?
+  error          String?
+  createdAt      DateTime @default(now())
+
+  @@unique([workspaceId, idempotencyKey])
+  @@index([workspaceId, createdAt])
+}
+
+// ───────────────────────── Phase 4 ─────────────────────────
+
+// Every status change of a project node: the raw material for cumulative flow, cycle time and throughput.
+model NodeStatusEvent {
+  id         String      @id @default(cuid())
+  nodeId     String
+  projectId  String
+  fromStatus NodeStatus?
+  toStatus   NodeStatus
+  at         DateTime    @default(now())
+  actorId    String?
+
+  node Node @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, at])
+  @@index([nodeId, at])
+}
+
+// Every stage change of a deal: funnel conversion and sales-cycle reports.
+model DealStageEvent {
+  id          String   @id @default(cuid())
+  dealId      String
+  workspaceId String
+  pipelineId  String
+  fromStageId String?
+  toStageId   String
+  at          DateTime @default(now())
+  actorId     String?
+
+  deal Deal @relation(fields: [dealId], references: [nodeId], onDelete: Cascade)
+
+  @@index([pipelineId, at])
+  @@index([workspaceId, at])
+}
+
+// At most one running timer per person.
+model RunningTimer {
+  userId    String   @id
+  nodeId    String
+  startedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  node Node @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+}
+
+// A person's own connection to an external service (Google Calendar, Telegram).
+model UserIntegration {
+  id          String          @id @default(cuid())
+  userId      String
+  workspaceId String?
+  kind        IntegrationKind
+  externalId  String? // Telegram chat id, Google account e-mail…
+  secretEnc   String? // AES-256-GCM, key from SECRETS_KEY
+  config      Json            @default("{}")
+  createdAt   DateTime        @default(now())
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, kind, workspaceId])
+  @@index([kind, externalId])
+}
+
+// Event node ↔ calendar event.
+model CalendarLink {
+  nodeId       String   @id
+  userId       String
+  calendarId   String
+  externalId   String
+  etag         String?
+  lastSyncedAt DateTime @default(now())
+
+  node Node @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, calendarId, externalId])
+}
+
+model NotificationPreference {
+  userId      String
+  workspaceId String
+  kind        String
+  channels    String[]
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, workspaceId, kind])
+}
+
+// ── Public API ──────────────────────────────────────────────────────────────
+
+/**
+ * Personal access token for the public API; acts as `userId` inside one workspace. Only a hash is stored.
+ */
+model ApiToken {
+  id          String    @id @default(cuid())
+  workspaceId String
+  userId      String
+  name        String
+  prefix      String
+  tokenHash   String    @unique
+  scope       String    @default("read") // read | write
+  expiresAt   DateTime?
+  lastUsedAt  DateTime?
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+}
+
+/**
+ * Responses to POSTs that carried an Idempotency-Key, replayed on retries for a day.
+ */
+model ApiIdempotency {
+  tokenId   String
+  key       String
+  status    Int
+  body      Json
+  createdAt DateTime @default(now())
+
+  @@id([tokenId, key])
+}
+
+model WebhookEndpoint {
+  id          String   @id @default(cuid())
+  workspaceId String
+  url         String
+  secretEnc   String
+  events      String[]
+  enabled     Boolean  @default(true)
+  createdById String
+  createdAt   DateTime @default(now())
+
+  workspace  Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  deliveries WebhookDelivery[]
+
+  @@index([workspaceId])
+}
+
+model WebhookDelivery {
+  id            String    @id @default(cuid())
+  endpointId    String
+  event         String
+  payload       Json
+  status        String    @default("pending") // pending | delivered | failed
+  attempts      Int       @default(0)
+  nextAttemptAt DateTime  @default(now())
+  lastError     String?
+  createdAt     DateTime  @default(now())
+  deliveredAt   DateTime?
+
+  endpoint WebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+
+  @@index([status, nextAttemptAt])
+}
+
+/**
+ * A request for a client to sign off on a node ("approve the design"). One pending request per node.
+ */
+model Approval {
+  id            String    @id @default(cuid())
+  nodeId        String
+  requestedById String
+  status        String    @default("PENDING") // PENDING | APPROVED | CHANGES_REQUESTED
+  request       String?
+  note          String?
+  decidedById   String?
+  decidedAt     DateTime?
+  createdAt     DateTime  @default(now())
+
+  node Node @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
+  @@index([nodeId, status])
+}
+
+/**
+ * A one-time code e-mailed before a sensitive account action (export, deletion). Only a hash is stored.
+ */
+model AccountChallenge {
+  id        String    @id @default(cuid())
+  userId    String
+  action    String
+  codeHash  String
+  attempts  Int       @default(0)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, action])
+}
+
+/**
+ * What happened to an account, kept after the account is gone. No foreign key on purpose.
+ */
+model AccountEvent {
+  id     String   @id @default(cuid())
+  userId String
+  action String
+  detail Json?
+  at     DateTime @default(now())
+
+  @@index([userId, at])
+}
