@@ -17,8 +17,8 @@ The history by phase:
 Requirements: Node 20+, Docker (Postgres, Mailpit, MinIO).
 
 ```bash
-npm install
-cp .env.example .env          # set AUTH_SECRET: openssl rand -base64 32
+npm install                   # also runs `prisma generate`; if you see "@prisma/client did not initialize", run `npx prisma generate`
+cp .env.example .env          # set AUTH_SECRET: openssl rand -base64 32 (Windows: node -e "console.log(require('crypto').randomBytes(32).toString('base64'))")
 docker compose up -d          # postgres :5432, mailpit :8025 (inbox UI), minio :9001
 npx prisma migrate deploy     # applies prisma/migrations (includes CHECK constraints)
 npm run db:seed               # demo workspace + the "New Product Launch" demo project
