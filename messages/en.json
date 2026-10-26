@@ -697,7 +697,9 @@
     },
     "timelineHint": "Drag a bar to move both dates. Red arrows show a blocker that ends after the blocked task starts.",
     "noDates": "No task has a start or due date yet.",
-    "unscheduled": "{n} without dates"
+    "unscheduled": "{n} without dates",
+    "day": "Day",
+    "allDay": "All day"
   },
   "reports": {
     "title": "Reports",

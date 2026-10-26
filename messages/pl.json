@@ -697,7 +697,9 @@
     },
     "timelineHint": "Przeciągnij pasek, aby przesunąć obie daty. Czerwona strzałka: blokujące zadanie kończy się po starcie zablokowanego.",
     "noDates": "Żadne zadanie nie ma jeszcze daty rozpoczęcia ani terminu.",
-    "unscheduled": "Bez dat: {n}"
+    "unscheduled": "Bez dat: {n}",
+    "day": "Dzień",
+    "allDay": "Cały dzień"
   },
   "reports": {
     "title": "Raporty",

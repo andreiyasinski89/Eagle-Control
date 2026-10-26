@@ -71,3 +71,8 @@
 - `DEMO_MODE`: "Open the demo" button, shared sample workspace built on first visit, daily reset job.
 - `vercel.json` (cron), `vercel-build` (applies migrations), `postinstall` generates the Prisma client; `docs/DEPLOY.md` step by step.
 - The seed moved into a service so the app and `npm run db:seed` share it.
+
+## 0.6.2 — Hourly calendar
+
+- Calendar: new **Day** view and a rebuilt **Week** view with an hour-by-hour time grid (like Google Calendar): events at their start time and as tall as they last, overlapping events side by side, an "All day" strip for deadlines and items without a time, a red line for the current time, and the grid opens on the working hours.
+- Month view and drag-to-reschedule (project calendar) are unchanged. Pure layout logic in `src/modules/views/timegrid.ts` with 12 tests.

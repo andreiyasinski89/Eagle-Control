@@ -19,6 +19,8 @@ interface Item {
 }
 
 const timeOf = (iso: string) => (iso.slice(11, 16) === "00:00" ? undefined : iso.slice(11, 16));
+/** Where an event ends on its own day; one that runs past midnight is cut at the end of that day. */
+const endTimeOf = (start: string, end: string | null) => (end ? (dayOf(end) === dayOf(start) ? end.slice(11, 16) : "24:00") : undefined);
 
 /** Deadlines, events, CRM follow-ups and deal dates for the whole workspace in one calendar. */
 export function WorkspaceCalendar({ workspaceId, slug }: { workspaceId: string; slug: string }) {
@@ -40,6 +42,7 @@ export function WorkspaceCalendar({ workspaceId, slug }: { workspaceId: string; 
     title: i.title,
     day: dayOf(i.at),
     time: i.kind === "event" || i.kind === "crm_activity" ? timeOf(i.at) : undefined,
+    endTime: i.kind === "event" && timeOf(i.at) ? endTimeOf(i.at, i.endAt) : undefined,
     tone: i.done ? "done" : i.kind === "event" ? "event" : i.kind === "task" || i.kind === "milestone" ? "default" : "crm",
     href: `/w/${slug}${i.href}`,
     hint: [t(`itemKind.${i.kind}`), i.context].filter(Boolean).join(" · "),
