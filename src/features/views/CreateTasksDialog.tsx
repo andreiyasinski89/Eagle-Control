@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CornerDownRight } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -11,6 +11,7 @@ import { useMembers } from "@/features/crm/hooks";
 import { Link } from "@/i18n/navigation";
 import { api, ApiFailure } from "@/features/mindmap/api";
 import { parseTaskOutline } from "@/modules/nodes/task-outline";
+import { todayIn } from "@/modules/views/tz";
 import { useTimeZone } from "./useTimeZone";
 
 const NEW_EPIC = "__new__";
@@ -44,7 +45,7 @@ export function CreateTasksDialog({ open, onClose, workspaceId, slug, onCreated,
   const t = useTranslations("mytasks");
   const tc = useTranslations("common");
   const qc = useQueryClient();
-  const { userId } = useTimeZone();
+  const { userId, tz, loaded: zoneLoaded } = useTimeZone();
   const members = useMembers(workspaceId);
   const [projectId, setProjectId] = useState("");
   const [parentId, setParentId] = useState("");
@@ -52,16 +53,22 @@ export function CreateTasksDialog({ open, onClose, workspaceId, slug, onCreated,
   const [text, setText] = useState("");
   const [assignee, setAssignee] = useState<string>("me");
   const [due, setDue] = useState("");
+  const [dueTouched, setDueTouched] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /** After "create and add next": how many were just made, and the epic made on the way (so the next batch goes under it too). */
+  const [notice, setNotice] = useState<string | null>(null);
+  const [madeEpics, setMadeEpics] = useState<TreeNode[]>([]);
+  const outlineRef = useRef<HTMLTextAreaElement>(null);
 
   const fixed = !!project;
   const projects = useQuery({ queryKey: ["projects", workspaceId], enabled: open && !fixed, queryFn: () => api.get<{ id: string; title: string }[]>(`/api/v1/workspaces/${workspaceId}/projects`) });
   const tree = useQuery({ queryKey: ["project-tree", projectId], enabled: open && !!projectId && !fixed, queryFn: () => api.get<{ nodes: TreeNode[] }>(`/api/v1/projects/${projectId}/tree`) });
   const parents = useMemo(() => {
-    const all = fixed ? (lists ?? []) : (tree.data?.nodes ?? []);
+    const base = fixed ? (lists ?? []) : (tree.data?.nodes ?? []);
+    const all = [...base, ...madeEpics.filter((e) => !base.some((b) => b.id === e.id))];
     const byId = new Map(all.map((n) => [n.id, n]));
     return all.filter((n) => n.type === "EPIC" || n.type === "SPRINT").map((n) => ({ ...n, context: n.context ?? (n.type === "SPRINT" && n.parentId ? byId.get(n.parentId)?.title : undefined) }));
-  }, [fixed, lists, tree.data]);
+  }, [fixed, lists, tree.data, madeEpics]);
   const loaded = fixed || tree.isSuccess;
   const outline = useMemo(() => parseTaskOutline(text), [text]);
 
@@ -70,6 +77,9 @@ export function CreateTasksDialog({ open, onClose, workspaceId, slug, onCreated,
     if (!open) return;
     setText("");
     setDue("");
+    setDueTouched(false);
+    setNotice(null);
+    setMadeEpics([]);
     setAssignee("me");
     setEpicName("");
     setParentId(listId ?? "");
@@ -77,6 +87,11 @@ export function CreateTasksDialog({ open, onClose, workspaceId, slug, onCreated,
     if (project) setProjectId(project.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- a fresh form per opening
   }, [open]);
+
+  // The date for all starts as today (in the person's own time zone) until they choose another or clear it.
+  useEffect(() => {
+    if (open && zoneLoaded && !dueTouched) setDue(todayIn(tz));
+  }, [open, zoneLoaded, dueTouched, tz]);
 
   useEffect(() => {
     const list = projects.data;
@@ -91,31 +106,44 @@ export function CreateTasksDialog({ open, onClose, workspaceId, slug, onCreated,
   }, [open, projectId, loaded, parents]);
 
   const create = useMutation({
-    mutationFn: async () => {
+    // What was sent is remembered with the request: the person may already be typing the next list when it comes back.
+    mutationFn: async (v: { keepOpen: boolean; text: string; made: { tasks: number; subtasks: number }; due: string }) => {
       let under = parentId;
       if (under === NEW_EPIC || !under) {
         const epic = await api.post<{ node: { id: string } }>("/api/v1/nodes", { parentId: projectId, type: "EPIC", title: epicName.trim() || t("defaultEpic") });
         under = epic.node.id;
+        setMadeEpics((cur) => [...cur, { id: under, type: "EPIC", title: epicName.trim() || t("defaultEpic") }]);
+        setParentId(under);
       }
       return api.post("/api/v1/nodes/task-tree", {
         parentId: under,
-        tasks: outline.tasks,
+        tasks: parseTaskOutline(v.text).tasks,
         assigneeId: assignee === "me" ? userId : assignee || null,
-        dueDate: due ? `${due}T00:00:00.000Z` : null,
+        dueDate: v.due ? `${v.due}T00:00:00.000Z` : null,
       });
     },
-    onSuccess: async () => {
+    onSuccess: async (_r, v) => {
       try {
         localStorage.setItem(LAST_PROJECT, projectId);
       } catch {
         /* only a convenience */
       }
       await Promise.all([qc.invalidateQueries({ queryKey: ["my-tasks"] }), qc.invalidateQueries({ queryKey: ["my-day"] }), qc.invalidateQueries({ queryKey: ["project-tree", projectId] })]);
-      onCreated(outline.count, due || null);
+      onCreated(v.made, v.due || null);
+      if (v.keepOpen) {
+        // The next one: same project, list, assignee and date; only the text starts afresh (and stays if the person has already begun the next list).
+        setNotice(t("madeNext", { n: v.made.tasks + v.made.subtasks }));
+        setText((cur) => (cur === v.text ? "" : cur));
+        setError(null);
+        outlineRef.current?.focus();
+        return;
+      }
       onClose();
     },
     onError: (e) => setError(e instanceof ApiFailure ? e.message : t("createFailed")),
   });
+
+  const send = (keepOpen: boolean) => create.mutate({ keepOpen, text, made: outline.count, due });
 
   const noProjects = !fixed && projects.isSuccess && projects.data.length === 0;
 
@@ -136,7 +164,7 @@ export function CreateTasksDialog({ open, onClose, workspaceId, slug, onCreated,
             setError(null);
             if (outline.count.tasks === 0) return setError(t("problemEmpty"));
             if (!projectId) return setError(t("problemProject"));
-            create.mutate();
+            send(false);
           }}
         >
           <div className={fixed ? "grid gap-3" : "grid gap-3 sm:grid-cols-2"}>
@@ -170,7 +198,22 @@ export function CreateTasksDialog({ open, onClose, workspaceId, slug, onCreated,
           )}
 
           <FormField label={t("list")} hint={t("listHint")}>
-            <textarea className={`${textareaClass} min-h-40 font-mono text-[13px]`} value={text} onChange={(e) => setText(e.target.value)} placeholder={t("listPlaceholder")} autoFocus data-testid="task-outline" />
+            <textarea
+              ref={outlineRef}
+              className={`${textareaClass} min-h-40 font-mono text-[13px]`}
+              value={text}
+              onChange={(e) => (setText(e.target.value), setNotice(null))}
+              onKeyDown={(e) => {
+                // Ctrl or Cmd + Enter saves and opens the next one.
+                if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && outline.count.tasks > 0 && projectId && !create.isPending) {
+                  e.preventDefault();
+                  send(true);
+                }
+              }}
+              placeholder={t("listPlaceholder")}
+              autoFocus
+              data-testid="task-outline"
+            />
           </FormField>
 
           <div className="rounded-lg border border-border bg-muted/30 p-3 text-sm" data-testid="task-outline-preview">
@@ -216,7 +259,7 @@ export function CreateTasksDialog({ open, onClose, workspaceId, slug, onCreated,
               </select>
             </FormField>
             <FormField label={t("dueAll")} hint={t("dueAllHint")}>
-              <Input type="date" value={due} onChange={(e) => setDue(e.target.value)} />
+              <Input type="date" value={due} onChange={(e) => (setDue(e.target.value), setDueTouched(true))} data-testid="task-due" />
             </FormField>
           </div>
 
@@ -225,9 +268,17 @@ export function CreateTasksDialog({ open, onClose, workspaceId, slug, onCreated,
               {error}
             </p>
           )}
-          <div className="flex justify-end gap-2">
+          {notice && (
+            <p role="status" className="text-sm text-muted-foreground" data-testid="task-next-notice">
+              {notice}
+            </p>
+          )}
+          <div className="flex flex-wrap justify-end gap-2">
             <Button type="button" variant="ghost" onClick={onClose}>
-              {tc("cancel")}
+              {notice ? t("done") : tc("cancel")}
+            </Button>
+            <Button type="button" variant="outline" disabled={create.isPending || outline.count.tasks === 0 || !projectId} onClick={() => send(true)} data-testid="task-create-next" title={t("createNextHint")}>
+              {t("createNext")}
             </Button>
             <Button type="submit" disabled={create.isPending || outline.count.tasks === 0}>
               {create.isPending ? t("creating") : t("create", { n: outline.count.tasks + outline.count.subtasks })}

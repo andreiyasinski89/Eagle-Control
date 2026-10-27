@@ -1415,7 +1415,7 @@
     "assignMe": "Mnie",
     "unassigned": "Nikogo",
     "dueAll": "Termin dla wszystkich",
-    "dueAllHint": "Opcjonalnie. Zostaw puste, aby dodać daty później.",
+    "dueAllHint": "Domyślnie dziś. Zmień datę lub wyczyść pole, aby dodać terminy później.",
     "create": "{n, plural, one {Utwórz # pozycję} few {Utwórz # pozycje} many {Utwórz # pozycji} other {Utwórz # pozycji}}",
     "creating": "Tworzenie…",
     "createFailed": "Nie udało się utworzyć zadań.",
@@ -1430,6 +1430,10 @@
     "subtaskOf": "podzadanie „{task}”",
     "addSubtask": "Dodaj podzadanie",
     "subtaskPlaceholder": "Małe zadanie…",
-    "add": "Dodaj"
+    "add": "Dodaj",
+    "createNext": "Utwórz i dodaj następne",
+    "createNextHint": "Zapisuje te zadania i otwiera pustą listę na kolejne (Ctrl+Enter)",
+    "madeNext": "{n, plural, one {Utworzono # zadanie} few {Utworzono # zadania} many {Utworzono # zadań} other {Utworzono # zadania}}. Wpisz kolejne.",
+    "done": "Zamknij"
   }
 }

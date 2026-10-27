@@ -236,3 +236,10 @@
 - **Data migration `0016_priority_codes`:** the letters and words already saved (П, Б and the like) become the codes, so nothing has to be re-entered. A value that is neither stays as it was and is shown as plain text.
 - The API accepts the letters as before and keeps the code; `priority` filters `GET …/people`.
 - Tests: reading the letters and words, the code kept through the API and the filter.
+
+## 0.22.0 — Quick wins in creating tasks
+
+- **"Due date for all" starts as today** (in the person's own time zone) when tasks are created, in My tasks and in every section of a project. Change it, or clear the field to add dates later.
+- **"Create and add next"** (Ctrl+Enter in the list): saves the tasks and leaves the dialog open with an empty list for the next ones, keeping the project, the list, the assignee and the date. It says how many were just made. It works the same in My tasks and in the project's header (map, board, list, calendar, timeline), so the board has it too.
+- What the person types while the previous tasks are still being saved is kept, not wiped by the answer. A new epic made on the way is reused for the next batch instead of making another one.
+- Tests: no new server code; the dialog was run in the browser (default date, button, shortcut, typing during a save).

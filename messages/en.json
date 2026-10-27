@@ -1415,7 +1415,7 @@
     "assignMe": "Me",
     "unassigned": "Nobody",
     "dueAll": "Due date for all",
-    "dueAllHint": "Optional. Leave it empty to add dates later.",
+    "dueAllHint": "Today by default. Change it, or clear it to add dates later.",
     "create": "{n, plural, one {Create # item} other {Create # items}}",
     "creating": "Creating…",
     "createFailed": "The tasks could not be created.",
@@ -1430,6 +1430,10 @@
     "subtaskOf": "subtask of “{task}”",
     "addSubtask": "Add a subtask",
     "subtaskPlaceholder": "A small task…",
-    "add": "Add"
+    "add": "Add",
+    "createNext": "Create and add next",
+    "createNextHint": "Saves these tasks and opens an empty list for the next ones (Ctrl+Enter)",
+    "madeNext": "{n, plural, one {# item} other {# items}} created. Write the next ones.",
+    "done": "Close"
   }
 }
