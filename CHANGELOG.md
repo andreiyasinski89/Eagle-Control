@@ -318,3 +318,7 @@
 
 - Every column of a project's **Board** has **Add a task**: type a title, Enter adds it (to that column, under the project's first list, assigned to you) and the field stays open for the next one; Esc closes it. A project with no list gets one called Tasks.
 - Fixed: the label of the list field in the Create tasks window, opened from inside a project, showed a missing-text key instead of its name.
+
+## 0.30.2 — Fold the groups
+
+- The groups panel on the **People** board has a button to fold it to a thin strip on the left (with the number of people), and another to show it again. The choice is remembered on the device. The board takes the room.

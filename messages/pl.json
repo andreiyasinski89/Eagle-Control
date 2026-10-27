@@ -802,7 +802,9 @@
       "BUSINESS": "Biznes"
     },
     "anyPriority": "Dowolny priorytet",
-    "access": "Kto ma dostęp"
+    "access": "Kto ma dostęp",
+    "collapseGroups": "Zwiń grupy",
+    "expandGroups": "Pokaż grupy"
   },
   "myday": {
     "title": "Mój dzień",

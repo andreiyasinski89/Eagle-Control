@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { FolderPlus, Pencil, Plus, Trash2, Users } from "lucide-react";
+import { FolderPlus, Pencil, PanelLeftClose, PanelLeftOpen, Plus, Trash2, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +30,23 @@ export function GroupsPanel({ workspaceId, canWrite, value, onChange }: { worksp
   const t = useTranslations("crm");
   const { data, tree } = useGroups(workspaceId);
   const [editing, setEditing] = useState<Editing | null>(null);
+  // Folded to a thin strip on the left to give the board the room; the choice is remembered on this device.
+  const [collapsed, setCollapsed] = useState(false);
+  useEffect(() => {
+    try {
+      setCollapsed(localStorage.getItem("meetowl:groups-collapsed") === "1");
+    } catch {
+      /* only a convenience */
+    }
+  }, []);
+  const fold = (next: boolean) => {
+    setCollapsed(next);
+    try {
+      localStorage.setItem("meetowl:groups-collapsed", next ? "1" : "0");
+    } catch {
+      /* only a convenience */
+    }
+  };
 
   const row = (n: GroupNode<GroupDto>) => {
     const g = n.group;
@@ -70,15 +87,34 @@ export function GroupsPanel({ workspaceId, canWrite, value, onChange }: { worksp
     </li>
   );
 
+  if (collapsed) {
+    return (
+      <nav aria-label={t("groups")} className="flex w-11 shrink-0 flex-col items-center gap-2 rounded-2xl border border-border bg-card py-2" data-testid="groups-panel" data-collapsed="true">
+        <button type="button" aria-label={t("expandGroups")} title={t("expandGroups")} aria-expanded={false} data-testid="groups-expand" className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground" onClick={() => fold(false)}>
+          <PanelLeftOpen className="size-4" />
+        </button>
+        <Users className="size-4 text-muted-foreground" aria-hidden />
+        <span className="text-xs tabular-nums text-muted-foreground" title={t("allPeople")}>
+          {data?.all ?? 0}
+        </span>
+      </nav>
+    );
+  }
+
   return (
     <nav aria-label={t("groups")} className="flex w-56 shrink-0 flex-col gap-1 overflow-y-auto rounded-2xl border border-border bg-card p-2" data-testid="groups-panel">
       <div className="flex items-center justify-between px-2 pb-1">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("groups")}</h2>
-        {canWrite && (
-          <button type="button" aria-label={t("newGroup")} title={t("newGroup")} data-testid="new-group" className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground" onClick={() => setEditing({ group: null, parentId: null })}>
-            <Plus className="size-4" />
+        <span className="flex items-center gap-0.5">
+          {canWrite && (
+            <button type="button" aria-label={t("newGroup")} title={t("newGroup")} data-testid="new-group" className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground" onClick={() => setEditing({ group: null, parentId: null })}>
+              <Plus className="size-4" />
+            </button>
+          )}
+          <button type="button" aria-label={t("collapseGroups")} title={t("collapseGroups")} aria-expanded data-testid="groups-collapse" className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground" onClick={() => fold(true)}>
+            <PanelLeftClose className="size-4" />
           </button>
-        )}
+        </span>
       </div>
       <ul className="flex flex-col gap-0.5">
         {fixed("all", t("allPeople"), data?.all ?? 0)}

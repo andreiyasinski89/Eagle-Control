@@ -802,7 +802,9 @@
       "BUSINESS": "Бизнес"
     },
     "anyPriority": "Любой приоритет",
-    "access": "Кто имеет доступ"
+    "access": "Кто имеет доступ",
+    "collapseGroups": "Свернуть группы",
+    "expandGroups": "Показать группы"
   },
   "myday": {
     "title": "Мой день",
