@@ -22,6 +22,7 @@ export interface WorkItem {
   startDate: string | null;
   dueDate: string | null;
   estimation: number | null;
+  estimationUnit?: "HOURS" | "STORY_POINTS" | null;
   blocked: boolean;
 }
 

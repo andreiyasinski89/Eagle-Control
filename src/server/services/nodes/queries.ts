@@ -22,6 +22,8 @@ export interface TreeNodeDto {
   startDate: Date | null;
   dueDate: Date | null;
   estimation: number | null;
+  /** HOURS or STORY_POINTS; null follows the project's unit. */
+  estimationUnit?: "HOURS" | "STORY_POINTS" | null;
   assigneeId: string | null;
   collapsed: boolean;
   visibleToClient: boolean;
@@ -51,6 +53,7 @@ export async function getTree(userId: string, projectId: string, today = new Dat
         collapsed: true,
         visibleToClient: true,
         healthOverride: true,
+        estimationUnit: true,
       },
     }),
     db.nodeTag.findMany({ where: { node: { OR: [{ id: projectId }, { rootId: projectId }] } }, select: { nodeId: true, tagId: true } }),
@@ -81,6 +84,7 @@ export async function getTree(userId: string, projectId: string, today = new Dat
       startDate: r.startDate,
       dueDate: r.dueDate,
       estimation: r.estimation,
+      estimationUnit: m?.estimationUnit ?? null,
       assigneeId: r.assigneeId,
       collapsed: m?.collapsed ?? false,
       visibleToClient: m?.visibleToClient ?? false,

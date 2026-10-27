@@ -30,6 +30,7 @@ export interface NodeDetail {
     startDate: string | null;
     dueDate: string | null;
     estimation: number | null;
+    estimationUnit: "HOURS" | "STORY_POINTS" | null;
     assigneeId: string | null;
     createdById: string;
     createdAt: string;

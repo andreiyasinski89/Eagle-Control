@@ -120,6 +120,7 @@ function DrawerBody({ node, isRoot, close }: { node: ClientNode; isRoot: boolean
   const hasKids = Object.values(allNodes).some((n) => n.parentId === node.id && n.type !== "DOCUMENT" && n.type !== "EVENT");
   const derived = hasKids && !(node.type === "TASK" && node.progressMode === "MANUAL");
   const isTask = node.type === "TASK" || node.type === "SUBTASK";
+  const projectUnit = useMapStore((s) => (s.projectId ? s.nodes[s.projectId]?.estimationUnit : null)) ?? "HOURS";
 
   const others = usePresenceStore((s) => s.others);
   const editors = peopleOn(others, node.id).editors;
@@ -263,18 +264,43 @@ function DrawerBody({ node, isRoot, close }: { node: ClientNode; isRoot: boolean
             </Field>
             {isTask && (
               <Field label={t("estimation")}>
-                <Input
-                  type="number"
-                  min={0}
-                  step="0.5"
-                  disabled={!canWrite}
-                  defaultValue={node.estimation ?? ""}
-                  key={node.estimation ?? "none"}
-                  onBlur={(e) => {
-                    const v = e.target.value === "" ? null : Number(e.target.value);
-                    if (v !== node.estimation) void save({ estimation: v });
-                  }}
-                />
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    min={0}
+                    step="0.5"
+                    disabled={!canWrite}
+                    defaultValue={node.estimation ?? ""}
+                    key={node.estimation ?? "none"}
+                    className="min-w-0 flex-1"
+                    data-testid="estimation-input"
+                    onBlur={(e) => {
+                      const v = e.target.value === "" ? null : Number(e.target.value);
+                      if (v !== node.estimation) void save({ estimation: v });
+                    }}
+                  />
+                  <select
+                    className={`${selectCls} w-32 shrink-0`}
+                    disabled={!canWrite}
+                    value={node.estimationUnit ?? projectUnit}
+                    aria-label={t("estimationUnit")}
+                    title={t("estimationUnitHint")}
+                    data-testid="estimation-unit"
+                    onChange={(e) => void save({ estimationUnit: e.target.value as "HOURS" | "STORY_POINTS" })}
+                  >
+                    <option value="STORY_POINTS">{t("unitStoryPoints")}</option>
+                    <option value="HOURS">{t("unitHours")}</option>
+                  </select>
+                </div>
+              </Field>
+            )}
+            {node.type === "PROJECT" && (
+              <Field label={t("projectUnit")}>
+                <select className={selectCls} disabled={!canWrite} value={node.estimationUnit ?? "HOURS"} onChange={(e) => void save({ estimationUnit: e.target.value as "HOURS" | "STORY_POINTS" })} data-testid="project-unit">
+                  <option value="STORY_POINTS">{t("unitStoryPoints")}</option>
+                  <option value="HOURS">{t("unitHours")}</option>
+                </select>
+                <span className="text-xs text-muted-foreground">{t("estimationUnitHint")}</span>
               </Field>
             )}
             {node.type === "TASK" && hasKids && (

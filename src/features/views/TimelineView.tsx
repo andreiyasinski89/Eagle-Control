@@ -3,12 +3,15 @@
 import { useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
+import { Wand2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { api } from "@/features/mindmap/api";
-import { updateNode } from "@/features/mindmap/actions";
+import { undo, updateNode } from "@/features/mindmap/actions";
 import { useMapStore } from "@/features/mindmap/store";
 import { useSelection } from "@/features/mindmap/useSelection";
 import { addDays, BAR_HEIGHT, buildArrows, buildTimeline, isoDay, ROW_HEIGHT, shiftDates } from "@/modules/views/views";
 import { cn } from "@/lib/utils";
+import { SmartSortDialog } from "./SmartSortDialog";
 import { useWorkItems } from "./useWorkItems";
 
 const ZOOMS = { day: 32, week: 14, month: 5 } as const;
@@ -31,6 +34,8 @@ export function TimelineView() {
   const px = ZOOMS[zoom];
   const [drag, setDrag] = useState<{ id: string; dx: number } | null>(null);
   const start = useRef<{ x: number; moved: boolean } | null>(null);
+  const [sorting, setSorting] = useState(false);
+  const [sorted, setSorted] = useState<number | null>(null);
 
   const ordered = useMemo(() => [...items].sort((a, b) => (a.startDate ?? a.dueDate ?? "9").localeCompare(b.startDate ?? b.dueDate ?? "9") || a.title.localeCompare(b.title)), [items]);
   const today = isoDay(new Date());
@@ -89,8 +94,33 @@ export function TimelineView() {
             </button>
           ))}
         </div>
-        <span className="text-xs text-muted-foreground">{t("timelineHint")}</span>
+        <span className="min-w-0 truncate text-xs text-muted-foreground" title={t("timelineHint")}>{t("timelineHint")}</span>
+        {canWrite && (
+          <Button type="button" size="sm" variant="outline" className="ml-auto shrink-0 whitespace-nowrap" onClick={() => setSorting(true)} data-testid="smart-sort-button" title={t("sortHint")}>
+            <Wand2 className="size-4" />
+            {t("sortButton")}
+          </Button>
+        )}
       </div>
+      {sorted !== null && (
+        <p role="status" className="flex items-center gap-3 rounded-lg bg-primary/10 px-3 py-2 text-sm" data-testid="smart-sort-done">
+          {t("sortDone", { n: sorted })}
+          <button
+            type="button"
+            className="font-medium text-primary hover:underline"
+            onClick={() => {
+              void undo();
+              setSorted(null);
+            }}
+          >
+            {t("sortUndo")}
+          </button>
+          <button type="button" aria-label={t("sortClose")} className="ml-auto text-muted-foreground hover:text-foreground" onClick={() => setSorted(null)}>
+            ×
+          </button>
+        </p>
+      )}
+      <SmartSortDialog open={sorting} onClose={() => setSorting(false)} items={items} links={links?.items ?? []} today={today} locale={locale} onDone={(n) => setSorted(n)} />
 
       {model.bars.length === 0 ? (
         <p className="rounded-lg border border-dashed border-border p-10 text-center text-sm text-muted-foreground">{t("noDates")}</p>

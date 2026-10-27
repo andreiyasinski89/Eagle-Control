@@ -336,3 +336,10 @@
 ## 0.31.1 — Change the stage in the Contacts table
 
 - In **CRM → Contacts** the **Stage** pill is a choice list: pick another stage right in the row, the row changes at once and the change is saved (auto-plans and the history work as when the stage is changed in the card or on the board). Without the right to edit the pill stays plain.
+
+## 0.32.0 — Smart sort on the timeline, and story points
+
+- **Smart sort** button on the project's **Timeline**: it puts the open tasks one after another on working days (Monday to Friday), each person's tasks in their own queue, by the size of each task. A story point is 10 minutes, an hour is 60. Tasks that block others come first, then the earlier deadline, then the order they had.
+- You choose **whose tasks** (yours, or all of the project's), **the first day** (today by default) and **the hours in a working day** (8). The window shows every task as it is now and as it will be, and says which tasks have no estimate and which would end after their own deadline. Nothing changes until **Apply**; **Undo** puts every date back in one step.
+- A task blocked by another starts the day after its blocker ends, so the timeline shows no red clash. A blocker outside the chosen tasks that is not finished holds the task until the day after its due date.
+- **Story points are optional.** The estimate of a task has a unit, **Story points** or **Hours**; a task without its own unit follows the project's (set on the project card). A task with no estimate counts as one working day. The list shows the unit.

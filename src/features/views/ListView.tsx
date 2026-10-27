@@ -26,6 +26,7 @@ export function ListView() {
   const name = usePersonName();
   const people = useMapStore((s) => s.people);
   const role = useMapStore((s) => s.role);
+  const projectUnit = useMapStore((s) => (s.projectId ? s.nodes[s.projectId]?.estimationUnit : null)) ?? "HOURS";
   const { selectedId, select } = useSelection();
   const canWrite = role !== "CLIENT";
 
@@ -202,7 +203,7 @@ export function ListView() {
                   <Input aria-label={t("due")} type="date" disabled={!canWrite} value={day(r.dueDate)} onChange={(e) => void updateNode(r.id, { dueDate: iso(e.target.value) })} className="h-8 w-36" />
                 </td>
                 <td className="px-2 py-1.5 tabular-nums">{r.progress}%</td>
-                <td className="px-2 py-1.5 tabular-nums text-muted-foreground">{r.estimation ?? ""}</td>
+                <td className="whitespace-nowrap px-2 py-1.5 tabular-nums text-muted-foreground">{r.estimation === null ? "" : `${r.estimation} ${(r.estimationUnit ?? projectUnit) === "STORY_POINTS" ? "SP" : "h"}`}</td>
                 <td className="px-2 py-1.5">
                   <button type="button" aria-label={t("open", { title: r.title })} className="text-muted-foreground hover:text-foreground" onClick={() => select(r.id)}>
                     <ExternalLink className="size-4" />

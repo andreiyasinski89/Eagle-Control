@@ -45,6 +45,7 @@ export interface NodeRow {
   startDate: string | null;
   dueDate: string | null;
   estimation: number | null;
+  estimationUnit?: "HOURS" | "STORY_POINTS" | null;
   assigneeId: string | null;
   collapsed: boolean;
   visibleToClient: boolean;
@@ -65,6 +66,7 @@ export function rowToClient(row: NodeRow, prev?: ClientNode): ClientNode {
     startDate: row.startDate,
     dueDate: row.dueDate,
     estimation: row.estimation,
+    estimationUnit: row.estimationUnit ?? prev?.estimationUnit ?? null,
     assigneeId: row.assigneeId,
     collapsed: row.collapsed,
     visibleToClient: row.visibleToClient,

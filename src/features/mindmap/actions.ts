@@ -271,9 +271,39 @@ export async function completeNode(id: string): Promise<void> {
   }
 }
 
+/** The server takes up to 100 steps at a time, each batch all or nothing. */
+const BATCH = 100;
+
 async function applyOps(ops: BatchOp[]): Promise<void> {
-  await api.post("/api/v1/nodes/batch", { ops });
+  for (let i = 0; i < ops.length; i += BATCH) await api.post("/api/v1/nodes/batch", { ops: ops.slice(i, i + BATCH) });
   await reload();
+}
+
+/**
+ * Gives many tasks new dates in one go (the smart sort). The screen shows them at once; one undo puts every date back.
+ * `dates` are YYYY-MM-DD days.
+ */
+export async function rescheduleNodes(moves: readonly { id: string; start: string; due: string }[]): Promise<boolean> {
+  const { nodes } = state();
+  const todo = moves.filter((m) => nodes[m.id]);
+  if (todo.length === 0) return true;
+  const day = (d: string) => `${d.slice(0, 10)}T00:00:00.000Z`;
+  const redo: BatchOp[] = todo.map((m) => ({ op: "patch" as const, id: m.id, patch: { startDate: day(m.start), dueDate: day(m.due) } as PatchNodeInput }));
+  const undo: BatchOp[] = todo.map((m) => {
+    const n = nodes[m.id] as ClientNode;
+    return { op: "patch" as const, id: m.id, patch: { startDate: n.startDate, dueDate: n.dueDate } as PatchNodeInput };
+  });
+  for (const m of todo) state().patchLocal(m.id, { startDate: day(m.start), dueDate: day(m.due) });
+  state().recomputeLocal();
+  try {
+    await applyOps(redo);
+    history.push({ label: "smart sort", undo, redo });
+    syncFlags();
+    return true;
+  } catch (err) {
+    fail(err);
+    return false;
+  }
 }
 
 export async function undo(): Promise<void> {
