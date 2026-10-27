@@ -17,6 +17,7 @@ import { useTimeZone } from "@/features/views/useTimeZone";
 import { ActivityDialog } from "./DealDialogs";
 import { FunnelFields, type FunnelValues } from "./FunnelFields";
 import { PartnerFields, type TransferRow } from "./PartnerFields";
+import { ScriptPicker } from "./ScriptPicker";
 import { ScheduleDialog } from "./ScheduleDialog";
 import { dayInput, dayToIso, money } from "./format";
 import { useCompanyOptions, useMembers } from "./hooks";
@@ -215,6 +216,10 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
           value={{ stage: c.stage, temperature: c.temperature, interests: c.interests, source: c.source, influence: c.influence, nextStep: c.nextStep, nextStepAt: c.nextStepAt, typeTag: c.typeTag, country: c.country, sponsorName: c.sponsorName, groupId: c.groupId }}
           onChange={(patchBody) => patch.mutate(patchBody)}
         />
+      </Section>
+
+      <Section title={t("scriptsSection")}>
+        <ScriptPicker workspaceId={workspaceId} meId={meId} stage={c.stage} fullName={c.name} />
       </Section>
 
       <Section title={t("partnerSection")}>

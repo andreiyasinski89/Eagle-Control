@@ -16,6 +16,7 @@ export function CrmTabs({ slug }: { slug: string }) {
   const pathname = usePathname();
   const base = `/w/${slug}/crm`;
   const tabs = [
+    { href: `${base}/day`, label: t("tabDay") },
     { href: `${base}/people`, label: t("tabPeople") },
     { href: `${base}/team`, label: t("tabTeam") },
     { href: `${base}/network`, label: t("tabNetwork") },
@@ -23,13 +24,14 @@ export function CrmTabs({ slug }: { slug: string }) {
     { href: `${base}/companies`, label: t("tabCompanies") },
     { href: `${base}/contacts`, label: t("tabContacts") },
     { href: `${base}/activities`, label: t("tabActivities") },
+    { href: `${base}/scripts`, label: t("tabScripts") },
   ];
   return (
-    <nav aria-label="CRM" className="flex gap-1 border-b border-border bg-card px-4">
+    <nav aria-label="CRM" className="flex gap-1 overflow-x-auto border-b border-border bg-card px-4">
       {tabs.map((x) => {
         const active = x.exact ? pathname === x.href : pathname.startsWith(x.href);
         return (
-          <Link key={x.href} href={x.href} aria-current={active ? "page" : undefined} className={cn("border-b-2 px-3 py-2.5 text-sm", active ? "border-primary font-medium" : "border-transparent text-muted-foreground hover:text-foreground")}>
+          <Link key={x.href} href={x.href} aria-current={active ? "page" : undefined} className={cn("shrink-0 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm", active ? "border-primary font-medium" : "border-transparent text-muted-foreground hover:text-foreground")}>
             {x.label}
           </Link>
         );

@@ -12,6 +12,7 @@ import { deleteObject } from "@/server/storage";
 import { assertWorkspaceMember, fullName, invalid, loadCrmNode, pageArgs, toDate } from "./common";
 import { assertGroup } from "./groups";
 import { assertPartnerLinks, listTransfers } from "./partners";
+import { autoPlan } from "./stage-rules";
 
 const text = (max: number) => z.string().trim().max(max).nullable().optional();
 
@@ -260,7 +261,14 @@ export async function updateContactIn(tx: Tx, userId: string, contactId: string,
   if (patch.birthday !== undefined) data.birthday = toDate(patch.birthday);
   Object.assign(data, funnelData(patch));
   const stageMoved = patch.stage !== undefined && patch.stage !== cur.stage;
-  if (stageMoved) data.stageChangedAt = new Date();
+  if (stageMoved) {
+    data.stageChangedAt = new Date();
+    // Moving into a stage fills in the next step by the workspace's rule, unless the change already says what is next.
+    if (patch.nextStep === undefined && patch.nextStepAt === undefined && patch.stage) {
+      const plan = await autoPlan(tx, userId, node.workspaceId, patch.stage);
+      if (plan) Object.assign(data, plan);
+    }
+  }
   const nodeData: Prisma.NodeUncheckedUpdateInput = {};
   if (patch.companyId !== undefined) {
     const { parentId, rootId } = await placement(tx, node.workspaceId, patch.companyId);

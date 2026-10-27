@@ -222,6 +222,9 @@ model Workspace {
   nodes            Node[]
   tags             Tag[]
   contactGroups    ContactGroup[]
+  scripts          Script[]
+  stageRules       StageRule[]
+  networkGoals     NetworkGoal[]
   pipelines        Pipeline[]
   lostReasons      LostReason[]
   templates        ProjectTemplate[]
@@ -571,6 +574,49 @@ model ContactGroup {
   contacts  Contact[]
 
   @@index([workspaceId, parentId])
+}
+
+/// A ready text for a moment in the funnel (the first message, the invitation, the follow-up), kept by the team and copied into a messenger.
+model Script {
+  id          String       @id @default(cuid())
+  workspaceId String
+  title       String
+  /// The funnel stage the text is for; null = for any moment.
+  stage       PersonStage?
+  body        String       @db.Text
+  position    Int          @default(0)
+  createdById String?
+  createdAt   DateTime     @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, stage])
+}
+
+/// What to do next, and in how many days, when a person moves into a stage: the next step fills itself in.
+model StageRule {
+  id          String      @id @default(cuid())
+  workspaceId String
+  stage       PersonStage
+  nextStep    String
+  afterDays   Int         @default(1)
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, stage])
+}
+
+/// A person's targets for the week (invitations, presentations, clients...), kept per workspace.
+model NetworkGoal {
+  id          String   @id @default(cuid())
+  workspaceId String
+  userId      String
+  goals       Json     @default("{}")
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
 }
 
 /// Every hand-over of a person to a partner (or back), so it is always known who passed whom to whom, and when.

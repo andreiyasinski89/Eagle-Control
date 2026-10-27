@@ -216,3 +216,15 @@
 - **API:** `GET /api/v1/workspaces/:id/network` (people with their links, groups, the name at the centre).
 - No database changes.
 - Tests: `network.test.ts` (the three arrangements, counts, climbing to the nearest partner, loops) and the network data in the partners integration test.
+
+## 0.20.0 — CRM for network marketing, step 5: the plan of the day, scripts and auto-plans
+
+- **New "Plan of the day" tab in the CRM** (first). At the top, **the week against its targets**: people added, reached, presentations, clients, partners, calls and meetings held. They are counted from what happened (each move into a stage is an event), by the person's own time zone, Monday to Sunday; the arrows go to earlier weeks. *Set the week's targets* gives each number a goal and a progress bar.
+- **To do today:** everyone of yours whose next step is due today or late. A row has **Done** (closes the step), **Next in 1 / 3 / 7 d** (closes it and sets the next date) and the **scripts** for the person's stage to copy. Closing a step writes a done note to the person's feed and marks them as touched now.
+- **The team this week** (shown when partners hold people): for each partner, the moves into reached, presentation, client and partner among the people they work with.
+- **New "Scripts" tab:** a ready text for each stage of the funnel (or for any moment). `{name}` is the person's first name, `{full_name}` the whole name, `{my_name}` yours. In a person's card, *Scripts* shows those for their stage with **Copy**, names filled in.
+- **Auto-plans** (same tab): for each stage, what the next step is and in how many days. When a person moves into the stage, the next step and its date fill in by themselves, unless the change already says what is next. *Fill with a suggestion* offers a start in your language.
+- The CRM tab bar scrolls sideways when there are many tabs.
+- **API:** `GET /api/v1/workspaces/:id/tracker?week=`, `PUT …/tracker/goals`, `GET|POST …/scripts`, `PATCH|DELETE /api/v1/scripts/:id`, `GET|PUT …/stage-rules`, `POST /api/v1/contacts/:id/step-done`.
+- Database migration `0015_scripts_rules_goals` (scripts, auto-plan rules, weekly targets).
+- Tests: `tracker.test.ts` (weeks in a time zone, targets, dates, script names) and `network-routine.test.ts` (scripts, auto-plans, the week's counts, the team summary, closing a step, permissions).

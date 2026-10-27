@@ -137,3 +137,8 @@
 | 133 | The network map is the existing tree map with new kinds of node, not a second map | Layout, zoom and reading are already known from the client map; a second drawing code would drift. The nodes carry a colour of their own (the funnel stage). |
 | 134 | The map is a tree and offers three arrangements instead of drawing every link at once | A person has a sponsor, a group and a partner who holds them; drawing all three as edges would be a tangle. One tree at a time stays readable. |
 | 135 | The map is read-only: changes are made in the card beside it | Moving a node on a map would have to mean something (change sponsor? group?) and differs by arrangement; the card says it plainly. |
+| 136 | The week is counted from stage events and completed calls, not from numbers typed in | A tracker that has to be filled in is dropped by the second week; the work already leaves a trace, so the week costs nothing to keep. |
+| 137 | A move into a stage counts for whoever made it, in the week it happened | "Reached" or "presentation" is something a person did on a day; counting the current stage would change last week's numbers. |
+| 138 | An auto-plan never overwrites a next step the change already carries | A person who writes their own next step while moving someone knows better than the rule. |
+| 139 | Scripts are shared by the workspace and filled in on the person's side (the copy), not stored per person | One text serves everyone at the stage; the name is the only part that changes, so nothing personal is saved. |
+| 140 | Anyone who can read the CRM may set their own weekly targets; scripts and auto-plans need write access | Targets are about a person's own week; scripts and rules change what the whole team sees and does. |
