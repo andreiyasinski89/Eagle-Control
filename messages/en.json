@@ -26,7 +26,8 @@
     "account": "Account",
     "groupWork": "Work",
     "groupCustomers": "Customers",
-    "groupInsights": "Insights"
+    "groupInsights": "Insights",
+    "myTasks": "My tasks"
   },
   "auth": {
     "title": "Sign in to MeetOwl",
@@ -620,7 +621,34 @@
     "statMeetings": "Meetings",
     "statAttention": "Need attention",
     "allClearTitle": "Your day is clear",
-    "openProjects": "Open projects"
+    "openProjects": "Open projects",
+    "showAll": "Show everything",
+    "openTodo": "Open to-do list",
+    "openActivities": "Open activities",
+    "openCalendar": "Open calendar",
+    "openInCalendar": "Show in the calendar",
+    "openPipeline": "Open pipeline",
+    "openContacts": "Open contacts",
+    "planFactTitle": "Plan and fact for today",
+    "planTasks": "Tasks",
+    "planMeetings": "Meetings and calls",
+    "planFollowUps": "CRM follow-ups",
+    "planned": "Planned",
+    "finished": "Done",
+    "held": "Held or done",
+    "efficiency": "Efficiency of the day",
+    "efficiencyHint": "{done} of {planned} planned for today are done.",
+    "productivity": "Productivity of the day",
+    "productivityHint": "Counts what was planned and the backlog: {cleared} old items finished today, {open} still open.",
+    "nothingPlanned": "Nothing is planned for today, so there is nothing to measure yet. Schedule a call or give a task a date for today.",
+    "tracked": "Time tracked today: {time}",
+    "hoursMinutes": "{h} h {m} min",
+    "minutesOnly": "{m} min",
+    "focusEmpty": {
+      "tasks": "No tasks to do today.",
+      "meetings": "No meetings or calls today.",
+      "attention": "Nothing needs your attention."
+    }
   },
   "notifications": {
     "title": "Notifications",
@@ -1144,5 +1172,27 @@
     "deny": "Cancel",
     "revokeHint": "You can disconnect it any time in Settings → Developers.",
     "unknownHost": "This application is not from Anthropic: it will send you to {host}. Connect it only if you trust whoever gave you this link."
+  },
+  "mytasks": {
+    "title": "My tasks",
+    "hint": "Every task assigned to you, in every project, by when it is due. Tick one to finish it.",
+    "tab": {
+      "overdue": "Overdue",
+      "today": "Today",
+      "upcoming": "Next 7 days",
+      "later": "Later or no date",
+      "done": "Done"
+    },
+    "empty": {
+      "overdue": "Nothing is overdue.",
+      "today": "No tasks due today.",
+      "upcoming": "Nothing due in the next seven days.",
+      "later": "No other open tasks.",
+      "done": "Nothing finished lately."
+    },
+    "finish": "Mark as done",
+    "reopen": "Reopen",
+    "noDate": "no date",
+    "error": "Could not load your tasks."
   }
 }

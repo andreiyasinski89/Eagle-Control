@@ -153,3 +153,10 @@
 - The generic *Log call / e-mail / note* dialog now reads its date and time in the same zone.
 - The public API and the MCP tools accept `durationMin` on activities; the calendar feed returns `endAt` for them.
 - Tests: `schedule.test.ts` (form, defaults, zones, calendar placement) and `contact-schedule.test.ts` (open, shown with length, mine/others, move, done, remove, permissions).
+## 0.13.0 — A My day you can click through, with plan and fact
+
+- **The three cards are buttons.** *Tasks to do*, *Meetings* and *Need attention* show exactly their own lists when pressed (press again, or *Show everything*, to go back). Every list has a link into its section: tasks to the new to-do list, meetings and calls to the calendar on that day, deals to the pipeline, cold contacts to the contacts. Each row opens its own thing: a task in its project, a meeting at its day in the calendar, a call or follow-up at its contact (or deal, or company), a deal in the board.
+- **My tasks** (`/w/<slug>/tasks`, in the sidebar under *My day*): every task assigned to you in every project, in tabs *Overdue / Today / Next 7 days / Later or no date / Done*, with a tick to finish or reopen a task. `GET /api/v1/workspaces/:id/my-tasks`.
+- **Plan and fact for today**, at the bottom: planned against done for tasks, meetings and calls, and CRM follow-ups, each with a bar and a link; two rings, **Efficiency** (done of planned) and **Productivity** (everything finished today, planned or from the backlog, of everything that wanted attention: the plan plus the backlog, open or cleared); and the time tracked today.
+- "Today" on My day is now the day in the person's own time zone (deadlines by their date, meetings and calls by the real span of the day); meeting times and the greeting follow it too.
+- Tests: `day-score.test.ts` (the percentages) and `my-day-plan.test.ts` (plan, fact, backlog, Auckland day, drill-down lists, guests, the to-do groups).

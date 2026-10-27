@@ -26,7 +26,8 @@
     "account": "Konto",
     "groupWork": "Praca",
     "groupCustomers": "Klienci",
-    "groupInsights": "Analizy"
+    "groupInsights": "Analizy",
+    "myTasks": "Moje zadania"
   },
   "auth": {
     "title": "Zaloguj się do MeetOwl",
@@ -620,7 +621,34 @@
     "statMeetings": "Spotkań",
     "statAttention": "Wymaga uwagi",
     "allClearTitle": "Na dziś wszystko gotowe",
-    "openProjects": "Otwórz projekty"
+    "openProjects": "Otwórz projekty",
+    "showAll": "Pokaż wszystko",
+    "openTodo": "Otwórz listę zadań",
+    "openActivities": "Otwórz działania CRM",
+    "openCalendar": "Otwórz kalendarz",
+    "openInCalendar": "Pokaż w kalendarzu",
+    "openPipeline": "Otwórz lejek",
+    "openContacts": "Otwórz kontakty",
+    "planFactTitle": "Plan i wykonanie na dziś",
+    "planTasks": "Zadania",
+    "planMeetings": "Spotkania i rozmowy",
+    "planFollowUps": "Działania wobec klientów",
+    "planned": "Zaplanowano",
+    "finished": "Wykonano",
+    "held": "Odbyło się",
+    "efficiency": "Skuteczność dnia",
+    "efficiencyHint": "Wykonano {done} z {planned} zaplanowanych na dziś.",
+    "productivity": "Produktywność dnia",
+    "productivityHint": "Liczy plan i zaległości: dziś zamknięto {cleared} starych spraw, wciąż otwartych {open}.",
+    "nothingPlanned": "Na dziś nic nie zaplanowano, więc nie ma czego mierzyć. Zaplanuj rozmowę lub nadaj zadaniu dzisiejszy termin.",
+    "tracked": "Czas zarejestrowany dziś: {time}",
+    "hoursMinutes": "{h} godz. {m} min",
+    "minutesOnly": "{m} min",
+    "focusEmpty": {
+      "tasks": "Na dziś nie ma zadań.",
+      "meetings": "Dziś nie ma spotkań ani rozmów.",
+      "attention": "Nic nie wymaga uwagi."
+    }
   },
   "notifications": {
     "title": "Powiadomienia",
@@ -1144,5 +1172,27 @@
     "deny": "Anuluj",
     "revokeHint": "Możesz je rozłączyć w dowolnej chwili: Ustawienia → Dla deweloperów.",
     "unknownHost": "Ta aplikacja nie pochodzi od Anthropic: przekieruje Cię na {host}. Połącz ją tylko wtedy, gdy ufasz osobie, która dała Ci ten link."
+  },
+  "mytasks": {
+    "title": "Moje zadania",
+    "hint": "Wszystkie zadania przypisane do Ciebie, we wszystkich projektach, według terminu. Zaznacz, aby zakończyć.",
+    "tab": {
+      "overdue": "Zaległe",
+      "today": "Dziś",
+      "upcoming": "Najbliższe 7 dni",
+      "later": "Później lub bez daty",
+      "done": "Wykonane"
+    },
+    "empty": {
+      "overdue": "Nic nie jest zaległe.",
+      "today": "Brak zadań na dziś.",
+      "upcoming": "Nic na najbliższe siedem dni.",
+      "later": "Brak innych otwartych zadań.",
+      "done": "Ostatnio nic nie zakończono."
+    },
+    "finish": "Oznacz jako wykonane",
+    "reopen": "Przywróć",
+    "noDate": "bez daty",
+    "error": "Nie udało się wczytać Twoich zadań."
   }
 }
