@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isValidTimeZone } from "@/modules/views/tz";
 import { db } from "@/server/db";
 import { notFound } from "@/server/http/errors";
 import { parseBody, route } from "@/server/http/handler";
@@ -23,7 +24,7 @@ export const GET = route({}, async ({ userId }) => {
 const patchSchema = z.object({
   name: z.string().trim().min(1).max(100).optional(),
   avatar: z.string().url().max(500).nullable().optional(),
-  timezone: z.string().max(64).optional(),
+  timezone: z.string().max(64).refine(isValidTimeZone, "Unknown time zone").optional(),
   locale: z.enum(["en", "ru", "pl"]).optional(),
   skills: z.array(z.string().trim().min(1).max(40)).max(30).optional(),
 });

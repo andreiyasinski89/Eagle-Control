@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Link } from "@/i18n/navigation";
 import { api, ApiFailure } from "@/features/mindmap/api";
 import { SkeletonRows } from "@/components/ui/skeleton";
+import { TimeZoneSection } from "./TimeZoneSection";
 
 interface Ws {
   workspaceId: string;
@@ -93,6 +94,8 @@ export function AccountPanel({ email, name }: { email: string; name: string | nu
         {email}
       </p>
       {done && <p role="status" className="text-sm">{done}</p>}
+
+      <TimeZoneSection />
 
       <section className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4">
         <h2 className="font-semibold">{t("exportTitle")}</h2>

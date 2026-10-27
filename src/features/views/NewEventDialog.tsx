@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { FormField, Modal, selectClass, textareaClass } from "@/components/ui/modal";
 import { ApiFailure, api } from "@/features/mindmap/api";
 import { buildEvent, defaultTimes, type EventForm } from "@/modules/views/new-event";
+import { zoneLabel } from "@/modules/views/tz";
+import { useTimeZone } from "./useTimeZone";
 
 const inputClass = "h-9 w-full rounded-md border border-border bg-card px-2 text-sm";
 const LAST_PROJECT = "meetowl:lastEventProject";
@@ -31,19 +33,19 @@ export function NewEventDialog({ open, onClose, workspaceId, day, time }: { open
   const t = useTranslations("views");
   const tc = useTranslations("common");
   const qc = useQueryClient();
-  const [form, setForm] = useState<EventForm>(() => ({ title: "", day, allDay: false, ...defaultTimes(time, new Date()), location: "", meetingUrl: "", agenda: "", addMeet: false, attendeeId: null }));
+  const { tz, userId } = useTimeZone();
+  const [form, setForm] = useState<EventForm>(() => ({ title: "", day, allDay: false, ...defaultTimes(time, new Date(), tz), location: "", meetingUrl: "", agenda: "", addMeet: false, attendeeId: null }));
   const [projectId, setProjectId] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const projects = useQuery({ queryKey: ["projects", workspaceId], enabled: open, queryFn: () => api.get<{ id: string; title: string }[]>(`/api/v1/workspaces/${workspaceId}/projects`) });
-  const me = useQuery({ queryKey: ["me"], enabled: open, queryFn: () => api.get<{ id: string }>("/api/v1/me") });
 
   // A fresh form for every opening: the clicked day and time, nothing left over from the last meeting.
   useEffect(() => {
     if (!open) return;
-    setForm({ title: "", day, allDay: false, ...defaultTimes(time, new Date()), location: "", meetingUrl: "", agenda: "", addMeet: false, attendeeId: null });
+    setForm({ title: "", day, allDay: false, ...defaultTimes(time, new Date(), tz), location: "", meetingUrl: "", agenda: "", addMeet: false, attendeeId: null });
     setError(null);
-  }, [open, day, time]);
+  }, [open, day, time, tz]);
 
   useEffect(() => {
     const list = projects.data;
@@ -74,7 +76,7 @@ export function NewEventDialog({ open, onClose, workspaceId, day, time }: { open
 
   function submit() {
     setError(null);
-    const built = buildEvent({ ...form, attendeeId: me.data?.id ?? null });
+    const built = buildEvent({ ...form, attendeeId: userId }, tz);
     if (!built.ok) return setError(t(`eventProblem.${built.problem}`));
     if (!projectId) return setError(t("eventProblem.project"));
     create.mutate({ title: built.title, data: built.data });
@@ -110,7 +112,7 @@ export function NewEventDialog({ open, onClose, workspaceId, day, time }: { open
           <input type="checkbox" checked={form.allDay} onChange={(e) => set("allDay", e.target.checked)} />
           {t("eventAllDay")}
         </label>
-        <p className="-mt-2 text-xs text-muted-foreground">{t("eventUtcHint")}</p>
+        <p className="-mt-2 text-xs text-muted-foreground">{t("eventZoneHint", { zone: zoneLabel(tz) })}</p>
 
         <FormField label={t("eventProject")} hint={t("eventProjectHint")}>
           {noProjects ? (

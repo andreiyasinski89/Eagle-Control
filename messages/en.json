@@ -733,7 +733,6 @@
     "eventStart": "From",
     "eventEnd": "To",
     "eventAllDay": "All day",
-    "eventUtcHint": "Times are in UTC, the same as the rest of the calendar.",
     "eventProject": "Project",
     "eventProjectHint": "A meeting lives in a project, so the team sees it there too.",
     "eventCreateProject": "Create the project “{name}”",
@@ -749,7 +748,13 @@
       "time": "The end must be later than the start.",
       "url": "The link must start with https://",
       "project": "Pick a project for the meeting."
-    }
+    },
+    "tzShown": "Times in {zone}",
+    "tzChange": "Change in Settings → Account",
+    "tzDetected": "This device is in {zone}, but the calendar shows UTC.",
+    "tzUse": "Use {zone}",
+    "tzKeepUtc": "Keep UTC",
+    "eventZoneHint": "Times are in {zone}, your time zone."
   },
   "reports": {
     "title": "Reports",
@@ -1060,7 +1065,13 @@
     "deletingNow": "Your account is being deleted.",
     "cancelDeletion": "Keep my account",
     "bannerText": "Your account will be deleted on {date}.",
-    "bannerCancel": "Cancel deletion"
+    "bannerCancel": "Cancel deletion",
+    "tzTitle": "Time zone",
+    "tzHint": "The calendar and the new-meeting form show and take hours in your time zone. Meetings are stored in UTC, so a colleague in another zone sees the same meeting at their own hour.",
+    "tzLabel": "Your time zone",
+    "tzUseBrowser": "Use this device's zone: {zone}",
+    "tzNow": "It is {time} for you now ({offset}).",
+    "tzSaved": "Saved. The calendar now uses this zone."
   },
   "legal": {
     "back": "Back to sign in",

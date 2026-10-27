@@ -2,14 +2,19 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
-import { api } from "@/features/mindmap/api";
-import { dayOf, isoDay } from "@/modules/views/views";
-import { CalendarGrid, visibleDays, type CalendarMode, type GridItem } from "./CalendarGrid";
 import { Plus } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { api } from "@/features/mindmap/api";
+import { Link } from "@/i18n/navigation";
+import { placeItem } from "@/modules/views/calendar-items";
+import { todayIn, zoneLabel } from "@/modules/views/tz";
+import { addDays } from "@/modules/views/views";
+import { CalendarGrid, visibleDays, type CalendarMode, type GridItem } from "./CalendarGrid";
 import { NewEventDialog } from "./NewEventDialog";
+import { TimeZoneNotice } from "./TimeZoneNotice";
+import { useTimeZone } from "./useTimeZone";
 
 interface Item {
   id: string;
@@ -22,32 +27,30 @@ interface Item {
   context: string | null;
 }
 
-const timeOf = (iso: string) => (iso.slice(11, 16) === "00:00" ? undefined : iso.slice(11, 16));
-/** Where an event ends on its own day; one that runs past midnight is cut at the end of that day. */
-const endTimeOf = (start: string, end: string | null) => (end ? (dayOf(end) === dayOf(start) ? end.slice(11, 16) : "24:00") : undefined);
-
-/** Deadlines, events, CRM follow-ups and deal dates for the whole workspace in one calendar. */
+/** Deadlines, events, CRM follow-ups and deal dates for the whole workspace in one calendar, drawn in the person's own time zone. */
 export function WorkspaceCalendar({ workspaceId, slug }: { workspaceId: string; slug: string }) {
   const t = useTranslations("views");
-  const [anchor, setAnchor] = useState(() => isoDay(new Date()));
+  const { tz, saved, loaded } = useTimeZone();
+  const [picked, setAnchor] = useState<string | null>(null);
+  const anchor = picked ?? todayIn(tz);
   const [mode, setMode] = useState<CalendarMode>("month");
   const [mine, setMine] = useState(true);
   const [adding, setAdding] = useState<{ day: string; time?: string } | null>(null);
   const days = visibleDays(mode, anchor);
-  const from = days[0] as string;
-  const to = days[days.length - 1] as string;
+  // The server works in UTC days. A day in another zone can start or end on the neighbouring UTC day, so ask for one more on each side.
+  const from = addDays(days[0] as string, -1);
+  const to = addDays(days[days.length - 1] as string, 1);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["calendar", workspaceId, from, to, mine],
+    enabled: loaded,
     queryFn: () => api.get<{ items: Item[] }>(`/api/v1/workspaces/${workspaceId}/calendar?from=${from}&to=${to}&mine=${mine ? 1 : 0}`),
   });
 
   const grid: GridItem[] = (data?.items ?? []).map((i) => ({
     id: i.id,
     title: i.title,
-    day: dayOf(i.at),
-    time: i.kind === "event" || i.kind === "crm_activity" ? timeOf(i.at) : undefined,
-    endTime: i.kind === "event" && timeOf(i.at) ? endTimeOf(i.at, i.endAt) : undefined,
+    ...placeItem(i, tz),
     tone: i.done ? "done" : i.kind === "event" ? "event" : i.kind === "task" || i.kind === "milestone" ? "default" : "crm",
     href: `/w/${slug}${i.href}`,
     hint: [t(`itemKind.${i.kind}`), i.context].filter(Boolean).join(" · "),
@@ -55,29 +58,36 @@ export function WorkspaceCalendar({ workspaceId, slug }: { workspaceId: string; 
 
   return (
     <div className="flex h-[calc(100vh-3.5rem)] flex-col">
-      <div className="flex items-center gap-3 border-b border-border px-4 py-3">
+      <div className="flex flex-wrap items-center gap-3 border-b border-border px-4 py-3">
         <h1 className="text-xl font-semibold">{t("calendarTitle")}</h1>
         <label className="ml-4 flex items-center gap-2 text-sm">
           <input type="checkbox" checked={mine} onChange={(e) => setMine(e.target.checked)} />
           {t("onlyMine")}
         </label>
-        {isLoading && <Skeleton className="h-4 w-12" />}
+        {(isLoading || !loaded) && <Skeleton className="h-4 w-12" />}
         {isError && (
           <span role="alert" className="text-xs text-danger">
             {t("error")}
           </span>
         )}
+        {loaded && (
+          <Link href="/account" className="ml-auto text-xs text-muted-foreground hover:underline" data-testid="tz-label" title={t("tzChange")}>
+            {t("tzShown", { zone: zoneLabel(tz) })}
+          </Link>
+        )}
       </div>
+      <TimeZoneNotice saved={saved} />
       <div className="min-h-0 flex-1">
         <CalendarGrid
           anchor={anchor}
           mode={mode}
+          timeZone={tz}
           onAnchor={setAnchor}
           onMode={setMode}
           items={grid}
           onSlot={(day, time) => setAdding({ day, time })}
           actions={
-            <Button size="sm" onClick={() => setAdding({ day: mode === "month" ? isoDay(new Date()) : anchor })}>
+            <Button size="sm" onClick={() => setAdding({ day: mode === "month" ? todayIn(tz) : anchor })}>
               <Plus className="size-4" />
               <span className="max-sm:sr-only">{t("newEvent")}</span>
             </Button>

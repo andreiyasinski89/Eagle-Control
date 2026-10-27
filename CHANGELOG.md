@@ -130,3 +130,11 @@
 - Public API: new `GET /calendar`, `/my-day` and `/search`.
 - Daily job `api/purge` also removes spent codes, used or expired refresh tokens, expired OAuth access tokens and applications nobody approved.
 - Tests: `mcp-oauth.test.ts` (26: registration, PKCE, code and refresh rules, consent form checks, protocol, scope, workspace boundary, revoke, purge) and the route inventory.
+## 0.11.0 — Your own time zone in the calendar
+
+- **Settings → Account → Time zone**: every person picks their own zone (all zones the browser knows, grouped by region, with the current offset; a button takes the device's zone). It is saved on the profile (`User.timezone`, validated on `PATCH /api/v1/me`).
+- The workspace calendar draws events and CRM activities on the day and hour of that zone, the red now-line and the opening scroll follow it, and *today* is today there. Deadlines, milestones and deal dates stay on their own date, and an "all day" event stays all day. The header shows the zone and links to the setting.
+- The new-meeting form takes hours in that zone and stores the right UTC instant (daylight saving included); an all-day meeting is a date and ignores the zone. The project calendar highlights today in the zone too.
+- Someone who never picked a zone while their device is not on UTC gets a one-time notice offering to use the device's zone.
+- Nothing stored changes: events stay UTC, so colleagues in different zones see the same meeting at their own hour, and the MCP tools and the public API still speak UTC.
+- Tests: `timezone.test.ts` (offsets, daylight saving, half-hour zones, midnight crossings, item placement, the form) and `profile-timezone.test.ts` (saving and refusing zones).

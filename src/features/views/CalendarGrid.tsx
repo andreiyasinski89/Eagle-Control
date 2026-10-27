@@ -5,7 +5,8 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
-import { addDays, addMonths, isoDay, monthGrid, weekGrid } from "@/modules/views/views";
+import { addDays, addMonths, monthGrid, weekGrid } from "@/modules/views/views";
+import { todayIn } from "@/modules/views/tz";
 import { cn } from "@/lib/utils";
 import { TimeGrid } from "./TimeGrid";
 
@@ -47,11 +48,11 @@ const TONE: Record<NonNullable<GridItem["tone"]>, string> = {
  * Month grid with day cells, or the hourly week/day grid; prev/next/today, and optional drag-to-reschedule.
  * Presentational: the caller owns `anchor`/`mode` and loads the items for `visibleDays`.
  */
-export function CalendarGrid({ anchor, mode, onAnchor, onMode, items, onMove, onSlot, actions }: { anchor: string; mode: CalendarMode; onAnchor: (day: string) => void; onMode: (m: CalendarMode) => void; items: readonly GridItem[]; onMove?: (id: string, day: string) => void; onSlot?: (day: string, time?: string) => void; actions?: React.ReactNode }) {
+export function CalendarGrid({ anchor, mode, onAnchor, onMode, items, onMove, onSlot, actions, timeZone = "UTC" }: { timeZone?: string; anchor: string; mode: CalendarMode; onAnchor: (day: string) => void; onMode: (m: CalendarMode) => void; items: readonly GridItem[]; onMove?: (id: string, day: string) => void; onSlot?: (day: string, time?: string) => void; actions?: React.ReactNode }) {
   const t = useTranslations("views");
   const locale = useLocale();
   const days = visibleDays(mode, anchor);
-  const today = isoDay(new Date());
+  const today = todayIn(timeZone);
   const month = anchor.slice(0, 7);
   const [over, setOver] = useState<string | null>(null);
   const byDay = new Map<string, GridItem[]>();
@@ -163,7 +164,7 @@ export function CalendarGrid({ anchor, mode, onAnchor, onMode, items, onMove, on
           </div>
         </>
       ) : (
-        <TimeGrid days={days} items={items} today={today} onMove={onMove} onSlot={onSlot} renderItem={chip} />
+        <TimeGrid days={days} items={items} today={today} timeZone={timeZone} onMove={onMove} onSlot={onSlot} renderItem={chip} />
       )}
     </div>
   );

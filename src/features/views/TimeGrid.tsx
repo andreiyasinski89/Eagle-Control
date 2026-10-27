@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type CSSProperties, type DragEvent, type R
 import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { HOUR_PX, DAY_MINUTES, initialFocus, layoutDay, minutesToPx, parseClock, splitTimed } from "@/modules/views/timegrid";
+import { zonedParts } from "@/modules/views/tz";
 import type { GridItem } from "./CalendarGrid";
 
 const HOURS = Array.from({ length: 24 }, (_, h) => h);
@@ -14,7 +15,7 @@ const pad = (n: number) => String(n).padStart(2, "0");
  * are as tall as they last, overlapping ones share the width, items without a time wait in the "all day" strip,
  * and a red line marks the current time. Presentational; `renderItem` draws one item (optionally as a placed block).
  */
-export function TimeGrid({ days, items, today, onMove, onSlot, renderItem }: { days: string[]; items: readonly GridItem[]; today: string; onMove?: (id: string, day: string) => void; onSlot?: (day: string, time?: string) => void; renderItem: (item: GridItem, placed?: { style: CSSProperties }) => ReactNode }) {
+export function TimeGrid({ days, items, today, timeZone = "UTC", onMove, onSlot, renderItem }: { days: string[]; items: readonly GridItem[]; today: string; timeZone?: string; onMove?: (id: string, day: string) => void; onSlot?: (day: string, time?: string) => void; renderItem: (item: GridItem, placed?: { style: CSSProperties }) => ReactNode }) {
   const t = useTranslations("views");
   const locale = useLocale();
   const [over, setOver] = useState<string | null>(null);
@@ -38,14 +39,13 @@ export function TimeGrid({ days, items, today, onMove, onSlot, renderItem }: { d
     if (!el) return;
     const { items: list, days: shown, today: day } = latest.current;
     const starts = list.filter((i) => shown.includes(i.day)).flatMap((i) => parseClock(i.time) ?? []);
-    const clock = new Date();
-    const nowMinute = shown.includes(day) ? clock.getUTCHours() * 60 + clock.getUTCMinutes() : null;
+    const nowMinute = shown.includes(day) ? zonedParts(new Date(), timeZone).minutes : null;
     el.scrollTop = minutesToPx(initialFocus(starts, nowMinute));
-  }, [dayKey, hasTimed]);
+  }, [dayKey, hasTimed, timeZone]);
 
   const byDay = new Map<string, GridItem[]>();
   for (const i of items) byDay.set(i.day, [...(byDay.get(i.day) ?? []), i]);
-  const nowMinute = now ? now.getUTCHours() * 60 + now.getUTCMinutes() : null;
+  const nowMinute = now ? zonedParts(now, timeZone).minutes : null;
   const columns = `3.5rem repeat(${days.length}, minmax(0, 1fr))`;
   const weekday = (d: string) => new Date(`${d}T00:00:00Z`).toLocaleDateString(locale, { weekday: "short", timeZone: "UTC" });
 
