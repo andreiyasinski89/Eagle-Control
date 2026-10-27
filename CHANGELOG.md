@@ -326,3 +326,9 @@
 ## 0.30.3 — Me as a sponsor or as the partner who works with someone
 
 - In a person's card, **Sponsor** and **Works with them** offer **Me (make my card)** when the signed-in member has no partner card yet; choosing it makes the card (a person in the Partner stage linked to their account, named after them) and picks it. Once it exists it is listed with the other partners as "Name (me)". Asking twice never makes two.
+
+## 0.31.0 — A profile card and member cards
+
+- **Your account** opens with a profile card: first name, last name, phone and Telegram (a @name or a t.me link), with a round avatar of your initials, checks as you type, and a Save button that wakes only when something changed. The display name shown everywhere is made from the first and last name. Names already in use are split at the first space (migration `0023_profile_fields`).
+- **Settings → Members** shows every member as the same card: avatar, name, e-mail, a tap-to-call phone and a Telegram link (teammates see them; guests and clients do not), and below it role, CRM access and hourly rate under the same captions, with the actions on the right.
+- Your own partner card, when made, takes the name, e-mail, phone and Telegram from the profile.

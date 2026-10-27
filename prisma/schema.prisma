@@ -145,7 +145,13 @@ model User {
   personalGoals       PersonalGoal[]
   onboardingStates    OnboardingState[]
   id                  String            @id @default(cuid())
+  /// The full display name, kept as first + last name when those are given (everything that shows a person reads this).
   name                String?
+  firstName           String?
+  lastName            String?
+  phone               String?
+  /// The Telegram user name without the @ (a link is made from it).
+  telegram            String?
   email               String            @unique
   emailVerified       DateTime?
   avatar              String?

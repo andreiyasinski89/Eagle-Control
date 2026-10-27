@@ -88,7 +88,14 @@
       "TEAM": "Своя команда",
       "ALL": "Всё"
     },
-    "viaTeam": "команда: {level}"
+    "viaTeam": "команда: {level}",
+    "phone": "Телефон",
+    "telegram": "Telegram",
+    "crmShort": "Доступ к CRM",
+    "rateShort": "Ставка в час",
+    "roleShort": "Роль",
+    "you": "вы",
+    "noContacts": "Телефон и Telegram ещё не указаны"
   },
   "invite": {
     "title": "Вас пригласили в {workspace}",
@@ -1681,5 +1688,19 @@
     "error_grantee_no_crm": "Сначала дайте этому участнику доступ к CRM (Настройки → Участники).",
     "error_already_sees_all": "Этот участник уже видит всё.",
     "error_self_share": "Доступ даётся другому человеку."
+  },
+  "profile": {
+    "firstName": "Имя",
+    "lastName": "Фамилия",
+    "phone": "Телефон",
+    "phoneHint": "С кодом страны, например +48 600 100 200",
+    "phoneBad": "Введите телефон из 6–15 цифр.",
+    "telegram": "Telegram",
+    "telegramHint": "@имя или ссылка вида t.me/имя",
+    "telegramBad": "Введите имя в Telegram вида @имя или ссылку вида t.me/имя.",
+    "save": "Сохранить",
+    "saved": "Сохранено",
+    "noName": "Ваше имя",
+    "error": "Что-то пошло не так"
   }
 }

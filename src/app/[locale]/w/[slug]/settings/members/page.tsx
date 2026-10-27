@@ -18,6 +18,7 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
     where: { userId_workspaceId: { userId: session?.user?.id ?? "", workspaceId: workspace.id } },
   });
   const canManage = can(me, "member:invite");
+  const showContacts = can(me, "member:list");
   const [members, invitations] = await Promise.all([
     listMembers(workspace.id),
     canManage ? listInvitations(workspace.id) : Promise.resolve([]),
@@ -34,6 +35,10 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
           userId: m.userId,
           name: m.user.name,
           email: m.user.email,
+          avatar: m.user.avatar ?? m.user.image,
+          // Teammates see each other's phone and Telegram; guests and clients do not.
+          phone: showContacts ? m.user.phone : null,
+          telegram: showContacts ? m.user.telegram : null,
           role: m.role,
           crmAccess: m.crmAccess,
           crmLevel: personalLevel(m),

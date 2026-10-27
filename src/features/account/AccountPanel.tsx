@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Link } from "@/i18n/navigation";
 import { api, ApiFailure } from "@/features/mindmap/api";
 import { SkeletonRows } from "@/components/ui/skeleton";
+import { ProfileSection, type ProfileValues } from "./ProfileSection";
 import { TimeZoneSection } from "./TimeZoneSection";
 
 interface Ws {
@@ -42,7 +43,7 @@ function useCode(action: "export" | "delete") {
   return { sentTo, code, setCode, error, setError, send, reset: () => { setSentTo(null); setCode(""); } };
 }
 
-export function AccountPanel({ email, name }: { email: string; name: string | null }) {
+export function AccountPanel({ email, avatar, profile }: { email: string; avatar: string | null; profile: ProfileValues }) {
   const t = useTranslations("account");
   const locale = useLocale();
   const qc = useQueryClient();
@@ -89,10 +90,7 @@ export function AccountPanel({ email, name }: { email: string; name: string | nu
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4 p-6">
       <h1 className="text-xl font-semibold">{t("title")}</h1>
-      <p className="text-sm text-muted-foreground">
-        {name ? `${name} · ` : ""}
-        {email}
-      </p>
+      <ProfileSection email={email} avatar={avatar} initial={profile} />
       {done && <p role="status" className="text-sm">{done}</p>}
 
       <TimeZoneSection />

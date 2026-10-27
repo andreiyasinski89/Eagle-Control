@@ -88,7 +88,14 @@
       "TEAM": "Own team",
       "ALL": "Everything"
     },
-    "viaTeam": "team: {level}"
+    "viaTeam": "team: {level}",
+    "phone": "Phone",
+    "telegram": "Telegram",
+    "crmShort": "CRM access",
+    "rateShort": "Rate per hour",
+    "roleShort": "Role",
+    "you": "you",
+    "noContacts": "No phone or Telegram yet"
   },
   "invite": {
     "title": "You are invited to {workspace}",
@@ -1681,5 +1688,19 @@
     "error_grantee_no_crm": "Give this member access to the CRM first (Settings → Members).",
     "error_already_sees_all": "This member already sees everything.",
     "error_self_share": "Access is given to somebody else."
+  },
+  "profile": {
+    "firstName": "First name",
+    "lastName": "Last name",
+    "phone": "Phone",
+    "phoneHint": "With the country code, e.g. +48 600 100 200",
+    "phoneBad": "Enter a phone number with 6 to 15 digits.",
+    "telegram": "Telegram",
+    "telegramHint": "@name or a link like t.me/name",
+    "telegramBad": "Enter a Telegram name like @name or a link like t.me/name.",
+    "save": "Save",
+    "saved": "Saved",
+    "noName": "Your name",
+    "error": "Something went wrong"
   }
 }

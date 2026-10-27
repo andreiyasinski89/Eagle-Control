@@ -8,7 +8,7 @@ import { logActivity } from "@/server/services/nodes/access";
 export function listMembers(workspaceId: string) {
   return db.membership.findMany({
     where: { workspaceId },
-    include: { user: { select: { id: true, name: true, email: true, avatar: true, image: true } } },
+    include: { user: { select: { id: true, name: true, email: true, avatar: true, image: true, phone: true, telegram: true } } },
     orderBy: { createdAt: "asc" },
   });
 }

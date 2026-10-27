@@ -17,7 +17,7 @@ export default async function AccountPage({ params }: { params: Promise<{ locale
   const session = await auth();
   const id = session?.user?.id;
   if (!id) return redirect({ href: { pathname: "/sign-in", query: { callbackUrl: "/account" } }, locale });
-  const [t, user] = await Promise.all([getTranslations("account"), db.user.findUnique({ where: { id }, select: { email: true, name: true } })]);
+  const [t, user] = await Promise.all([getTranslations("account"), db.user.findUnique({ where: { id }, select: { email: true, name: true, firstName: true, lastName: true, phone: true, telegram: true, avatar: true, image: true } })]);
   if (!user) return redirect({ href: "/sign-in", locale });
   return (
     <div className="flex min-h-screen flex-col">
@@ -45,7 +45,12 @@ export default async function AccountPage({ params }: { params: Promise<{ locale
         </div>
       </header>
       <QueryProvider>
-        <AccountPanel email={user.email} name={user.name} />
+        <AccountPanel
+          email={user.email}
+          avatar={user.avatar ?? user.image}
+          // Accounts made before the split have only a display name: split it at the first space so nothing looks empty.
+          profile={{ firstName: user.firstName ?? (user.lastName ? "" : (user.name ?? "").split(" ")[0] ?? ""), lastName: user.lastName ?? (user.firstName ? "" : (user.name ?? "").split(" ").slice(1).join(" ")), phone: user.phone ?? "", telegram: user.telegram ? `@${user.telegram}` : "" }}
+        />
       </QueryProvider>
     </div>
   );

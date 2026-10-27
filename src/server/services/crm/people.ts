@@ -165,10 +165,12 @@ export async function ensureMyPartnerCard(userId: string, workspaceId: string): 
     await loadWorkspaceMember(tx, userId, workspaceId, "crm:write");
     const have = await tx.contact.findFirst({ where: { workspaceId, linkedUserId: userId, stage: "PARTNER", node: { archivedAt: null } }, select: { nodeId: true } });
     if (have) return { id: have.nodeId, created: false };
-    const me = await tx.user.findUniqueOrThrow({ where: { id: userId }, select: { name: true, email: true } });
-    const { firstName, lastName } = splitFullName(me.name?.trim() || me.email.split("@")[0] || "Me");
+    const me = await tx.user.findUniqueOrThrow({ where: { id: userId }, select: { name: true, email: true, firstName: true, lastName: true, phone: true, telegram: true } });
+    const split = splitFullName(me.name?.trim() || me.email.split("@")[0] || "Me");
+    const firstName = me.firstName?.trim() || split.firstName;
+    const lastName = me.firstName?.trim() ? (me.lastName?.trim() || null) : split.lastName;
     await assertContactCapacity(tx, workspaceId, 1);
-    const { id } = await createContactIn(tx, userId, workspaceId, { firstName, lastName, position: null, emails: [], phones: [], messengers: {}, stage: "PARTNER", linkedUserId: userId, ownerId: userId });
+    const { id } = await createContactIn(tx, userId, workspaceId, { firstName, lastName, position: null, emails: [me.email], phones: me.phone ? [me.phone] : [], messengers: me.telegram ? { telegram: me.telegram } : {}, stage: "PARTNER", linkedUserId: userId, ownerId: userId });
     return { id, created: true };
   });
 }

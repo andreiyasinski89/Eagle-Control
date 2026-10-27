@@ -3,8 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { Phone, Send } from "lucide-react";
+import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { telegramUrl } from "@/modules/account/profile";
 
 type Level = "NONE" | "OWN" | "TEAM" | "ALL";
 const LEVELS: Level[] = ["NONE", "OWN", "TEAM", "ALL"];
@@ -16,7 +19,7 @@ interface Props {
   meId: string;
   canManage: boolean;
   isOwner: boolean;
-  members: { userId: string; name: string | null; email: string; role: Role; crmAccess: boolean; crmLevel: Level; teamScope: "OWN" | "TEAM" | "ALL" | null; hourlyRate: number | null }[];
+  members: { userId: string; name: string | null; email: string; avatar: string | null; phone: string | null; telegram: string | null; role: Role; crmAccess: boolean; crmLevel: Level; teamScope: "OWN" | "TEAM" | "ALL" | null; hourlyRate: number | null }[];
   invitations: { id: string; email: string; role: Role }[];
 }
 
@@ -101,76 +104,106 @@ export function MembersPanel({ workspaceId, meId, canManage, isOwner, members, i
         </p>
       )}
 
-      <ul className="divide-y divide-border rounded-lg border border-border bg-card">
-        {members.map((m) => (
-          <li key={m.userId} className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-            <div>
-              <div className="font-medium">{m.name ?? m.email}</div>
-              {m.name && <div className="text-sm text-muted-foreground">{m.email}</div>}
-            </div>
-            <div className="flex flex-wrap items-center gap-3 text-sm">
-              <span className="rounded bg-muted px-2 py-0.5">{tr(m.role)}</span>
-              {m.role === "MEMBER" && canManage ? (
-                <label className="flex items-center gap-1 text-xs text-muted-foreground">
-                  {t("crmAccess")}
-                  <select
-                    value={m.crmLevel}
-                    aria-label={`${t("crmAccess")} ${m.name ?? m.email}`}
-                    data-testid="member-crm-level"
-                    className="h-8 rounded-md border border-border bg-card px-2 text-sm text-foreground"
-                    onChange={(e) => void call(`${base}/members/${m.userId}`, { method: "PATCH", body: JSON.stringify({ crmLevel: e.target.value }) })}
-                  >
-                    {LEVELS.map((l) => (
-                      <option key={l} value={l}>
-                        {t(`level.${l}`)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              ) : (
-                m.crmAccess && <span className="text-muted-foreground">CRM · {t(`level.${m.crmLevel}`)}</span>
-              )}
-              {(m.teamScope === "TEAM" || m.teamScope === "ALL") && m.role === "MEMBER" && <span className="text-xs text-muted-foreground">{t("viaTeam", { level: t(`level.${m.teamScope}`) })}</span>}
-              {canManage && (
-                <label className="flex items-center gap-1 text-xs text-muted-foreground">
-                  {t("hourlyRate")}
-                  <input
-                    type="number"
-                    min={0}
-                    step="0.01"
-                    defaultValue={m.hourlyRate ?? ""}
-                    aria-label={`${t("hourlyRate")} ${m.name ?? m.email}`}
-                    className="h-8 w-20 rounded-md border border-border bg-card px-2 text-sm text-foreground"
-                    onBlur={(e) => {
-                      const v = e.target.value === "" ? null : Number(e.target.value);
-                      if (v !== m.hourlyRate) void call(`${base}/members/${m.userId}`, { method: "PATCH", body: JSON.stringify({ hourlyRate: v }) });
-                    }}
-                  />
-                </label>
-              )}
-              {isOwner && (m.role === "ADMIN" || m.role === "MEMBER") && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    if (window.confirm(t("makeOwnerConfirm", { name: m.name ?? m.email }))) void call(`${base}/transfer-ownership`, { method: "POST", body: JSON.stringify({ userId: m.userId }) });
-                  }}
-                >
-                  {t("makeOwner")}
-                </Button>
-              )}
-              {canManage && m.userId !== meId && m.role !== "OWNER" && (
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={() => call(`${base}/members/${m.userId}`, { method: "DELETE" })}
-                >
-                  {tc("remove")}
-                </Button>
-              )}
-            </div>
-          </li>
-        ))}
+      <ul className="flex flex-col gap-3" data-testid="member-list">
+        {members.map((m) => {
+          const label = m.name ?? m.email;
+          const canMakeOwner = isOwner && (m.role === "ADMIN" || m.role === "MEMBER");
+          const canRemove = canManage && m.userId !== meId && m.role !== "OWNER";
+          return (
+            <li key={m.userId} className="rounded-2xl border border-border bg-card p-4" data-testid="member-card">
+              <div className="flex flex-col gap-4">
+                <div className="flex min-w-0 items-center gap-3">
+                  <Avatar name={m.name} email={m.email} src={m.avatar} size="md" />
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="truncate font-medium">{label}</span>
+                      {m.userId === meId && <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">{t("you")}</span>}
+                    </div>
+                    {m.name && <div className="truncate text-sm text-muted-foreground">{m.email}</div>}
+                    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                      {m.phone && (
+                        <a href={`tel:${m.phone.replace(/[^\d+]/g, "")}`} className="inline-flex items-center gap-1 hover:text-foreground hover:underline">
+                          <Phone className="size-3" aria-hidden />
+                          {m.phone}
+                        </a>
+                      )}
+                      {m.telegram && (
+                        <a href={telegramUrl(m.telegram)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 hover:text-foreground hover:underline">
+                          <Send className="size-3" aria-hidden />@{m.telegram}
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-end gap-x-4 gap-y-3 border-t border-border pt-3">
+                  <Cell label={t("roleShort")} className="w-28">
+                    <span className="inline-flex h-9 items-center rounded-md bg-muted px-2.5 text-sm">{tr(m.role)}</span>
+                  </Cell>
+                  <Cell label={t("crmShort")} className="w-48">
+                    {m.role === "MEMBER" && canManage ? (
+                      <select
+                        value={m.crmLevel}
+                        aria-label={`${t("crmAccess")} ${label}`}
+                        data-testid="member-crm-level"
+                        className="h-9 w-full rounded-md border border-border bg-card px-2 text-sm"
+                        onChange={(e) => void call(`${base}/members/${m.userId}`, { method: "PATCH", body: JSON.stringify({ crmLevel: e.target.value }) })}
+                      >
+                        {LEVELS.map((l) => (
+                          <option key={l} value={l}>
+                            {t(`level.${l}`)}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className="inline-flex h-9 items-center text-sm text-muted-foreground">{m.crmAccess || m.role === "OWNER" || m.role === "ADMIN" ? t(`level.${m.crmLevel}`) : "—"}</span>
+                    )}
+                    {(m.teamScope === "TEAM" || m.teamScope === "ALL") && m.role === "MEMBER" && <span className="text-xs text-muted-foreground">{t("viaTeam", { level: t(`level.${m.teamScope}`) })}</span>}
+                  </Cell>
+                  <Cell label={t("rateShort")} className="w-28">
+                    {canManage ? (
+                      <input
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        defaultValue={m.hourlyRate ?? ""}
+                        aria-label={`${t("hourlyRate")} ${label}`}
+                        className="h-9 w-full rounded-md border border-border bg-card px-2 text-sm"
+                        onBlur={(e) => {
+                          const v = e.target.value === "" ? null : Number(e.target.value);
+                          if (v !== m.hourlyRate) void call(`${base}/members/${m.userId}`, { method: "PATCH", body: JSON.stringify({ hourlyRate: v }) });
+                        }}
+                      />
+                    ) : (
+                      <span className="inline-flex h-9 items-center text-sm text-muted-foreground">—</span>
+                    )}
+                  </Cell>
+
+                  {canMakeOwner || canRemove ? (
+                    <div className="ml-auto flex flex-wrap gap-2">
+                      {canMakeOwner && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (window.confirm(t("makeOwnerConfirm", { name: label }))) void call(`${base}/transfer-ownership`, { method: "POST", body: JSON.stringify({ userId: m.userId }) });
+                          }}
+                        >
+                          {t("makeOwner")}
+                        </Button>
+                      )}
+                      {canRemove && (
+                        <Button variant="danger" size="sm" onClick={() => call(`${base}/members/${m.userId}`, { method: "DELETE" })}>
+                          {tc("remove")}
+                        </Button>
+                      )}
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            </li>
+          );
+        })}
       </ul>
 
       {canManage && invitations.length > 0 && (
@@ -190,6 +223,16 @@ export function MembersPanel({ workspaceId, meId, canManage, isOwner, members, i
           </ul>
         </div>
       )}
+    </div>
+  );
+}
+
+/** A labelled slot of a member's card: the same caption above every control, so the rows line up. */
+function Cell({ label, className, children }: { label: string; className?: string; children: React.ReactNode }) {
+  return (
+    <div className={`flex min-w-0 flex-col gap-1 ${className ?? ""}`}>
+      <span className="text-xs font-medium text-muted-foreground">{label}</span>
+      {children}
     </div>
   );
 }

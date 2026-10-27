@@ -88,7 +88,14 @@
       "TEAM": "Własny zespół",
       "ALL": "Wszystko"
     },
-    "viaTeam": "zespół: {level}"
+    "viaTeam": "zespół: {level}",
+    "phone": "Telefon",
+    "telegram": "Telegram",
+    "crmShort": "Dostęp do CRM",
+    "rateShort": "Stawka za godzinę",
+    "roleShort": "Rola",
+    "you": "ty",
+    "noContacts": "Brak telefonu i Telegrama"
   },
   "invite": {
     "title": "Zaproszono Cię do {workspace}",
@@ -1681,5 +1688,19 @@
     "error_grantee_no_crm": "Najpierw daj temu członkowi dostęp do CRM (Ustawienia → Członkowie).",
     "error_already_sees_all": "Ten członek już widzi wszystko.",
     "error_self_share": "Dostęp daje się komuś innemu."
+  },
+  "profile": {
+    "firstName": "Imię",
+    "lastName": "Nazwisko",
+    "phone": "Telefon",
+    "phoneHint": "Z numerem kierunkowym, np. +48 600 100 200",
+    "phoneBad": "Wpisz numer telefonu z 6–15 cyfr.",
+    "telegram": "Telegram",
+    "telegramHint": "@nazwa lub link t.me/nazwa",
+    "telegramBad": "Wpisz nazwę w Telegramie jak @nazwa lub link t.me/nazwa.",
+    "save": "Zapisz",
+    "saved": "Zapisano",
+    "noName": "Twoje imię",
+    "error": "Coś poszło nie tak"
   }
 }
