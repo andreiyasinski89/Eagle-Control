@@ -243,3 +243,14 @@
 - **"Create and add next"** (Ctrl+Enter in the list): saves the tasks and leaves the dialog open with an empty list for the next ones, keeping the project, the list, the assignee and the date. It says how many were just made. It works the same in My tasks and in the project's header (map, board, list, calendar, timeline), so the board has it too.
 - What the person types while the previous tasks are still being saved is kept, not wiped by the answer. A new epic made on the way is reused for the next batch instead of making another one.
 - Tests: no new server code; the dialog was run in the browser (default date, button, shortcut, typing during a save).
+
+## 0.23.0 — Notes and links
+
+- **New "Notes and links" section** in the left menu (after Time): a notebook of one's own. **Private: only the person who writes a note can see it**, not other members and not the workspace owner.
+- **Notes** save as they are typed (like a paper pad); the title, the text and a pin to keep a note on top. **Links** are notes with a web address: a button opens the site in a new tab, and the note says why the link is useful.
+- The web addresses written inside a note's text show as clickable chips under it. Only `http` and `https` addresses are made clickable; anything else stays text.
+- **Search** across titles, texts and addresses; filters *All / Notes / Links / Pinned*. On a phone the list and the note take turns.
+- Up to 500 notes and links per person in a workspace, 50,000 characters in a note. A note is deleted with its workspace or its author's account, and it is part of the account data export.
+- **API:** `GET|POST /api/v1/workspaces/:id/notes`, `GET|PATCH|DELETE /api/v1/notes/:id` (personal; not in the public API or for Claude).
+- Database migration `0017_notes`.
+- Tests: `notes.test.ts` (addresses) and `notes.test.ts` in integration (kinds, order, search, addresses, limits, privacy between members and from outsiders, removal with the workspace).

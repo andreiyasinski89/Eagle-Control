@@ -81,7 +81,7 @@ export async function exportAccount(userId: string, code: string, now = new Date
   await activeUser(userId);
   await consumeChallenge(userId, "export", code, now);
   const take = EXPORT_ROWS;
-  const [user, memberships, projectAccess, created, assigned, comments, attachments, time, crmActs, reminders, notifications, prefs, integrations, tokens, ai, activity, events, approvals, savedFilters, timer] = await Promise.all([
+  const [user, memberships, projectAccess, created, assigned, comments, attachments, time, crmActs, reminders, notifications, prefs, integrations, tokens, ai, activity, events, approvals, savedFilters, timer, notes] = await Promise.all([
     db.user.findUniqueOrThrow({ where: { id: userId } }),
     db.membership.findMany({ where: { userId }, include: { workspace: { select: { name: true, slug: true, plan: true } } } }),
     db.projectMember.findMany({ where: { userId }, include: { node: { select: { title: true } } } }),
@@ -102,6 +102,7 @@ export async function exportAccount(userId: string, code: string, now = new Date
     db.approval.findMany({ where: { OR: [{ requestedById: userId }, { decidedById: userId }] }, take }),
     db.savedFilter.findMany({ where: { userId } }),
     db.runningTimer.findUnique({ where: { userId } }),
+    db.note.findMany({ where: { userId }, orderBy: { createdAt: "asc" }, take }),
   ]);
   await record(userId, "exported");
   const full = (rows: unknown[]) => rows.length >= take;
@@ -121,6 +122,7 @@ export async function exportAccount(userId: string, code: string, now = new Date
     reminders: reminders.map((r) => ({ remindAt: r.remindAt, channel: r.channel, done: r.done })),
     notifications: notifications.map((n) => ({ kind: n.kind, payload: n.payload, readAt: n.readAt, createdAt: n.createdAt })),
     notificationPreferences: prefs.map((p) => ({ kind: p.kind, channels: p.channels })),
+    notes: notes.map((n) => ({ kind: n.kind, title: n.title, body: n.body, url: n.url, pinned: n.pinned, createdAt: n.createdAt, updatedAt: n.updatedAt })),
     savedFilters: savedFilters.map((f) => ({ name: f.name, criteria: f.criteria })),
     integrations,
     apiTokens: tokens,

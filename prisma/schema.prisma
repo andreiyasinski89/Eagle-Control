@@ -128,6 +128,7 @@ enum IntegrationKind {
 // ───────────────────────── Auth.js ─────────────────────────
 
 model User {
+  notes               Note[]
   id                  String    @id @default(cuid())
   name                String?
   email               String    @unique
@@ -225,6 +226,7 @@ model Workspace {
   scripts          Script[]
   stageRules       StageRule[]
   networkGoals     NetworkGoal[]
+  notes            Note[]
   pipelines        Pipeline[]
   lostReasons      LostReason[]
   templates        ProjectTemplate[]
@@ -574,6 +576,31 @@ model ContactGroup {
   contacts  Contact[]
 
   @@index([workspaceId, parentId])
+}
+
+enum NoteKind {
+  NOTE
+  LINK
+}
+
+/// A person's own notebook: notes and useful links, private to whoever wrote them (no one else in the workspace can read them).
+model Note {
+  id          String   @id @default(cuid())
+  workspaceId String
+  userId      String
+  kind        NoteKind @default(NOTE)
+  title       String   @default("")
+  body        String   @default("") @db.Text
+  /// For a link: where it goes (http or https).
+  url         String?
+  pinned      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, userId, updatedAt])
 }
 
 /// A ready text for a moment in the funnel (the first message, the invitation, the follow-up), kept by the team and copied into a messenger.

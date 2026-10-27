@@ -145,3 +145,7 @@
 | 141 | Travel or business is one of two codes, not free text; the old letters are read as the same thing | The team means the same two things by П and Б; a fixed choice can be filtered and counted, and the sheets' letters keep working on import and in the API. |
 | 142 | "Create and add next" keeps everything but the text | The person is adding several tasks of one kind in a row: the same list, owner and date; only the words change. |
 | 143 | A request remembers what it sent, and the form only clears if the text is still the same | The answer of a slow save must never erase the next list the person has started typing. |
+| 144 | Notes are private to their author, with no sharing and no owner access | The notebook is a place to think without being read; if a team needs shared texts, that is the scripts of the CRM or the knowledge base, not here. |
+| 145 | A note saves itself and flushes when you leave it | A notepad that asks to be saved is a form. Edits are sent after a short pause, and when the note closes or the page hides. |
+| 146 | Only http and https addresses become links | A note may hold anything a person pastes; a "javascript:" address must never become a clickable thing. |
+| 147 | Notes are not in the public API or the Claude connector | They are personal; handing a token or an assistant a person's private notebook is a decision for a later, explicit step. |
