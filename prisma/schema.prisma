@@ -123,7 +123,9 @@ model User {
   /// Set while a deletion is scheduled; the account is erased once the grace period has passed.
   deletionRequestedAt DateTime?
   deletionOptions     Json?
-  /** When this person first signed in after agreeing to the terms and privacy policy. */
+  /**
+   * When this person first signed in after agreeing to the terms and privacy policy.
+   */
   termsAcceptedAt     DateTime?
 
   accounts          Account[]
@@ -145,6 +147,7 @@ model User {
   runningTimer      RunningTimer?
   userIntegrations  UserIntegration[]
   apiTokens         ApiToken[]
+  oauthGrants       OAuthGrant[]
   notificationPrefs NotificationPreference[]
   calendarLinks     CalendarLink[]
 }
@@ -210,6 +213,7 @@ model Workspace {
   subscription     Subscription?
   userIntegrations UserIntegration[]
   apiTokens        ApiToken[]
+  oauthGrants      OAuthGrant[]
   webhookEndpoints WebhookEndpoint[]
 }
 
@@ -845,11 +849,77 @@ model ApiToken {
   lastUsedAt  DateTime?
   revokedAt   DateTime?
   createdAt   DateTime  @default(now())
+  /// Set for tokens issued through OAuth (Claude and other MCP clients): revoking the grant revokes them.
+  grantId     String?
 
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  grant     OAuthGrant? @relation(fields: [grantId], references: [id], onDelete: Cascade)
 
   @@index([workspaceId])
+  @@index([grantId])
+}
+
+/// A program that registered itself to ask for access (RFC 7591), e.g. Claude. A public client: no secret, PKCE is required.
+model OAuthClient {
+  id           String   @id @default(cuid())
+  name         String
+  redirectUris String[]
+  createdAt    DateTime @default(now())
+
+  grants OAuthGrant[]
+  codes  OAuthCode[]
+}
+
+/// One person's permission for one program to act in one workspace. Revoking it ends every token issued under it.
+model OAuthGrant {
+  id          String    @id @default(cuid())
+  clientId    String
+  userId      String
+  workspaceId String
+  scope       String    @default("read") // read | write
+  createdAt   DateTime  @default(now())
+  revokedAt   DateTime?
+
+  client        OAuthClient    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace     Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  tokens        ApiToken[]
+  refreshTokens OAuthRefresh[]
+
+  @@index([userId])
+  @@index([workspaceId])
+}
+
+/// A one-time authorization code, valid for minutes and exchangeable once together with the PKCE verifier.
+model OAuthCode {
+  id            String    @id @default(cuid())
+  codeHash      String    @unique
+  clientId      String
+  userId        String
+  workspaceId   String
+  scope         String
+  redirectUri   String
+  codeChallenge String
+  expiresAt     DateTime
+  usedAt        DateTime?
+  createdAt     DateTime  @default(now())
+
+  client OAuthClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+/// Refresh tokens rotate: each is used once. Presenting a used one again means it leaked, and the whole grant is revoked.
+model OAuthRefresh {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  grantId   String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  grant OAuthGrant @relation(fields: [grantId], references: [id], onDelete: Cascade)
+
+  @@index([grantId])
 }
 
 /**

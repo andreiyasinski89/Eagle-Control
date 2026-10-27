@@ -122,4 +122,11 @@
 - Columns without a field of their own can be kept in the contact's note as "Column: value" (ticked by default, so nothing is lost silently).
 - Contacts without e-mail or phone (a list of names) are matched by full name, so importing the same list twice does not double it.
 - Tests: new meeting form and Excel parsing (`new-event.test.ts`), Excel upload end to end on PGlite with a synthetic fixture (`import-xlsx.test.ts`).
+## 0.10.0 — Claude connection (MCP)
 
+- **MCP server** at `/api/mcp` (Streamable HTTP, stateless JSON-RPC): 28 tools for projects and nodes, search, comments, time, calendar, My day, contacts, companies, deals and CRM activities. Every tool runs through the public API's dispatcher, so it has the same token, plan, scope, workspace boundary, rate limit and audit as REST. A read-only connection is offered only the reading tools.
+- **OAuth 2.1** so Claude's "Add custom connector" works with just the address: discovery documents (`/.well-known/oauth-protected-resource`, `…/oauth-authorization-server`), dynamic client registration, consent page (`/oauth/authorize`: pick the workspace and read or read-and-write), token endpoint with PKCE S256, one-hour access tokens, rotating refresh tokens with replay detection. New tables: `OAuthClient`, `OAuthGrant`, `OAuthCode`, `OAuthRefresh` (migration `0010_oauth_mcp`), `ApiToken.grantId`.
+- Settings → Developers: *Connect Claude* (address to copy, Claude Code command) and the list of connected applications with *Disconnect*. OAuth tokens stay out of the personal token list.
+- Public API: new `GET /calendar`, `/my-day` and `/search`.
+- Daily job `api/purge` also removes spent codes, used or expired refresh tokens, expired OAuth access tokens and applications nobody approved.
+- Tests: `mcp-oauth.test.ts` (26: registration, PKCE, code and refresh rules, consent form checks, protocol, scope, workspace boundary, revoke, purge) and the route inventory.

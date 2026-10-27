@@ -10,7 +10,9 @@ import { createDeal, createDealSchema, getDeal, listDeals, listDealsSchema, move
 import { loadNode } from "@/server/services/nodes/access";
 import { nodeDto } from "@/server/services/nodes/batch";
 import { archiveNode, createNode, patchNode, transact } from "@/server/services/nodes/ops";
-import { getNodeDetail, getTree, listProjects } from "@/server/services/nodes/queries";
+import { getNodeDetail, getTree, listProjects, searchNodes } from "@/server/services/nodes/queries";
+import { calendarQuerySchema, workspaceCalendar } from "@/server/services/nodes/views";
+import { getMyDay } from "@/server/services/crm/my-day";
 import { addEntry, entrySchema, listEntries } from "@/server/services/time";
 import type { TokenContext } from "./tokens";
 
@@ -123,6 +125,11 @@ export const endpoints: Endpoint[] = [
   ep({ method: "POST", path: "/nodes/{id}/comments", summary: "Add a comment (ProseMirror JSON body)", tag: "Comments", body: createCommentSchema, run: async ({ t, params, body }) => (await inWorkspace(t, params.id!), one(await createComment(t.userId, params.id!, body), 201)) }),
   ep({ method: "GET", path: "/nodes/{id}/time", summary: "Time entries of a task", tag: "Time", run: async ({ t, params }) => (await inWorkspace(t, params.id!), one(await listEntries(t.userId, params.id!))) }),
   ep({ method: "POST", path: "/nodes/{id}/time", summary: "Log time on a task as the token's owner", tag: "Time", body: entrySchema, run: async ({ t, params, body }) => (await inWorkspace(t, params.id!), one(await addEntry(t.userId, params.id!, body), 201)) }),
+
+  // overview
+  ep({ method: "GET", path: "/calendar", summary: "Everything dated inside a window: deadlines, events, CRM follow-ups, deal dates", tag: "Overview", query: calendarQuerySchema, run: async ({ t, query }) => one(await workspaceCalendar(t.userId, t.workspaceId, query)) }),
+  ep({ method: "GET", path: "/my-day", summary: "The token owner's day: tasks due, meetings, follow-ups and what needs attention", tag: "Overview", run: async ({ t }) => one(await getMyDay(t.userId, t.workspaceId)) }),
+  ep({ method: "GET", path: "/search", summary: "Search nodes by title (optionally inside one project)", tag: "Overview", query: z.object({ q: z.string().trim().min(1).max(100), projectId: z.string().optional() }), run: async ({ t, query }) => one(await searchNodes(t.userId, t.workspaceId, query.q, query.projectId)) }),
 
   // CRM
   ep({ method: "GET", path: "/contacts", summary: "List contacts", tag: "CRM", paged: true, query: noPaging(listContactsSchema), run: async ({ t, query, page }) => ({ ...(await listContacts(t.userId, t.workspaceId, { ...(listContactsSchema.parse({ ...query, ...page })) })) }) }),

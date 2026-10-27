@@ -5,6 +5,7 @@ import { resetDemo } from "@/server/services/demo-mode";
 import { runDueErasures } from "@/server/services/account";
 import { expireGrace } from "@/server/services/billing";
 import { purgeIdempotency } from "@/server/public-api/dispatch";
+import { purgeOAuth } from "@/server/services/oauth";
 import { deliverDue, purgeDeliveries } from "@/server/webhooks";
 import { pollAll, pushEvent } from "@/server/integrations/google";
 import { announceEndedSprints, dispatchReminders, maintenance, refreshAllProjects } from "./tasks";
@@ -25,7 +26,7 @@ export const handlers = {
   /** Public demo only: puts the sample workspace back as it was. */
   "demo/reset": async () => (env().DEMO_MODE ? resetDemo() : { skipped: true }),
   "webhooks/deliver": async () => deliverDue(),
-  "api/purge": async () => ({ idempotency: await purgeIdempotency(), deliveries: await purgeDeliveries() }),
+  "api/purge": async () => ({ idempotency: await purgeIdempotency(), deliveries: await purgeDeliveries(), oauth: await purgeOAuth() }),
 } satisfies Record<string, (data: Record<string, unknown>) => Promise<unknown>>;
 
 export type JobName = keyof typeof handlers;

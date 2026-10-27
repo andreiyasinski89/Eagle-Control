@@ -27,7 +27,7 @@ async function manage(userId: string, workspaceId: string) {
 /** The token itself is shown once. Afterwards only its first characters and a hash exist. */
 export async function createToken(userId: string, workspaceId: string, input: z.infer<typeof createTokenSchema>, now = new Date()) {
   await manage(userId, workspaceId);
-  if ((await db.apiToken.count({ where: { workspaceId, userId, revokedAt: null } })) >= 20) throw new ApiError(422, "too_many_tokens", "Revoke an old token before creating another");
+  if ((await db.apiToken.count({ where: { workspaceId, userId, revokedAt: null, grantId: null } })) >= 20) throw new ApiError(422, "too_many_tokens", "Revoke an old token before creating another");
   const token = `${TOKEN_PREFIX}${randomBytes(24).toString("base64url")}`;
   const row = await db.apiToken.create({
     data: { workspaceId, userId, name: input.name, scope: input.scope, prefix: token.slice(0, 10), tokenHash: sha256(token), expiresAt: input.expiresInDays ? new Date(now.getTime() + input.expiresInDays * 86_400_000) : null },
@@ -38,7 +38,7 @@ export async function createToken(userId: string, workspaceId: string, input: z.
 export async function listTokens(userId: string, workspaceId: string) {
   const m = await manage(userId, workspaceId);
   const admin = m.role === "OWNER" || m.role === "ADMIN";
-  const rows = await db.apiToken.findMany({ where: { workspaceId, revokedAt: null, ...(admin ? {} : { userId }) }, orderBy: { createdAt: "desc" }, include: { user: { select: { name: true, email: true } } } });
+  const rows = await db.apiToken.findMany({ where: { workspaceId, revokedAt: null, grantId: null, ...(admin ? {} : { userId }) }, orderBy: { createdAt: "desc" }, include: { user: { select: { name: true, email: true } } } });
   return rows.map((t) => ({ id: t.id, name: t.name, prefix: t.prefix, scope: t.scope, expiresAt: t.expiresAt, lastUsedAt: t.lastUsedAt, createdAt: t.createdAt, owner: t.user.name ?? t.user.email, mine: t.userId === userId }));
 }
 

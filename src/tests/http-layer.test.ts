@@ -125,6 +125,9 @@ const OWN_PROTECTION: Record<string, string> = {
   "api/public/hooks/leads/route.ts": "bearer token (hashed), rate limited",
   "api/public/leads/[key]/route.ts": "public form key, rate limited",
   "api/public/v1/[[...path]]/route.ts": "API token in the dispatcher",
+  "api/mcp/route.ts": "bearer token (API or OAuth) checked before anything else; rate limited by address",
+  "api/oauth/register/route.ts": "public by design (RFC 7591); rate limited; a client does nothing until a person approves it",
+  "api/oauth/token/route.ts": "single-use code plus PKCE verifier, or a rotating refresh token; rate limited",
   "api/realtime/stream/route.ts": "session checked inside",
 };
 /** Routes that opt out of the session check on purpose. */

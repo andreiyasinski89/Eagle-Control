@@ -939,7 +939,19 @@
     "resume": "Wznów",
     "remove": "Usuń",
     "failed": "błędów: {n}",
-    "noHooks": "Brak adresów."
+    "noHooks": "Brak adresów.",
+    "claudeTitle": "Połącz Claude",
+    "claudeHint": "Claude będzie mógł czytać i zmieniać tę przestrzeń na Twoją prośbę: pokazać Twój dzień, dodać zadanie lub spotkanie, znaleźć klienta, przesunąć deal.",
+    "claudeStep1": "W Claude otwórz Settings → Connectors → Add custom connector.",
+    "claudeStep2": "Nazwij go MeetOwl i wklej ten adres:",
+    "claudeStep3": "Naciśnij Connect, zaloguj się do MeetOwl, jeśli trzeba, wybierz tę przestrzeń i zezwól na dostęp.",
+    "claudeCode": "Claude Code lub inny program?",
+    "claudeCodeHint": "Claude Code otworzy to samo okno logowania. Program, który nie umie się logować, może użyć osobistego tokenu z listy poniżej jako nagłówka Bearer.",
+    "copy": "Kopiuj",
+    "connections": "Połączone aplikacje",
+    "noConnections": "Nic jeszcze nie jest połączone.",
+    "connectedOn": "połączono {date}",
+    "disconnect": "Rozłącz"
   },
   "portal": {
     "error": "Coś poszło nie tak",
@@ -1077,5 +1089,22 @@
     "userMenu": "Menu konta",
     "menu": "Menu",
     "close": "Zamknij"
+  },
+  "oauth": {
+    "title": "Połącz {app} z MeetOwl",
+    "intro": "{app} prosi o pracę w MeetOwl w Twoim imieniu ({email}). Zobaczy i zmieni tylko to, do czego Ty masz dostęp.",
+    "invalid": "To żądanie logowania jest nieprawidłowe. Zacznij połączenie od nowa w aplikacji.",
+    "noWorkspace": "Żadnej z Twoich przestrzeni nie można połączyć: potrzebna jest przestrzeń z planem Pro, w której jesteś członkiem, a nie gościem.",
+    "workspace": "Przestrzeń",
+    "access": "Co może robić?",
+    "readWrite": "Czytać i zmieniać",
+    "readWriteHint": "Tworzyć i edytować zadania, wydarzenia, kontakty i dealy, gdy o to poprosisz.",
+    "readOnly": "Tylko czytać",
+    "readOnlyHint": "Wyszukiwać i oglądać, niczego nie zmieniając.",
+    "returnTo": "Po Twojej decyzji wrócisz do {host}. Kontynuuj tylko wtedy, gdy sam zacząłeś to połączenie.",
+    "allow": "Zezwól",
+    "deny": "Anuluj",
+    "revokeHint": "Możesz je rozłączyć w dowolnej chwili: Ustawienia → Dla deweloperów.",
+    "unknownHost": "Ta aplikacja nie pochodzi od Anthropic: przekieruje Cię na {host}. Połącz ją tylko wtedy, gdy ufasz osobie, która dała Ci ten link."
   }
 }

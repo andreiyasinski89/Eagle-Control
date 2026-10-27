@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Lock } from "lucide-react";
+import { Check, Copy, Lock } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,15 @@ interface Token {
   owner: string;
   mine: boolean;
 }
+interface Grant {
+  id: string;
+  app: string;
+  scope: string;
+  createdAt: string;
+  lastUsedAt: string | null;
+  owner: string;
+  mine: boolean;
+}
 interface Hook {
   id: string;
   url: string;
@@ -27,6 +36,30 @@ interface Hook {
 }
 const EVENTS = ["project.changed", "deal.won", "lead.created"] as const;
 
+function CopyLine({ value, label }: { value: string; label: string }) {
+  const [done, setDone] = useState(false);
+  return (
+    <div className="flex items-center gap-2">
+      <code className="min-w-0 flex-1 break-all rounded bg-muted p-2 text-xs" data-testid="copy-line">
+        {value}
+      </code>
+      <Button
+        size="sm"
+        variant="outline"
+        aria-label={label}
+        onClick={() => {
+          void navigator.clipboard?.writeText(value).then(() => {
+            setDone(true);
+            setTimeout(() => setDone(false), 1500);
+          });
+        }}
+      >
+        {done ? <Check className="size-4" /> : <Copy className="size-4" />}
+      </Button>
+    </div>
+  );
+}
+
 /** Personal API tokens and outgoing webhooks. Secrets are shown once, right after they are created. */
 export function DevelopersPanel({ workspaceId, canManageHooks }: { workspaceId: string; canManageHooks: boolean }) {
   const t = useTranslations("developers");
@@ -35,6 +68,11 @@ export function DevelopersPanel({ workspaceId, canManageHooks }: { workspaceId: 
   const tokensKey = ["api-tokens", workspaceId];
   const hooksKey = ["webhooks", workspaceId];
   const tokens = useQuery({ queryKey: tokensKey, retry: false, queryFn: () => api.get<{ items: Token[] }>(`/api/v1/workspaces/${workspaceId}/api-tokens`) });
+  const grantsKey = ["oauth-grants", workspaceId];
+  const grants = useQuery({ queryKey: grantsKey, enabled: tokens.isSuccess, retry: false, queryFn: () => api.get<{ items: Grant[] }>(`/api/v1/workspaces/${workspaceId}/oauth-grants`) });
+  // The address Claude has to be given is the one this page is served from.
+  const [origin, setOrigin] = useState("");
+  useEffect(() => setOrigin(window.location.origin), []);
   const hooks = useQuery({ queryKey: hooksKey, enabled: canManageHooks && tokens.isSuccess, retry: false, queryFn: () => api.get<{ items: Hook[] }>(`/api/v1/workspaces/${workspaceId}/webhooks`) });
   const [name, setName] = useState("");
   const [scope, setScope] = useState<"read" | "write">("read");
@@ -67,6 +105,7 @@ export function DevelopersPanel({ workspaceId, canManageHooks }: { workspaceId: 
     },
     onError: fail,
   });
+  const disconnect = useMutation({ mutationFn: (id: string) => api.del(`/api/v1/oauth-grants/${id}`), onSuccess: () => void qc.invalidateQueries({ queryKey: grantsKey }), onError: fail });
   const hookAction = useMutation({ mutationFn: (fn: () => Promise<unknown>) => fn(), onSuccess: () => void qc.invalidateQueries({ queryKey: hooksKey }), onError: fail });
 
   if (tokens.error instanceof ApiFailure && tokens.error.code === "plan_feature") {
@@ -102,6 +141,44 @@ export function DevelopersPanel({ workspaceId, canManageHooks }: { workspaceId: 
           </Button>
         </div>
       )}
+
+      <section className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4" data-testid="claude-connection">
+        <h2 className="font-semibold">{t("claudeTitle")}</h2>
+        <p className="text-sm text-muted-foreground">{t("claudeHint")}</p>
+        <ol className="list-decimal pl-5 text-sm [&>li]:mt-1">
+          <li>{t("claudeStep1")}</li>
+          <li>
+            {t("claudeStep2")}
+            <div className="mt-1">
+              <CopyLine value={`${origin}/api/mcp`} label={t("copy")} />
+            </div>
+          </li>
+          <li>{t("claudeStep3")}</li>
+        </ol>
+        <details className="text-sm">
+          <summary className="cursor-pointer text-muted-foreground">{t("claudeCode")}</summary>
+          <div className="mt-2 flex flex-col gap-2">
+            <CopyLine value={`claude mcp add --transport http meetowl ${origin}/api/mcp`} label={t("copy")} />
+            <p className="text-xs text-muted-foreground">{t("claudeCodeHint")}</p>
+          </div>
+        </details>
+        <h3 className="mt-1 text-sm font-medium">{t("connections")}</h3>
+        <ul className="flex flex-col divide-y divide-border text-sm">
+          {grants.data?.items.map((g) => (
+            <li key={g.id} className="flex flex-wrap items-center gap-3 py-2">
+              <span className="font-medium">{g.app}</span>
+              <span className="rounded bg-muted px-1.5 text-xs">{g.scope}</span>
+              <span className="text-xs text-muted-foreground">
+                {g.owner} · {t("connectedOn", { date: date(g.createdAt) })} · {t("lastUsed", { date: date(g.lastUsedAt) })}
+              </span>
+              <Button size="sm" variant="ghost" className="ml-auto" onClick={() => disconnect.mutate(g.id)}>
+                {t("disconnect")}
+              </Button>
+            </li>
+          ))}
+          {grants.data?.items.length === 0 && <li className="py-2 text-xs text-muted-foreground">{t("noConnections")}</li>}
+        </ul>
+      </section>
 
       <section className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4">
         <h2 className="font-semibold">{t("tokens")}</h2>
