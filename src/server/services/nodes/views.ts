@@ -102,7 +102,7 @@ export async function workspaceCalendar(userId: string, workspaceId: string, q: 
       }),
     ]);
     for (const a of acts) {
-      items.push({ id: a.id, kind: "crm_activity", title: a.subject, at: (a.dueAt as Date).toISOString(), endAt: null, done: a.completedAt !== null, href: a.dealId ? `/crm?deal=${a.dealId}` : a.contactId ? `/crm/contacts?contact=${a.contactId}` : a.companyId ? `/crm/companies/${a.companyId}` : "/crm/activities", context: a.deal?.node.title ?? a.company?.legalName ?? null });
+      items.push({ id: a.id, kind: "crm_activity", title: a.subject, at: (a.dueAt as Date).toISOString(), endAt: a.durationMin ? new Date((a.dueAt as Date).getTime() + a.durationMin * 60_000).toISOString() : null, done: a.completedAt !== null, href: a.dealId ? `/crm?deal=${a.dealId}` : a.contactId ? `/crm/contacts?contact=${a.contactId}` : a.companyId ? `/crm/companies/${a.companyId}` : "/crm/activities", context: a.deal?.node.title ?? a.company?.legalName ?? null });
     }
     for (const d of deals) {
       const href = nodePath(d.node);

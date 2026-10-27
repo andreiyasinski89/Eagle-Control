@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Download, Mail, Phone, ShieldAlert, StickyNote, X } from "lucide-react";
+import { CalendarPlus, Check, Download, Mail, Phone, ShieldAlert, StickyNote, Trash2, Users, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,12 +13,15 @@ import { Comments } from "@/features/drawer/Comments";
 import type { NodeDetail } from "@/features/drawer/types";
 import { api, ApiFailure } from "@/features/mindmap/api";
 import { useMapStore } from "@/features/mindmap/store";
+import { useTimeZone } from "@/features/views/useTimeZone";
 import { ActivityDialog } from "./DealDialogs";
+import { ScheduleDialog } from "./ScheduleDialog";
 import { dayInput, dayToIso, money } from "./format";
 import { useCompanyOptions, useMembers } from "./hooks";
 import { NodeTags } from "./NodeTags";
 import type { ActivityDto, Paged } from "./types";
 import { SkeletonRows } from "@/components/ui/skeleton";
+import { zonedParts } from "@/modules/views/tz";
 
 export interface ContactDetail {
   id: string;
@@ -67,6 +70,8 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
   const members = useMembers(workspaceId);
   const companies = useCompanyOptions(workspaceId);
   const [activity, setActivity] = useState<ActivityDto["type"] | null>(null);
+  const [planning, setPlanning] = useState(false);
+  const { tz } = useTimeZone();
   const [erasing, setErasing] = useState(false);
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -80,17 +85,32 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
   const { data: node } = useQuery({ queryKey: ["node", contactId], queryFn: () => api.get<NodeDetail>(`/api/v1/nodes/${contactId}`) });
   const feed = useQuery({ queryKey: ["activities", "contact", contactId], queryFn: () => api.get<Paged<ActivityDto & { dealTitle: string | null }>>(`/api/v1/workspaces/${workspaceId}/activities?contactId=${contactId}&pageSize=30`) });
 
+  // Planned calls and meetings: open activities with a date, soonest first.
+  const planned = useQuery({ queryKey: ["activities", "contact", contactId, "planned"], queryFn: () => api.get<Paged<ActivityDto>>(`/api/v1/workspaces/${workspaceId}/activities?contactId=${contactId}&status=open&pageSize=50`) });
+  const upcoming = (planned.data?.items ?? []).filter((a) => a.dueAt).sort((a, b) => (a.dueAt as string).localeCompare(b.dueAt as string));
+  const when = (a: ActivityDto) => {
+    const start = new Date(a.dueAt as string);
+    const day = new Intl.DateTimeFormat(locale, { weekday: "short", day: "numeric", month: "short", timeZone: tz }).format(start);
+    const hm = (d: Date) => new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit", timeZone: tz }).format(d);
+    const end = a.durationMin ? new Date(start.getTime() + a.durationMin * 60_000) : null;
+    return `${day}, ${hm(start)}${end && zonedParts(end, tz).day === zonedParts(start, tz).day ? `–${hm(end)}` : ""}`;
+  };
+
   const refresh = () => {
     void qc.invalidateQueries({ queryKey: ["contact", contactId] });
     void qc.invalidateQueries({ queryKey: ["node", contactId] });
     void qc.invalidateQueries({ queryKey: ["activities", "contact", contactId] });
     void qc.invalidateQueries({ queryKey: ["contacts"] });
+    void qc.invalidateQueries({ queryKey: ["calendar"] });
+    void qc.invalidateQueries({ queryKey: ["my-day"] });
   };
   const patch = useMutation({
     mutationFn: (body: Record<string, unknown>) => api.patch(`/api/v1/contacts/${contactId}`, body),
     onSuccess: () => (setError(null), refresh()),
     onError: (e) => setError(e instanceof ApiFailure ? e.message : t("error")),
   });
+  const finish = useMutation({ mutationFn: (id: string) => api.patch(`/api/v1/activities/${id}`, { completed: true }), onSuccess: refresh });
+  const unplan = useMutation({ mutationFn: (id: string) => api.del(`/api/v1/activities/${id}`), onSuccess: refresh });
   const consent = useMutation({ mutationFn: (given: boolean) => api.put(`/api/v1/contacts/${contactId}/consent`, { given, source: "manual" }), onSuccess: refresh });
 
   async function exportData() {
@@ -149,6 +169,10 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
 
       {canWrite && (
         <div className="flex flex-wrap gap-2 px-4 pb-3">
+          <Button size="sm" onClick={() => setPlanning(true)} data-testid="plan-contact">
+            <CalendarPlus className="size-4" />
+            {t("planContact")}
+          </Button>
           <Button size="sm" variant="outline" onClick={() => setActivity("CALL")}>
             <Phone className="size-4" />
             {t("logCall")}
@@ -162,6 +186,35 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
             {t("addNote")}
           </Button>
         </div>
+      )}
+
+      {(upcoming.length > 0 || canWrite) && (
+        <Section title={t("planUpcoming")}>
+          {upcoming.length === 0 && <p className="text-sm text-muted-foreground">{t("planNone")}</p>}
+          <ul className="flex flex-col gap-2 text-sm" data-testid="planned-list">
+            {upcoming.map((a) => (
+              <li key={a.id} className="flex items-start gap-2">
+                {a.type === "MEETING" ? <Users className="mt-0.5 size-4 shrink-0 text-muted-foreground" /> : <Phone className="mt-0.5 size-4 shrink-0 text-muted-foreground" />}
+                <div className="min-w-0 flex-1">
+                  <span className="font-medium">{a.subject}</span>
+                  <Link href={`/w/${slug}/calendar?day=${zonedParts(a.dueAt as string, tz).day}`} className="block text-xs text-primary hover:underline">
+                    {when(a)}
+                  </Link>
+                </div>
+                {canWrite && (
+                  <span className="flex shrink-0 gap-1">
+                    <Button size="sm" variant="ghost" aria-label={t("planDone")} title={t("planDone")} disabled={finish.isPending} onClick={() => finish.mutate(a.id)}>
+                      <Check className="size-4" />
+                    </Button>
+                    <Button size="sm" variant="ghost" aria-label={t("planRemove")} title={t("planRemove")} disabled={unplan.isPending} onClick={() => unplan.mutate(a.id)}>
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </Section>
       )}
 
       <Section title={t("details")}>
@@ -314,6 +367,7 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
         </Section>
       )}
 
+      <ScheduleDialog open={planning} onClose={() => setPlanning(false)} workspaceId={workspaceId} contactId={contactId} companyId={c.companyId} contactName={c.name} onSaved={refresh} />
       <ActivityDialog open={activity !== null} onClose={() => setActivity(null)} workspaceId={workspaceId} defaults={{ type: activity ?? "CALL", contactId, companyId: c.companyId }} onSaved={refresh} />
       <Modal open={erasing} onClose={() => (setErasing(false), setConfirm(""))} title={t("eraseTitle", { name: c.name })}>
         <p className="text-sm">{t("eraseBody")}</p>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -31,7 +32,8 @@ interface Item {
 export function WorkspaceCalendar({ workspaceId, slug }: { workspaceId: string; slug: string }) {
   const t = useTranslations("views");
   const { tz, saved, loaded } = useTimeZone();
-  const [picked, setAnchor] = useState<string | null>(null);
+  const asked = useSearchParams().get("day");
+  const [picked, setAnchor] = useState<string | null>(() => (asked && /^\d{4}-\d{2}-\d{2}$/.test(asked) && !Number.isNaN(Date.parse(`${asked}T00:00:00Z`)) ? asked : null));
   const anchor = picked ?? todayIn(tz);
   const [mode, setMode] = useState<CalendarMode>("month");
   const [mine, setMine] = useState(true);

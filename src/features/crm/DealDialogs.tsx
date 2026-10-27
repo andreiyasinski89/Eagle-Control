@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { FormField, Modal, selectClass, textareaClass } from "@/components/ui/modal";
 import { Link } from "@/i18n/navigation";
 import { api, ApiFailure } from "@/features/mindmap/api";
+import { useTimeZone } from "@/features/views/useTimeZone";
+import { zonedToUtc } from "@/modules/views/tz";
 import { dayToIso } from "./format";
 import { useCompanyOptions, useContactOptions, useLostReasons, useMembers, useTemplates } from "./hooks";
 import type { ActivityDto, DealDetailDto, PipelineDto } from "./types";
@@ -281,6 +283,7 @@ export function ActivityDialog({ open, onClose, workspaceId, defaults, onSaved }
   const tc = useTranslations("common");
   const qc = useQueryClient();
   const { busy, error, run } = useAction();
+  const { tz } = useTimeZone();
   const [f, setF] = useState({ type: defaults.type ?? "CALL", subject: "", body: "", due: "" });
   const scheduling = defaults.schedule || f.type === "TASK";
   return (
@@ -294,7 +297,7 @@ export function ActivityDialog({ open, onClose, workspaceId, defaults, onSaved }
               type: defaults.schedule ? "MEETING" : f.type,
               subject: f.subject,
               body: f.body || null,
-              dueAt: f.due ? new Date(f.due).toISOString() : null,
+              dueAt: f.due ? zonedToUtc(f.due.slice(0, 10), f.due.slice(11, 16), tz).toISOString() : null,
               dealId: defaults.dealId ?? null,
               contactId: defaults.contactId ?? null,
               companyId: defaults.companyId ?? null,

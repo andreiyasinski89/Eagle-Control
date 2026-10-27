@@ -580,6 +580,8 @@ model CrmActivity {
   subject     String
   body        String?         @db.Text
   dueAt       DateTime?
+  /// How long a scheduled call or meeting lasts, so the calendar can draw it as a block. Null = a point in time.
+  durationMin Int?
   completedAt DateTime?
   ownerId     String
   contactId   String?

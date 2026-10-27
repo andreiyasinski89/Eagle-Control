@@ -573,7 +573,32 @@
     "noteColumns": "Pozostałe kolumny",
     "noteColumnsHint": "Zaznacz kolumny, które mają trafić do notatki kontaktu jako „Kolumna: wartość”.",
     "importing": "Importowanie…",
-    "importTimeout": "Serwer działał zbyt długo i się zatrzymał. Nic nie zaimportowano. Spróbuj ponownie; jeśli to się powtarza, podziel plik na mniejsze części."
+    "importTimeout": "Serwer działał zbyt długo i się zatrzymał. Nic nie zaimportowano. Spróbuj ponownie; jeśli to się powtarza, podziel plik na mniejsze części.",
+    "planContact": "Zaplanuj kontakt",
+    "planKind": "Rodzaj",
+    "planKindCall": "Rozmowa",
+    "planKindMeeting": "Spotkanie",
+    "planDefaultCall": "Rozmowa z {name}",
+    "planDefaultMeeting": "Spotkanie z {name}",
+    "planDay": "Dzień",
+    "planTime": "Początek",
+    "planDuration": "Czas trwania",
+    "planMinutes": "{n} min",
+    "planHours": "{n, plural, one {# godzina} few {# godziny} many {# godzin} other {# godziny}}",
+    "planNotes": "Notatki",
+    "planZoneHint": "Godziny w Twojej strefie czasowej: {zone}.",
+    "planCalendarHint": "Trafi do Twojego kalendarza i do Mojego dnia i zostanie przy tym kontakcie, dopóki nie oznaczysz jako wykonane.",
+    "planSave": "Zaplanuj",
+    "planUpcoming": "Zaplanowane",
+    "planNone": "Z tym kontaktem nic nie zaplanowano.",
+    "planDone": "Oznacz jako wykonane",
+    "planRemove": "Usuń",
+    "planProblem": {
+      "subject": "Podaj tytuł.",
+      "day": "Wybierz poprawny dzień.",
+      "time": "Podaj godzinę rozpoczęcia.",
+      "duration": "Wybierz czas trwania."
+    }
   },
   "myday": {
     "title": "Mój dzień",

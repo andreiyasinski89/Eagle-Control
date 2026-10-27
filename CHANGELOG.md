@@ -145,3 +145,11 @@
 - The import routes ask for the longest function time the plan allows (60 s).
 - The wizard shows *Importing…* while it works, and a timeout or any empty server answer is now reported ("Nothing was imported. Try again…") instead of being silent.
 - Tests: `import-bulk.test.ts` pins the number of database calls for 325 contacts, 120 companies and 250 company rows, and checks that everything the one-by-one path wrote is still written.
+## 0.12.0 — Schedule a call or a meeting from the contact card
+
+- **Contact card → Schedule contact:** pick *Call* or *Meeting*, a title (filled in for you), the day, the start and the length (15 min to 2 h), optional notes. Hours are the person's own time zone (Settings → Account).
+- It is saved as an open CRM activity with a date and a length (`CrmActivity.durationMin`, migration `0011_activity_duration`), so it appears **at once** in the workspace calendar as a block from start to end, in *My day*, and on the contact.
+- The card has a **Planned** section: the contact's open calls and meetings, soonest first, each linking to its day in the calendar (`/calendar?day=YYYY-MM-DD`), with *Mark done* (counts as a touch) and *Remove*.
+- The generic *Log call / e-mail / note* dialog now reads its date and time in the same zone.
+- The public API and the MCP tools accept `durationMin` on activities; the calendar feed returns `endAt` for them.
+- Tests: `schedule.test.ts` (form, defaults, zones, calendar placement) and `contact-schedule.test.ts` (open, shown with length, mine/others, move, done, remove, permissions).

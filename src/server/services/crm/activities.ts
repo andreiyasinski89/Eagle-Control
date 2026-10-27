@@ -10,6 +10,8 @@ export const activitySchema = z.object({
   subject: z.string().trim().min(1).max(200),
   body: z.string().max(10_000).nullable().optional(),
   dueAt: z.string().datetime().nullable().optional(),
+  /** Minutes a scheduled call or meeting lasts; shown as its length in the calendar. */
+  durationMin: z.number().int().min(5).max(1440).nullable().optional(),
   /** Force done / not done; by default logged calls, e-mails, notes… are done, tasks and future items are open. */
   completed: z.boolean().optional(),
   contactId: z.string().nullable().optional(),
@@ -63,6 +65,7 @@ export async function createActivityIn(tx: Tx, userId: string, workspaceId: stri
       subject: input.subject,
       body: input.body ?? null,
       dueAt,
+      durationMin: input.durationMin ?? null,
       completedAt: done ? now : null,
       ownerId: input.ownerId ?? userId,
       ...links,
@@ -102,6 +105,7 @@ export async function updateActivity(userId: string, id: string, patch: z.infer<
     if (patch.subject !== undefined) data.subject = patch.subject;
     if (patch.body !== undefined) data.body = patch.body;
     if (patch.dueAt !== undefined) data.dueAt = toDate(patch.dueAt);
+    if (patch.durationMin !== undefined) data.durationMin = patch.durationMin;
     if (patch.ownerId) data.ownerId = patch.ownerId;
     if (patch.completed !== undefined) data.completedAt = patch.completed ? (cur.completedAt ?? now) : null;
     const a = await tx.crmActivity.update({ where: { id }, data, include: { owner: { select: { id: true, name: true, email: true } } } });
@@ -161,6 +165,7 @@ export async function listActivities(userId: string, workspaceId: string, f: z.i
       subject: a.subject,
       body: a.body,
       dueAt: a.dueAt,
+      durationMin: a.durationMin,
       completedAt: a.completedAt,
       createdAt: a.createdAt,
       owner: a.owner,

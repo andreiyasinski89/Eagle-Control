@@ -573,7 +573,32 @@
     "noteColumns": "Other columns",
     "noteColumnsHint": "Tick the columns to keep in the contact's note, as “Column: value”.",
     "importing": "Importing…",
-    "importTimeout": "The server took too long and stopped. Nothing was imported. Try again; if it keeps happening, split the file into smaller parts."
+    "importTimeout": "The server took too long and stopped. Nothing was imported. Try again; if it keeps happening, split the file into smaller parts.",
+    "planContact": "Schedule contact",
+    "planKind": "Type",
+    "planKindCall": "Call",
+    "planKindMeeting": "Meeting",
+    "planDefaultCall": "Call with {name}",
+    "planDefaultMeeting": "Meeting with {name}",
+    "planDay": "Day",
+    "planTime": "Start",
+    "planDuration": "Length",
+    "planMinutes": "{n} min",
+    "planHours": "{n, plural, one {# hour} other {# hours}}",
+    "planNotes": "Notes",
+    "planZoneHint": "Times are in {zone}, your time zone.",
+    "planCalendarHint": "It goes into your calendar and My day, and stays on this contact until you mark it done.",
+    "planSave": "Schedule",
+    "planUpcoming": "Planned",
+    "planNone": "Nothing planned with this contact.",
+    "planDone": "Mark done",
+    "planRemove": "Remove",
+    "planProblem": {
+      "subject": "Give it a title.",
+      "day": "Pick a valid day.",
+      "time": "Enter the start time.",
+      "duration": "Pick how long it lasts."
+    }
   },
   "myday": {
     "title": "My day",

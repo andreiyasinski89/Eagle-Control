@@ -69,6 +69,7 @@ export interface ActivityDto {
   subject: string;
   body: string | null;
   dueAt: string | null;
+  durationMin?: number | null;
   completedAt: string | null;
   createdAt: string;
   owner: { id: string; name: string | null; email: string };
