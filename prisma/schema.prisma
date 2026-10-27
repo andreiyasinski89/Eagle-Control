@@ -175,6 +175,8 @@ model User {
   memberships       Membership[]
   teamMemberships   TeamMember[]
   contactShares     ContactShare[]
+  referralLinks     ReferralLink[]
+  referralJoins     ReferralJoin[]
   projectAccess     ProjectMember[]
   savedFilters      SavedFilter[]
   assignedNodes     Node[]                   @relation("NodeAssignee")
@@ -245,6 +247,7 @@ model Workspace {
   invitations      Invitation[]
   teams            Team[]
   contactShares    ContactShare[]
+  referralLinks    ReferralLink[]
   nodes            Node[]
   tags             Tag[]
   contactGroups    ContactGroup[]
@@ -1328,6 +1331,48 @@ model AccountEvent {
   at     DateTime @default(now())
 
   @@index([userId, at])
+}
+
+/// What a person typed when creating an account, kept until their first sign-in makes the account (then used and deleted).
+model SignupIntent {
+  email     String   @id
+  firstName String?
+  lastName  String?
+  locale    String?
+  /// The invitation link they came through, if any.
+  refCode   String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+/// A sponsor's invitation link for one workspace: people who create an account through it land in that workspace's CRM as new leads.
+model ReferralLink {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  userId      String
+  workspaceId String
+  createdAt   DateTime @default(now())
+
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  joins     ReferralJoin[]
+
+  @@unique([userId, workspaceId])
+}
+
+/// Someone who created an account through an invitation link, and the person card made for them in the sponsor's CRM.
+model ReferralJoin {
+  id        String   @id @default(cuid())
+  linkId    String
+  userId    String
+  contactId String?
+  createdAt DateTime @default(now())
+
+  link ReferralLink @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([linkId, userId])
 }
 
 /// One request for a sign-in e-mail. Only salted hashes, so the abuse limits work without keeping addresses.

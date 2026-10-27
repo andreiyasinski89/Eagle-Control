@@ -343,3 +343,11 @@
 - You choose **whose tasks** (yours, or all of the project's), **the first day** (today by default) and **the hours in a working day** (8). The window shows every task as it is now and as it will be, and says which tasks have no estimate and which would end after their own deadline. Nothing changes until **Apply**; **Undo** puts every date back in one step.
 - A task blocked by another starts the day after its blocker ends, so the timeline shows no red clash. A blocker outside the chosen tasks that is not finished holds the task until the day after its due date.
 - **Story points are optional.** The estimate of a task has a unit, **Story points** or **Hours**; a task without its own unit follows the project's (set on the project card). A task with no estimate counts as one working day. The list shows the unit.
+
+## 0.33.0 — Creating an account, and invitation links
+
+- **The sign-in page has two tabs: Sign in and Create account.** Both send a one-time link by e-mail; creating an account also asks for the first name (and, optionally, the last name). The e-mail with the link is in the language the person was using on the page (English, Russian or Polish), and the account gets that language.
+- **After the first sign-in, one form:** first name, last name and the name of the workspace (suggested from the name), then straight to **Getting started**. A **welcome e-mail** with the first three steps is sent when the first workspace is made.
+- **Protection:** a hidden field that only bots fill (the link is not sent, and the answer looks like success), and temporary mailboxes (mailinator, 10minutemail and the like) are refused, in the form and on the server. The daily limits stay.
+- **One workspace of your own on the free plan;** more need a paid plan. Being invited into other workspaces is not limited.
+- **Invitation link for a sponsor** (CRM → Team): copy it and send it to people you know. Whoever creates an account through it lands in your people as a **new lead** you own (under your partner card, if you have one), with a note and a notification, and the page they came through says who invited them and that the inviter will see their name and e-mail. The same person is never added twice. Migration `0024_signup_referral`.

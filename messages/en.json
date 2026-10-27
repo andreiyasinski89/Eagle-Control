@@ -52,13 +52,27 @@
     "point1": "One map for tasks, sprints and customers",
     "point2": "Time, calendar and Telegram built in",
     "point3": "Share progress with clients in their own portal",
-    "footer": "Agile mind map and CRM for small teams"
+    "footer": "Agile mind map and CRM for small teams",
+    "signupTitle": "Create your MeetOwl account",
+    "signupSubtitle": "Enter your name and e-mail: we send a magic link. No password needed.",
+    "tabSignIn": "Sign in",
+    "tabSignUp": "Create account",
+    "createAccount": "Create account",
+    "firstName": "First name",
+    "lastName": "Last name (optional)",
+    "disposable": "Use your permanent e-mail address: temporary mailboxes are not accepted.",
+    "invitedBy": "{name} invited you to MeetOwl.",
+    "shareWithInviter": "{name} will see your name and e-mail as a new contact."
   },
   "onboarding": {
     "title": "Create your workspace",
     "subtitle": "A workspace holds your projects, clients and team.",
     "name": "Workspace name",
-    "create": "Create workspace"
+    "create": "Create workspace",
+    "firstName": "First name",
+    "lastName": "Last name (optional)",
+    "suggestion": "{name}'s workspace",
+    "limit": "The free plan includes one workspace of your own. Ask for an invitation to join another, or upgrade the plan."
   },
   "dashboard": {
     "title": "Welcome to {workspace}",
@@ -1740,5 +1754,12 @@
     "saved": "Saved",
     "noName": "Your name",
     "error": "Something went wrong"
+  },
+  "referral": {
+    "title": "Your invitation link",
+    "hint": "Send it to people you know. Whoever creates an account through it appears in your people as a new lead, and you get a notification.",
+    "copy": "Copy",
+    "copied": "Copied",
+    "joined": "Joined through your link: {n}"
   }
 }

@@ -86,6 +86,24 @@ describe("requesting a sign-in link", () => {
     expect((await request({ email: "terms1@x.io", terms: "1" }, "2.2.2.2")).status).toBe(200);
     expect(auth.posts).toBe(1);
   });
+
+  it("sends nothing to a bot that filled the hidden field, and says it was sent", async () => {
+    const before = auth.posts;
+    const res = await request({ email: "bot@x.io", terms: "1", website: "http://spam.example" }, "3.3.3.3");
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ url: "/sign-in?sent=1" });
+    expect(auth.posts).toBe(before);
+  });
+
+  it("refuses a temporary mailbox, and lets the same request through with a real one", async () => {
+    const before = auth.posts;
+    const res = await request({ email: "x@mailinator.com", terms: "1" }, "4.4.4.4");
+    expect(res.status).toBe(400);
+    expect((await res.json()).error.code).toBe("disposable_email");
+    expect(auth.posts).toBe(before);
+    expect((await request({ email: "x@gmail.com", terms: "1" }, "4.4.4.4")).status).toBe(200);
+    expect(auth.posts).toBe(before + 1);
+  });
 });
 
 describe("the mail transport", () => {

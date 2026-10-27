@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { groupTree, type GroupNode } from "@/modules/crm/groups";
 import { cn } from "@/lib/utils";
 import { ContactDrawer } from "./ContactDrawer";
+import { ReferralCard } from "./ReferralCard";
 import { usePartners, type PartnerDto } from "./usePartners";
 
 /**
@@ -78,6 +79,7 @@ export function TeamView({ workspaceId, slug, canWrite, canExport, canErase, meI
         <h1 className="text-xl font-semibold">{t("teamTitle")}</h1>
         {data && <span className="text-sm text-muted-foreground">{t("teamCount", { n: data.length })}</span>}
       </div>
+      {canWrite && <ReferralCard workspaceId={workspaceId} />}
       {isLoading && <p className="text-sm text-muted-foreground">{t("loading")}</p>}
       {isError && (
         <p role="alert" className="text-sm text-danger">

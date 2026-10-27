@@ -1,0 +1,51 @@
+const fragment = {
+  en: {
+    auth: {
+      signupTitle: "Create your MeetOwl account",
+      signupSubtitle: "Enter your name and e-mail: we send a magic link. No password needed.",
+      tabSignIn: "Sign in",
+      tabSignUp: "Create account",
+      createAccount: "Create account",
+      firstName: "First name",
+      lastName: "Last name (optional)",
+      disposable: "Use your permanent e-mail address: temporary mailboxes are not accepted.",
+      invitedBy: "{name} invited you to MeetOwl.",
+      shareWithInviter: "{name} will see your name and e-mail as a new contact.",
+    },
+    onboarding: { firstName: "First name", lastName: "Last name (optional)", suggestion: "{name}'s workspace", limit: "The free plan includes one workspace of your own. Ask for an invitation to join another, or upgrade the plan." },
+    referral: { title: "Your invitation link", hint: "Send it to people you know. Whoever creates an account through it appears in your people as a new lead, and you get a notification.", copy: "Copy", copied: "Copied", joined: "Joined through your link: {n}" },
+  },
+  ru: {
+    auth: {
+      signupTitle: "Создайте аккаунт MeetOwl",
+      signupSubtitle: "Укажите имя и почту: мы пришлём ссылку для входа. Пароль не нужен.",
+      tabSignIn: "Войти",
+      tabSignUp: "Создать аккаунт",
+      createAccount: "Создать аккаунт",
+      firstName: "Имя",
+      lastName: "Фамилия (необязательно)",
+      disposable: "Укажите постоянный адрес почты: временные ящики не принимаются.",
+      invitedBy: "{name} приглашает вас в MeetOwl.",
+      shareWithInviter: "{name} увидит ваше имя и почту как нового контакта.",
+    },
+    onboarding: { firstName: "Имя", lastName: "Фамилия (необязательно)", suggestion: "Пространство: {name}", limit: "На бесплатном тарифе одно собственное пространство. Попросите приглашение в другое или перейдите на платный тариф." },
+    referral: { title: "Ваша ссылка-приглашение", hint: "Отправьте её знакомым. Каждый, кто создаст аккаунт по ней, появится у вас в людях как новый лид, и вы получите уведомление.", copy: "Копировать", copied: "Скопировано", joined: "Зарегистрировались по вашей ссылке: {n}" },
+  },
+  pl: {
+    auth: {
+      signupTitle: "Utwórz konto MeetOwl",
+      signupSubtitle: "Podaj imię i e-mail: wyślemy link do logowania. Hasło nie jest potrzebne.",
+      tabSignIn: "Zaloguj się",
+      tabSignUp: "Utwórz konto",
+      createAccount: "Utwórz konto",
+      firstName: "Imię",
+      lastName: "Nazwisko (opcjonalnie)",
+      disposable: "Podaj stały adres e-mail: tymczasowe skrzynki nie są akceptowane.",
+      invitedBy: "{name} zaprasza Cię do MeetOwl.",
+      shareWithInviter: "{name} zobaczy Twoje imię i e-mail jako nowy kontakt.",
+    },
+    onboarding: { firstName: "Imię", lastName: "Nazwisko (opcjonalnie)", suggestion: "Przestrzeń: {name}", limit: "Plan darmowy obejmuje jedną własną przestrzeń. Poproś o zaproszenie do innej albo zmień plan." },
+    referral: { title: "Twój link z zaproszeniem", hint: "Wyślij go znajomym. Każdy, kto utworzy konto przez niego, pojawi się u Ciebie wśród ludzi jako nowy lead, a Ty dostaniesz powiadomienie.", copy: "Kopiuj", copied: "Skopiowano", joined: "Zarejestrowali się przez Twój link: {n}" },
+  },
+};
+export default fragment;

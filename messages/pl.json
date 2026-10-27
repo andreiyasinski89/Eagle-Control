@@ -52,13 +52,27 @@
     "point1": "Jedna mapa dla zadań, sprintów i klientów",
     "point2": "Czas, kalendarz i Telegram w środku",
     "point3": "Pokazuj klientom postępy w ich portalu",
-    "footer": "Mapa Agile i CRM dla małych zespołów"
+    "footer": "Mapa Agile i CRM dla małych zespołów",
+    "signupTitle": "Utwórz konto MeetOwl",
+    "signupSubtitle": "Podaj imię i e-mail: wyślemy link do logowania. Hasło nie jest potrzebne.",
+    "tabSignIn": "Zaloguj się",
+    "tabSignUp": "Utwórz konto",
+    "createAccount": "Utwórz konto",
+    "firstName": "Imię",
+    "lastName": "Nazwisko (opcjonalnie)",
+    "disposable": "Podaj stały adres e-mail: tymczasowe skrzynki nie są akceptowane.",
+    "invitedBy": "{name} zaprasza Cię do MeetOwl.",
+    "shareWithInviter": "{name} zobaczy Twoje imię i e-mail jako nowy kontakt."
   },
   "onboarding": {
     "title": "Utwórz przestrzeń roboczą",
     "subtitle": "Przestrzeń zawiera Twoje projekty, klientów i zespół.",
     "name": "Nazwa przestrzeni",
-    "create": "Utwórz"
+    "create": "Utwórz",
+    "firstName": "Imię",
+    "lastName": "Nazwisko (opcjonalnie)",
+    "suggestion": "Przestrzeń: {name}",
+    "limit": "Plan darmowy obejmuje jedną własną przestrzeń. Poproś o zaproszenie do innej albo zmień plan."
   },
   "dashboard": {
     "title": "Witaj w {workspace}",
@@ -1740,5 +1754,12 @@
     "saved": "Zapisano",
     "noName": "Twoje imię",
     "error": "Coś poszło nie tak"
+  },
+  "referral": {
+    "title": "Twój link z zaproszeniem",
+    "hint": "Wyślij go znajomym. Każdy, kto utworzy konto przez niego, pojawi się u Ciebie wśród ludzi jako nowy lead, a Ty dostaniesz powiadomienie.",
+    "copy": "Kopiuj",
+    "copied": "Skopiowano",
+    "joined": "Zarejestrowali się przez Twój link: {n}"
   }
 }

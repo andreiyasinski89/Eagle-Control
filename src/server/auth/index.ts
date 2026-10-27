@@ -5,7 +5,9 @@ import type { Provider } from "next-auth/providers";
 import { db } from "@/server/db";
 import { sendMail } from "@/server/mail";
 import { syncGrantedPlans } from "@/server/services/grants";
+import { applySignupIntent, intentLocale } from "@/server/services/signup";
 import { confirmLink } from "./confirm-link";
+import { signInMail } from "./mail-texts";
 
 const providers: Provider[] = [
   {
@@ -17,12 +19,9 @@ const providers: Provider[] = [
     options: {},
     async sendVerificationRequest({ identifier, url }) {
       const link = confirmLink(url);
-      await sendMail({
-        to: identifier,
-        subject: "Sign in to MeetOwl",
-        text: `Sign in to MeetOwl: ${link}\n\nThe link works once and expires in 15 minutes. If you did not ask for it, ignore this e-mail: nobody can sign in without it.`,
-        html: `<p>Click to sign in to MeetOwl:</p><p><a href="${link}">Sign in</a></p><p>The link works once and expires in 15 minutes. If you did not ask for it, ignore this e-mail: nobody can sign in without it.</p>`,
-      });
+      // In the language the person was using on the page, when they said so while creating the account.
+      const locale = await intentLocale(identifier).catch(() => "en" as const);
+      await sendMail({ to: identifier, ...signInMail(locale, link) });
     },
   },
 ];
@@ -44,6 +43,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers,
   pages: { signIn: "/sign-in", verifyRequest: "/sign-in?sent=1" },
   events: {
+    // A brand-new account: give it the name and language typed on the sign-up form, and the sponsor's link it came through.
+    async createUser({ user }) {
+      if (!user.id || !user.email) return;
+      try {
+        await applySignupIntent({ id: user.id, email: user.email });
+      } catch (e) {
+        console.error("sign-up bookkeeping failed", e instanceof Error ? e.message : e);
+      }
+    },
     // Signing in required agreeing to the terms (the form will not send without it), so this is the first agreement.
     async signIn({ user }) {
       if (!user.id) return;

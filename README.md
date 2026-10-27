@@ -146,6 +146,7 @@ New API (under `/api/v1`): `nodes/:id/time`, `time/:id`, `timer[/start|/stop]`, 
 - **Teams:** Settings → Teams: a named group with a leader that can give its members shared people or everything in the CRM, on top of their personal level.
 - **Sharing:** in a person's card (and a group's edit window) give a member or a team view or edit access to just that person or group, and take it away; every change is in the history.
 - **Smart sort:** a button on the Timeline lays the open tasks one after another by their estimates (story points or hours), a queue per person, with a preview and one-step undo.
+- **Creating an account:** the sign-in page has Sign in and Create account tabs (e-mail link, name, language), a first-sign-in form, a welcome e-mail, bot protection, and a sponsor's invitation link (CRM → Team) that puts people who register through it into the sponsor's people as new leads.
 - **Notes and links:** a private notebook per person (notes that save as you type, links with a button to open them, search, pins).
 - **Schedule a call or meeting:** *Schedule contact* in the contact card (type, day, start, length); it shows in the calendar at once, in My day and in the card's *Planned* list.
 - **Time zones:** each person picks their own in Settings → Account; the calendar and the new-meeting form use it, everything stored stays UTC.
