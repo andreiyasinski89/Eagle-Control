@@ -15,7 +15,7 @@ export default async function CrmLayout({ children, params }: { children: React.
   return (
     <CrmProviders>
       <div className="flex h-[calc(100vh-3.5rem)] min-h-0 flex-col">
-        <CrmTabs slug={slug} />
+        <CrmTabs slug={slug} full={can(membership, "crm:full")} />
         <div className="min-h-0 flex-1 overflow-auto">{children}</div>
       </div>
     </CrmProviders>

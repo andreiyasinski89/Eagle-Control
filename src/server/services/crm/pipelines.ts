@@ -34,7 +34,7 @@ const asApi = (e: unknown): never => {
 };
 
 export async function listPipelines(userId: string, workspaceId: string) {
-  await loadWorkspaceMember(db, userId, workspaceId, "crm:read");
+  await loadWorkspaceMember(db, userId, workspaceId, "crm:full");
   return db.pipeline.findMany({
     where: { workspaceId },
     orderBy: [{ isDefault: "desc" }, { name: "asc" }],
@@ -42,7 +42,7 @@ export async function listPipelines(userId: string, workspaceId: string) {
   });
 }
 
-async function loadPipeline(tx: Tx, userId: string, pipelineId: string, action: "crm:read" | "pipeline:manage") {
+async function loadPipeline(tx: Tx, userId: string, pipelineId: string, action: "crm:full" | "pipeline:manage") {
   const p = await tx.pipeline.findUnique({ where: { id: pipelineId }, include: { stages: { orderBy: { order: "asc" } } } });
   if (!p) throw notFound("pipeline");
   await loadWorkspaceMember(tx, userId, p.workspaceId, action);
@@ -158,7 +158,7 @@ export async function replaceStages(userId: string, pipelineId: string, input: z
 export const lostReasonSchema = z.object({ name: z.string().trim().min(1).max(80) });
 
 export async function listLostReasons(userId: string, workspaceId: string) {
-  await loadWorkspaceMember(db, userId, workspaceId, "crm:read");
+  await loadWorkspaceMember(db, userId, workspaceId, "crm:full");
   return db.lostReason.findMany({ where: { workspaceId }, orderBy: { name: "asc" } });
 }
 

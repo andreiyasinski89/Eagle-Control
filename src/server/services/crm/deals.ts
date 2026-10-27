@@ -239,7 +239,7 @@ export async function createDealIn(tx: Tx, userId: string, workspaceId: string, 
 
 export async function createDeal(userId: string, workspaceId: string, input: z.infer<typeof createDealSchema>) {
   return db.$transaction(async (tx) => {
-    await loadWorkspaceMember(tx, userId, workspaceId, "crm:write");
+    await loadWorkspaceMember(tx, userId, workspaceId, "crm:full");
     const { id } = await createDealIn(tx, userId, workspaceId, input);
     publishBoard(workspaceId, userId);
     return getDealIn(tx, userId, id);
@@ -471,7 +471,7 @@ function dealWhere(workspaceId: string, f: Partial<z.infer<typeof listDealsSchem
 }
 
 export async function listDeals(userId: string, workspaceId: string, f: z.infer<typeof listDealsSchema>) {
-  await loadWorkspaceMember(db, userId, workspaceId, "crm:read");
+  await loadWorkspaceMember(db, userId, workspaceId, "crm:full");
   const where = dealWhere(workspaceId, f);
   const { skip, take, page, pageSize } = pageArgs(f);
   const [total, rows] = await Promise.all([db.deal.count({ where }), db.deal.findMany({ where, include: cardInclude, orderBy: { node: { createdAt: "desc" } }, skip, take })]);
@@ -499,7 +499,7 @@ export const boardSchema = z.object({ ownerId: z.string().optional(), q: z.strin
 export async function getBoard(userId: string, pipelineId: string, f: z.infer<typeof boardSchema>) {
   const pipeline = await db.pipeline.findUnique({ where: { id: pipelineId }, include: { stages: { orderBy: { order: "asc" } } } });
   if (!pipeline) throw notFound("pipeline");
-  await loadWorkspaceMember(db, userId, pipeline.workspaceId, "crm:read");
+  await loadWorkspaceMember(db, userId, pipeline.workspaceId, "crm:full");
   const rows = await db.deal.findMany({ where: dealWhere(pipeline.workspaceId, { pipelineId, ownerId: f.ownerId, q: f.q }), include: cardInclude });
   const now = new Date();
   const cards = rows.map((r) => toCard(r, now));

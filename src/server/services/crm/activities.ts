@@ -2,8 +2,10 @@ import { z } from "zod";
 import type { CrmActivityType, Prisma } from "@prisma/client";
 import { db } from "@/server/db";
 import { notFound } from "@/server/http/errors";
+import { can } from "@/server/policies";
 import { loadWorkspaceMember, type Tx } from "@/server/services/nodes/access";
 import { assertWorkspaceMember, invalid, pageArgs, toDate } from "./common";
+import { contactScope, contactVisible } from "./scope";
 
 export const activitySchema = z.object({
   type: z.enum(["CALL", "EMAIL", "MEETING", "NOTE", "TASK", "MESSAGE"]),
@@ -76,9 +78,17 @@ export async function createActivityIn(tx: Tx, userId: string, workspaceId: stri
   return a;
 }
 
+/** A member who sees only their people may write about those people alone: no deals, no companies, nobody else's contacts. */
+async function assertLinksVisible(tx: Tx, m: Parameters<typeof contactVisible>[1], links: { contactId?: string | null; companyId?: string | null; dealId?: string | null }) {
+  if (can(m, "crm:full")) return;
+  if (!links.contactId || !(await contactVisible(tx, m, links.contactId))) throw notFound("contact");
+}
+
 export async function createActivity(userId: string, workspaceId: string, input: ActivityInput) {
   return db.$transaction(async (tx) => {
-    await loadWorkspaceMember(tx, userId, workspaceId, "crm:write");
+    const m = await loadWorkspaceMember(tx, userId, workspaceId, "crm:write");
+    if (!can(m, "crm:full") && (input.dealId || input.companyId)) throw notFound("contact");
+    await assertLinksVisible(tx, m, input);
     return createActivityIn(tx, userId, workspaceId, input);
   });
 }
@@ -86,7 +96,8 @@ export async function createActivity(userId: string, workspaceId: string, input:
 async function loadActivity(tx: Tx, userId: string, id: string, action: "crm:read" | "crm:write") {
   const a = await tx.crmActivity.findUnique({ where: { id } });
   if (!a) throw notFound("activity");
-  await loadWorkspaceMember(tx, userId, a.workspaceId, action);
+  const m = await loadWorkspaceMember(tx, userId, a.workspaceId, action);
+  await assertLinksVisible(tx, m, { contactId: a.contactId });
   return a;
 }
 
@@ -99,6 +110,11 @@ export async function updateActivity(userId: string, id: string, patch: z.infer<
       companyId: patch.companyId !== undefined ? patch.companyId : cur.companyId,
       dealId: patch.dealId !== undefined ? patch.dealId : cur.dealId,
     });
+    if (patch.contactId !== undefined || patch.dealId !== undefined || patch.companyId !== undefined) {
+      const m = await loadWorkspaceMember(tx, userId, cur.workspaceId, "crm:write");
+      if (!can(m, "crm:full") && (patch.dealId || patch.companyId)) throw notFound("contact");
+      await assertLinksVisible(tx, m, { contactId: links.contactId });
+    }
     const now = new Date();
     const data: Prisma.CrmActivityUncheckedUpdateInput = { ...links };
     if (patch.type !== undefined) data.type = patch.type;
@@ -133,10 +149,12 @@ export const listActivitiesSchema = z.object({
 });
 
 export async function listActivities(userId: string, workspaceId: string, f: z.infer<typeof listActivitiesSchema>) {
-  await loadWorkspaceMember(db, userId, workspaceId, "crm:read");
+  const m = await loadWorkspaceMember(db, userId, workspaceId, "crm:read");
+  const scope = await contactScope(db, m);
   const now = new Date();
   const where: Prisma.CrmActivityWhereInput = {
     workspaceId,
+    ...(scope ? { contactId: { not: null }, contact: scope } : {}),
     ...(f.contactId ? { contactId: f.contactId } : {}),
     ...(f.companyId ? { companyId: f.companyId } : {}),
     ...(f.dealId ? { dealId: f.dealId } : {}),

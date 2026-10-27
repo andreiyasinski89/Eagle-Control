@@ -24,7 +24,7 @@ export const crmReportQuerySchema = z.object({
  * won/lost with reasons and cycle length, lead sources and manager activity. Pro feature; needs CRM access.
  */
 export async function crmReport(userId: string, workspaceId: string, q: z.infer<typeof crmReportQuerySchema>) {
-  const membership = await loadWorkspaceMember(db, userId, workspaceId, "crm:read");
+  const membership = await loadWorkspaceMember(db, userId, workspaceId, "crm:full");
   if (q.format === "csv" && !can(membership, "crm:export")) throw forbidden();
   const ws = await db.workspace.findUniqueOrThrow({ where: { id: workspaceId }, select: { plan: true } });
   requireFeature(ws.plan, "metrics");

@@ -287,7 +287,7 @@ export const reportQuerySchema = z.object({ from: z.string().date(), to: z.strin
 export async function clientTimeReport(userId: string, companyId: string, q: z.infer<typeof reportQuerySchema>) {
   const company = await db.node.findUnique({ where: { id: companyId } });
   if (!company || company.type !== "COMPANY") throw notFound("company");
-  const membership = await loadWorkspaceMember(db, userId, company.workspaceId, "crm:read");
+  const membership = await loadWorkspaceMember(db, userId, company.workspaceId, "crm:full");
   const showMoney = can(membership, "member:invite"); // owners and admins see rates and amounts
   const from = asDate(q.from);
   const to = asDate(q.to);

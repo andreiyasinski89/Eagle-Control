@@ -2,8 +2,9 @@ import { z } from "zod";
 import { db } from "@/server/db";
 import { cleanGoals, emptyCounts, METRICS, METRIC_STAGE, stepDate, weekBounds, type Counts, type Goals } from "@/modules/crm/tracker";
 import { isValidTimeZone, todayIn } from "@/modules/views/tz";
-import { loadWorkspaceMember, logActivity } from "@/server/services/nodes/access";
+import { loadWorkspaceMember } from "@/server/services/nodes/access";
 import { fullName, invalid, loadCrmNode } from "./common";
+import { contactScope, withScope } from "./scope";
 
 export const weekSchema = z.object({ week: z.coerce.number().int().min(-52).max(0).default(0) });
 export const goalsSchema = z.object({ goals: z.record(z.enum(METRICS), z.number().int().min(0).max(9999)) });
@@ -25,7 +26,8 @@ async function zoneOf(userId: string): Promise<string> {
  * calls and meetings held. Next to it the week's targets, and what each partner's people did, for the team summary.
  */
 export async function getWeek(userId: string, workspaceId: string, f: z.infer<typeof weekSchema>, now = new Date()) {
-  await loadWorkspaceMember(db, userId, workspaceId, "crm:read");
+  const member = await loadWorkspaceMember(db, userId, workspaceId, "crm:read");
+  const scope = await contactScope(db, member);
   const tz = await zoneOf(userId);
   const w = weekBounds(tz, now, f.week);
   const range = { gte: w.start, lt: w.end };
@@ -33,7 +35,7 @@ export async function getWeek(userId: string, workspaceId: string, f: z.infer<ty
     db.contactStageEvent.findMany({ where: { workspaceId, actorId: userId, at: range }, select: { fromStage: true, toStage: true } }),
     db.crmActivity.count({ where: { workspaceId, ownerId: userId, type: { in: ["CALL", "MEETING"] }, completedAt: range } }),
     db.networkGoal.findUnique({ where: { workspaceId_userId: { workspaceId, userId } } }),
-    db.contactStageEvent.findMany({ where: { workspaceId, at: range, contact: { heldById: { not: null } } }, select: { toStage: true, contact: { select: { heldById: true } } } }),
+    db.contactStageEvent.findMany({ where: { workspaceId, at: range, contact: withScope({ heldById: { not: null } }, scope) }, select: { toStage: true, contact: { select: { heldById: true } } } }),
   ]);
 
   const counts: Counts = emptyCounts();
@@ -50,7 +52,7 @@ export async function getWeek(userId: string, workspaceId: string, f: z.infer<ty
     for (const [m, stage] of Object.entries(METRIC_STAGE)) if (e.toStage === stage) c[m as keyof Counts]++;
     byPartner.set(id, c);
   }
-  const partners = await db.contact.findMany({ where: { nodeId: { in: [...byPartner.keys()] } }, select: { nodeId: true, firstName: true, lastName: true } });
+  const partners = await db.contact.findMany({ where: withScope({ nodeId: { in: [...byPartner.keys()] } }, scope), select: { nodeId: true, firstName: true, lastName: true } });
   const team = partners.map((p) => ({ id: p.nodeId, name: fullName(p.firstName, p.lastName), ...(byPartner.get(p.nodeId) as Counts) })).sort((a, b) => b.presentations + b.clients + b.partners - (a.presentations + a.clients + a.partners) || a.name.localeCompare(b.name));
 
   return { week: f.week, from: w.from, to: w.to, counts, goals: cleanGoals(goalRow?.goals), team };

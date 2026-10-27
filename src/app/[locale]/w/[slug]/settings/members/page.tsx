@@ -3,6 +3,7 @@ import { auth } from "@/server/auth";
 import { db } from "@/server/db";
 import { can } from "@/server/policies";
 import { listInvitations } from "@/server/services/invitation";
+import { crmLevel } from "@/modules/crm/access";
 import { listMembers } from "@/server/services/membership";
 import { MembersPanel } from "./members-panel";
 
@@ -35,6 +36,7 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
           email: m.user.email,
           role: m.role,
           crmAccess: m.crmAccess,
+          crmLevel: crmLevel(m),
           hourlyRate: canManage ? (m.hourlyRate === null ? null : Number(m.hourlyRate)) : null,
         }))}
         invitations={invitations.map((i) => ({ id: i.id, email: i.email, role: i.role }))}

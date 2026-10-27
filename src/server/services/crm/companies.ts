@@ -98,7 +98,7 @@ export async function createCompaniesBulk(tx: Tx, userId: string, workspaceId: s
 
 export async function createCompany(userId: string, workspaceId: string, input: z.infer<typeof createCompanySchema>) {
   return db.$transaction(async (tx) => {
-    await loadWorkspaceMember(tx, userId, workspaceId, "crm:write");
+    await loadWorkspaceMember(tx, userId, workspaceId, "crm:full");
     if (!input.allowDuplicate) {
       const matches = await findCompanyMatches(tx, workspaceId, input);
       if (matches.length) throw new ApiError(409, "duplicate_company", "A similar company already exists", { candidates: matches });
@@ -158,7 +158,7 @@ export const listCompaniesSchema = z.object({
 });
 
 export async function listCompanies(userId: string, workspaceId: string, f: z.infer<typeof listCompaniesSchema>) {
-  await loadWorkspaceMember(db, userId, workspaceId, "crm:read");
+  await loadWorkspaceMember(db, userId, workspaceId, "crm:full");
   const where: Prisma.CompanyWhereInput = {
     workspaceId,
     node: { archivedAt: null },
@@ -280,7 +280,7 @@ async function clientHours(tx: Tx, projectIds: string[]): Promise<{ total: numbe
 }
 
 export async function companyDuplicateGroups(userId: string, workspaceId: string) {
-  await loadWorkspaceMember(db, userId, workspaceId, "crm:read");
+  await loadWorkspaceMember(db, userId, workspaceId, "crm:full");
   const all = await db.company.findMany({ where: { workspaceId, node: { archivedAt: null } }, select: { nodeId: true, legalName: true, website: true, taxId: true } });
   return findDuplicateGroups(all.map((c) => ({ id: c.nodeId, ...c })), companyKeys).map((g) => g.map((c) => ({ id: c.id, legalName: c.legalName, website: c.website })));
 }

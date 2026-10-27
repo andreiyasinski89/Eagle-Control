@@ -2,6 +2,7 @@ import type { Membership, Node, Prisma } from "@prisma/client";
 import { forbidden, notFound } from "@/server/http/errors";
 import { isCrmType } from "@/modules/nodes/node-rules";
 import { can, type Action } from "@/server/policies";
+import { contactVisible } from "@/server/services/crm/scope";
 
 export type Tx = Prisma.TransactionClient;
 
@@ -36,6 +37,8 @@ export async function loadNode(tx: Tx, userId: string, nodeId: string, action: A
   if (isCrmType(node.type)) {
     // Companies, contacts and deals sit behind the CRM flag: without it they do not exist for the caller.
     if (!can(membership, "crm:read")) throw notFound("node");
+    // A member who sees only their own people or their team's: companies and deals do not exist for them, and neither do other people's contacts.
+    if (node.type === "CONTACT" ? !(await contactVisible(tx, membership, node.id)) : !can(membership, "crm:full")) throw notFound("node");
     const writes = action !== "workspace:read" && action !== "comment:write";
     if (writes && !can(membership, "crm:write")) throw forbidden();
     return { node, membership, projectId };

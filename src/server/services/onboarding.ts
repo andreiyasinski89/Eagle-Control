@@ -5,6 +5,7 @@ import { dreamDistance, evaluate, STEPS, type Facts } from "@/modules/onboarding
 import { isValidTimeZone, todayIn } from "@/modules/views/tz";
 import { can } from "@/server/policies";
 import { loadWorkspaceMember } from "@/server/services/nodes/access";
+import { contactScope, withScope } from "./crm/scope";
 
 const STEP_IDS = STEPS.map((s) => s.id) as [string, ...string[]];
 
@@ -27,6 +28,7 @@ const day = (d: Date | null) => (d ? d.toISOString().slice(0, 10) : null);
 export async function getOnboarding(userId: string, workspaceId: string, now = new Date()) {
   const membership = await loadWorkspaceMember(db, userId, workspaceId, "workspace:read");
   const crm = can(membership, "crm:read");
+  const scope = crm ? await contactScope(db, membership) : null;
   const [me, state, goal] = await Promise.all([
     db.user.findUnique({ where: { id: userId }, select: { timezone: true } }),
     db.onboardingState.findUnique({ where: { workspaceId_userId: { workspaceId, userId } } }),
@@ -45,17 +47,17 @@ export async function getOnboarding(userId: string, workspaceId: string, now = n
   let c = { people: 0, peopleMoved: 0, nextSteps: 0, scripts: 0, rules: 0, weekGoals: false, stepsClosed: 0, groups: 0, partners: 0, clientsWon: 0, partnersWon: 0 };
   if (crm) {
     const [people, peopleMoved, nextSteps, scripts, rules, goals, stepsClosed, groups, partners, clientsWon, partnersWon] = await Promise.all([
-      db.contact.count({ where: { workspaceId, ...live } }),
-      db.contact.count({ where: { workspaceId, ...live, stage: { not: "NEW" } } }),
-      db.contact.count({ where: { workspaceId, ...live, nextStep: { not: null } } }),
+      db.contact.count({ where: withScope({ workspaceId, ...live }, scope) }),
+      db.contact.count({ where: withScope({ workspaceId, ...live, stage: { not: "NEW" } }, scope) }),
+      db.contact.count({ where: withScope({ workspaceId, ...live, nextStep: { not: null } }, scope) }),
       db.script.count({ where: { workspaceId } }),
       db.stageRule.count({ where: { workspaceId } }),
       db.networkGoal.findUnique({ where: { workspaceId_userId: { workspaceId, userId } } }),
       db.crmActivity.count({ where: { workspaceId, ownerId: userId, type: "NOTE", completedAt: { not: null }, OR: [{ subject: { startsWith: "Done:" } }, { subject: "Step done" }] } }),
       db.contactGroup.count({ where: { workspaceId } }),
-      db.contact.count({ where: { workspaceId, ...live, stage: "PARTNER" } }),
-      db.contact.count({ where: { workspaceId, ...live, ownerId: userId, stage: "CLIENT" } }),
-      db.contact.count({ where: { workspaceId, ...live, ownerId: userId, stage: "PARTNER" } }),
+      db.contact.count({ where: withScope({ workspaceId, ...live, stage: "PARTNER" }, scope) }),
+      db.contact.count({ where: withScope({ workspaceId, ...live, ownerId: userId, stage: "CLIENT" }, scope) }),
+      db.contact.count({ where: withScope({ workspaceId, ...live, ownerId: userId, stage: "PARTNER" }, scope) }),
     ]);
     c = { people, peopleMoved, nextSteps, scripts, rules, weekGoals: Object.values(cleanGoals(goals?.goals)).some((v) => v > 0), stepsClosed, groups, partners, clientsWon, partnersWon };
   }

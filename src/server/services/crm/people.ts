@@ -10,6 +10,7 @@ import { loadWorkspaceMember } from "@/server/services/nodes/access";
 import { assertWorkspaceMember, fullName } from "./common";
 import { assertContactCapacity, contactWhere, createContactsBulk, priorityField } from "./contacts";
 import { assertGroup } from "./groups";
+import { contactScope, withScope } from "./scope";
 
 const DAY = 86_400_000;
 const text = (max: number) => z.string().trim().max(max).nullable().optional();
@@ -35,7 +36,8 @@ const BOARD_LIMIT = 1500;
  * The filters narrow what is drawn; `totals.all` is how many people the workspace holds whatever the filters say.
  */
 export async function listPeople(userId: string, workspaceId: string, f: z.infer<typeof listPeopleSchema>, now = new Date()) {
-  await loadWorkspaceMember(db, userId, workspaceId, "crm:read");
+  const member = await loadWorkspaceMember(db, userId, workspaceId, "crm:read");
+  const scope = await contactScope(db, member);
   const me = await db.user.findUnique({ where: { id: userId }, select: { timezone: true } });
   const tz = me && isValidTimeZone(me.timezone) ? me.timezone : "UTC";
   const today = todayIn(tz, now);
@@ -46,9 +48,9 @@ export async function listPeople(userId: string, workspaceId: string, f: z.infer
   if (f.group === "none") groupWhere = { groupId: null };
   else if (f.group) groupWhere = { groupId: { in: descendantIds(await db.contactGroup.findMany({ where: { workspaceId }, select: { id: true, parentId: true } }), f.group) } };
   const heldWhere: Prisma.ContactWhereInput = f.held === "none" ? { heldById: null } : f.held === "any" ? { heldById: { not: null } } : f.held ? { heldById: f.held } : {};
-  const where: Prisma.ContactWhereInput = { ...base, ...groupWhere, ...heldWhere, ...(f.source ? { source: f.source } : {}), ...(f.priority ? { typeTag: f.priority } : {}), ...(f.due === "1" ? { nextStepAt: { lt: endOfToday }, stage: { notIn: ["DECLINED", "NO_REPLY"] } } : {}) };
+  const where: Prisma.ContactWhereInput = withScope({ ...base, ...groupWhere, ...heldWhere, ...(f.source ? { source: f.source } : {}), ...(f.priority ? { typeTag: f.priority } : {}), ...(f.due === "1" ? { nextStepAt: { lt: endOfToday }, stage: { notIn: ["DECLINED", "NO_REPLY"] } } : {}) }, scope);
   const [all, rows] = await Promise.all([
-    db.contact.count({ where: { workspaceId, node: { archivedAt: null } } }),
+    db.contact.count({ where: withScope({ workspaceId, node: { archivedAt: null } }, scope) }),
     db.contact.findMany({
       where,
       orderBy: [{ nextStepAt: { sort: "asc", nulls: "last" } }, { firstName: "asc" }],

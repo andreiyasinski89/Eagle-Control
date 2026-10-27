@@ -15,6 +15,7 @@ interface CreateInput {
   email: string;
   role: Role;
   crmAccess: boolean;
+  crmScope?: "OWN" | "TEAM" | "ALL";
   projectIds: string[];
 }
 
@@ -56,6 +57,7 @@ export async function createInvitation(input: CreateInput) {
       email,
       role: input.role,
       crmAccess: input.crmAccess,
+      crmScope: input.crmScope ?? "ALL",
       projectIds: input.projectIds,
       tokenHash: hashToken(token),
       invitedById: input.actor.userId,
@@ -115,7 +117,7 @@ export async function acceptInvitation(token: string, user: { id: string; email:
   await db.$transaction(async (tx) => {
     await tx.membership.upsert({
       where: { userId_workspaceId: { userId: user.id, workspaceId: inv.workspaceId } },
-      create: { userId: user.id, workspaceId: inv.workspaceId, role: inv.role, crmAccess: inv.crmAccess },
+      create: { userId: user.id, workspaceId: inv.workspaceId, role: inv.role, crmAccess: inv.crmAccess, crmScope: inv.crmScope },
       update: {},
     });
     if (inv.projectIds.length > 0) {

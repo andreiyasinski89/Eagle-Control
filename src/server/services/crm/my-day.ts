@@ -30,6 +30,7 @@ export async function getMyDay(userId: string, workspaceId: string, now = new Da
   const dayFrom = zonedToUtc(localDay, "00:00", timeZone);
   const dayTo = zonedToUtc(nextDay, "00:00", timeZone);
   const crm = can(membership, "crm:read");
+  const full = can(membership, "crm:full");
 
   let reachable: string[] | undefined;
   if (membership.role === "GUEST" || membership.role === "CLIENT") {
@@ -110,12 +111,12 @@ export async function getMyDay(userId: string, workspaceId: string, now = new Da
     db.crmActivity.findMany({ where: { workspaceId, ownerId: userId, type: "TASK", completedAt: null, dueAt: { lt: dayTo } }, orderBy: { dueAt: "asc" }, take: 100, include: actInclude }),
     db.crmActivity.findMany({ where: { workspaceId, ownerId: userId, type: { not: "TASK" }, completedAt: null, dueAt: { gte: dayFrom, lt: dayTo } }, orderBy: { dueAt: "asc" }, take: 50, include: actInclude }),
     db.deal.findMany({
-      where: { workspaceId, ownerId: userId, stage: { isWon: false, isLost: false }, node: { archivedAt: null }, OR: [{ nextStep: null }, { nextStep: "" }, { nextStepAt: { lt: end } }] },
+      where: { workspaceId, ownerId: userId, ...(full ? {} : { nodeId: { in: [] } }), stage: { isWon: false, isLost: false }, node: { archivedAt: null }, OR: [{ nextStep: null }, { nextStep: "" }, { nextStepAt: { lt: end } }] },
       include: { node: { select: { title: true, position: true, createdAt: true } }, stage: true, company: { select: { legalName: true } }, primaryContact: { select: { firstName: true, lastName: true } } },
       take: 100,
     }),
     db.deal.findMany({
-      where: { workspaceId, ownerId: userId, stage: { isWon: false, isLost: false }, node: { archivedAt: null } },
+      where: { workspaceId, ownerId: userId, ...(full ? {} : { nodeId: { in: [] } }), stage: { isWon: false, isLost: false }, node: { archivedAt: null } },
       include: { node: { select: { title: true, position: true, createdAt: true } }, stage: true, company: { select: { legalName: true } }, primaryContact: { select: { firstName: true, lastName: true } } },
       take: 300,
     }),

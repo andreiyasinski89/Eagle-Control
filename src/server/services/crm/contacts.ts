@@ -8,6 +8,7 @@ import { contactKeys, findDuplicateGroups } from "@/modules/crm/dedupe";
 import { parsePriority, PRIORITIES, STAGES, TEMPERATURES } from "@/modules/crm/people";
 import { normalizeEmail, normalizePhone, uniqueNonNull } from "@/modules/crm/normalize";
 import { loadWorkspaceMember, logActivity, type Tx } from "@/server/services/nodes/access";
+import { contactScope, withScope } from "./scope";
 import { deleteObject } from "@/server/storage";
 import { assertWorkspaceMember, fullName, invalid, loadCrmNode, pageArgs, toDate } from "./common";
 import { assertGroup } from "./groups";
@@ -364,8 +365,8 @@ export function contactWhere(workspaceId: string, f: Pick<z.infer<typeof listCon
 }
 
 export async function listContacts(userId: string, workspaceId: string, f: z.infer<typeof listContactsSchema>) {
-  await loadWorkspaceMember(db, userId, workspaceId, "crm:read");
-  const where = contactWhere(workspaceId, f);
+  const m = await loadWorkspaceMember(db, userId, workspaceId, "crm:read");
+  const where = withScope(contactWhere(workspaceId, f), await contactScope(db, m));
   const { skip, take, page, pageSize } = pageArgs(f);
   const orderBy: Prisma.ContactOrderByWithRelationInput =
     f.sort === "createdAt" ? { node: { createdAt: f.dir } } : f.sort === "lastContactedAt" ? { lastContactedAt: { sort: f.dir, nulls: "last" } } : { firstName: f.dir };
@@ -452,7 +453,7 @@ export async function getContactIn(tx: Tx, userId: string, contactId: string) {
 }
 
 export async function contactDuplicateGroups(userId: string, workspaceId: string) {
-  await loadWorkspaceMember(db, userId, workspaceId, "crm:read");
+  await loadWorkspaceMember(db, userId, workspaceId, "crm:full");
   const all = await db.contact.findMany({ where: { workspaceId, node: { archivedAt: null } }, select: { nodeId: true, firstName: true, lastName: true, emails: true, phones: true } });
   return findDuplicateGroups(all.map((c) => ({ id: c.nodeId, ...c })), contactKeys).map((g) => g.map((c) => ({ id: c.id, name: fullName(c.firstName, c.lastName), emails: c.emails, phones: c.phones })));
 }

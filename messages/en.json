@@ -80,7 +80,13 @@
     "limit": "Your plan's user limit is reached. Upgrade to invite more people.",
     "hourlyRate": "Rate/h",
     "makeOwner": "Make owner",
-    "makeOwnerConfirm": "Make {name} the owner? You will become an admin."
+    "makeOwnerConfirm": "Make {name} the owner? You will become an admin.",
+    "level": {
+      "NONE": "No CRM",
+      "OWN": "Own people",
+      "TEAM": "Own team",
+      "ALL": "Everything"
+    }
   },
   "invite": {
     "title": "You are invited to {workspace}",

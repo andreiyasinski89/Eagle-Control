@@ -291,3 +291,11 @@
 - **The knowledge base offers two downloads:** the guide as a **PDF** (22 pages: cover, contents, the four parts with all 15 articles, and a cheat sheet by funnel stage) and a **presentation** (16 slides, for showing to newcomers). Russian and English; Polish gets the English files.
 - The files are kept in `public/guide/` and are made from the same texts as the knowledge base.
 - Tests: the four files exist, the PDFs are PDFs and the presentations are packages.
+
+## 0.28.0 — Access levels for the CRM (account management, part 1)
+
+- **A member's CRM access has levels:** *no CRM*, *own people*, *own team*, *everything*. Owners and admins always see everything. The level is chosen when inviting and changed any time in **Settings → Members**; every change is written to the history.
+- **Own people:** the ones the member owns, the ones their partner card holds, and the card itself. **Own team:** the same for the whole line below them in the sponsor tree, and the people brought through that line.
+- The rule applies everywhere people appear: the board, the table, groups, the network map, the team tree, the week's team summary, plan of the day, activities, hand-overs, getting started. Another person's card is a 404, to read or to change.
+- A member who sees only their people has no deals, companies, pipelines, reports, exports or merging: those need the whole CRM. Their CRM tabs show only what they may use.
+- Existing members keep what they had (*everything*). Migration `0020_crm_scope`.

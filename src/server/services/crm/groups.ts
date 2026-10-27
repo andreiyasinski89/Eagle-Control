@@ -4,6 +4,7 @@ import { notFound } from "@/server/http/errors";
 import { canMoveGroup, depthOf, descendantIds, GROUP_LIMIT, MAX_GROUP_DEPTH } from "@/modules/crm/groups";
 import { loadWorkspaceMember, logActivity, type Tx } from "@/server/services/nodes/access";
 import { invalid } from "./common";
+import { contactScope, withScope } from "./scope";
 
 const name = z.string().trim().min(1).max(60);
 const color = z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable();
@@ -25,11 +26,12 @@ const flat = (tx: Tx, workspaceId: string) => tx.contactGroup.findMany({ where: 
 
 /** The groups with how many people are in each: `own` directly, `total` with everything below. `ungrouped` and `all` are for the top of the list. */
 export async function listGroups(userId: string, workspaceId: string) {
-  await loadWorkspaceMember(db, userId, workspaceId, "crm:read");
+  const member = await loadWorkspaceMember(db, userId, workspaceId, "crm:read");
+  const where = withScope({ workspaceId, node: { archivedAt: null } }, await contactScope(db, member));
   const [groups, counts, all] = await Promise.all([
     flat(db, workspaceId),
-    db.contact.groupBy({ by: ["groupId"], where: { workspaceId, node: { archivedAt: null } }, _count: { _all: true } }),
-    db.contact.count({ where: { workspaceId, node: { archivedAt: null } } }),
+    db.contact.groupBy({ by: ["groupId"], where, _count: { _all: true } }),
+    db.contact.count({ where }),
   ]);
   const own = new Map(counts.map((c) => [c.groupId, c._count._all]));
   const items = groups.map((g) => ({ ...g, own: own.get(g.id) ?? 0, total: descendantIds(groups, g.id).reduce((n, id) => n + (own.get(id) ?? 0), 0) }));
@@ -57,7 +59,7 @@ export async function createGroup(userId: string, workspaceId: string, input: z.
 async function loadGroup(tx: Tx, userId: string, groupId: string) {
   const g = await tx.contactGroup.findUnique({ where: { id: groupId } });
   if (!g) throw notFound("group");
-  await loadWorkspaceMember(tx, userId, g.workspaceId, "crm:write");
+  await loadWorkspaceMember(tx, userId, g.workspaceId, "crm:full");
   return g;
 }
 
@@ -94,9 +96,9 @@ export async function deleteGroup(userId: string, groupId: string) {
 /** Puts many people into a group (or takes them out of any group with `groupId: null`) in one go. */
 export async function assignToGroup(userId: string, workspaceId: string, input: z.infer<typeof assignGroupSchema>) {
   return db.$transaction(async (tx) => {
-    await loadWorkspaceMember(tx, userId, workspaceId, "crm:write");
+    const member = await loadWorkspaceMember(tx, userId, workspaceId, "crm:write");
     await assertGroup(tx, workspaceId, input.groupId);
-    const r = await tx.contact.updateMany({ where: { workspaceId, nodeId: { in: input.ids }, node: { archivedAt: null } }, data: { groupId: input.groupId } });
+    const r = await tx.contact.updateMany({ where: withScope({ workspaceId, nodeId: { in: input.ids }, node: { archivedAt: null } }, await contactScope(tx, member)), data: { groupId: input.groupId } });
     await logActivity(tx, { workspaceId, nodeId: null, actorId: userId, action: "contact_group.assigned", diff: { groupId: input.groupId, people: r.count } });
     return { updated: r.count };
   });

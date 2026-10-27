@@ -4,6 +4,7 @@ import { descendantIds } from "@/modules/crm/groups";
 import { sponsorWouldLoop, teamSizes } from "@/modules/crm/partners";
 import { loadWorkspaceMember, logActivity, type Tx } from "@/server/services/nodes/access";
 import { fullName, invalid, loadCrmNode } from "./common";
+import { contactScope, contactVisible, withScope } from "./scope";
 
 export const transferSchema = z.object({
   ids: z.array(z.string()).min(1).max(500),
@@ -43,12 +44,13 @@ export async function assertPartnerLinks(tx: Tx, workspaceId: string, contactId:
  * A partner whose sponsor is not a partner (or who has none) stands at the top.
  */
 export async function listPartners(userId: string, workspaceId: string) {
-  await loadWorkspaceMember(db, userId, workspaceId, "crm:read");
+  const member = await loadWorkspaceMember(db, userId, workspaceId, "crm:read");
+  const scope = await contactScope(db, member);
   const rows = await db.contact.findMany({
-    where: { workspaceId, node: { archivedAt: null }, OR: [{ stage: "PARTNER" }, { sponsorId: { not: null } }] },
+    where: withScope({ workspaceId, node: { archivedAt: null }, OR: [{ stage: "PARTNER" }, { sponsorId: { not: null } }] }, scope),
     select: { nodeId: true, firstName: true, lastName: true, stage: true, sponsorId: true, linkedUserId: true, country: true, stageChangedAt: true },
   });
-  const held = await db.contact.groupBy({ by: ["heldById"], where: { workspaceId, node: { archivedAt: null }, heldById: { not: null } }, _count: { _all: true } });
+  const held = await db.contact.groupBy({ by: ["heldById"], where: withScope({ workspaceId, node: { archivedAt: null }, heldById: { not: null } }, scope), _count: { _all: true } });
   const heldBy = new Map(held.map((h) => [h.heldById as string, h._count._all]));
   const ids = new Set(rows.map((r) => r.nodeId));
   const tree = rows.map((r) => ({ id: r.nodeId, parentId: r.sponsorId && ids.has(r.sponsorId) ? r.sponsorId : null }));
@@ -86,9 +88,11 @@ export async function listPartners(userId: string, workspaceId: string) {
 export async function transferContacts(userId: string, workspaceId: string, input: z.infer<typeof transferSchema>) {
   return db.$transaction(
     async (tx) => {
-      await loadWorkspaceMember(tx, userId, workspaceId, "crm:write");
+      const member = await loadWorkspaceMember(tx, userId, workspaceId, "crm:write");
+      const scope = await contactScope(tx, member);
       const to = input.toPartnerId ? await loadPartner(tx, workspaceId, input.toPartnerId, "invalid_partner") : null;
-      const people = await tx.contact.findMany({ where: { workspaceId, nodeId: { in: input.ids }, node: { archivedAt: null } }, select: { nodeId: true, heldById: true, ownerId: true, companyId: true, heldBy: { select: { linkedUserId: true, firstName: true, lastName: true } } } });
+      if (to && !(await contactVisible(tx, member, to.nodeId))) throw invalid("invalid_partner", "Partner not found in this workspace");
+      const people = await tx.contact.findMany({ where: withScope({ workspaceId, nodeId: { in: input.ids }, node: { archivedAt: null } }, scope), select: { nodeId: true, heldById: true, ownerId: true, companyId: true, heldBy: { select: { linkedUserId: true, firstName: true, lastName: true } } } });
       const moving = people.filter((p) => p.heldById !== (to?.nodeId ?? null) && p.nodeId !== to?.nodeId);
       if (moving.length === 0) return { moved: 0, skipped: input.ids.length, ids: [] as string[] };
 

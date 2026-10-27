@@ -19,7 +19,7 @@ export default async function ReportsPage({ params }: { params: Promise<{ slug: 
     <ReportsView
       workspaceId={workspace.id}
       hasMetrics={hasFeature(workspace.plan, "metrics")}
-      canCrm={can(membership, "crm:read")}
+      canCrm={can(membership, "crm:full")}
       canExport={can(membership, "crm:export")}
       canSeeAgile={canSeeAgile}
       projects={projects.map((p) => ({ id: p.id, title: p.title }))}

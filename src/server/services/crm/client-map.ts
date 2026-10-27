@@ -58,7 +58,7 @@ const worst = (hs: Health[]): Health => hs.reduce<Health>((w, h) => (RANK[h] > R
  */
 export async function getClientMap(userId: string, companyId: string, today = new Date()) {
   const company = await loadCrmNode(db, userId, companyId, "COMPANY");
-  const membership = await loadWorkspaceMember(db, userId, company.workspaceId, "crm:read");
+  const membership = await loadWorkspaceMember(db, userId, company.workspaceId, "crm:full");
   const co = await db.company.findUniqueOrThrow({ where: { nodeId: companyId } });
 
   const [contacts, deals] = await Promise.all([

@@ -80,7 +80,13 @@
     "limit": "Osiągnięto limit użytkowników planu. Przejdź na Pro, aby zaprosić więcej osób.",
     "hourlyRate": "Stawka/h",
     "makeOwner": "Zrób właścicielem",
-    "makeOwnerConfirm": "Zrobić {name} właścicielem? Zostaniesz administratorem."
+    "makeOwnerConfirm": "Zrobić {name} właścicielem? Zostaniesz administratorem.",
+    "level": {
+      "NONE": "Bez CRM",
+      "OWN": "Tylko swoi",
+      "TEAM": "Własny zespół",
+      "ALL": "Wszystko"
+    }
   },
   "invite": {
     "title": "Zaproszono Cię do {workspace}",

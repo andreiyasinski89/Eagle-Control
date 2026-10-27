@@ -11,7 +11,7 @@ export function CrmProviders({ children }: { children: React.ReactNode }) {
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
 }
 
-export function CrmTabs({ slug }: { slug: string }) {
+export function CrmTabs({ slug, full = true }: { slug: string; full?: boolean }) {
   const t = useTranslations("crm");
   const pathname = usePathname();
   const base = `/w/${slug}/crm`;
@@ -20,10 +20,9 @@ export function CrmTabs({ slug }: { slug: string }) {
     { href: `${base}/people`, label: t("tabPeople") },
     { href: `${base}/team`, label: t("tabTeam") },
     { href: `${base}/network`, label: t("tabNetwork") },
-    { href: base, label: t("tabPipeline"), exact: true },
-    { href: `${base}/companies`, label: t("tabCompanies") },
+    ...(full ? [{ href: base, label: t("tabPipeline"), exact: true }, { href: `${base}/companies`, label: t("tabCompanies") }] : []),
     { href: `${base}/contacts`, label: t("tabContacts") },
-    { href: `${base}/activities`, label: t("tabActivities") },
+    ...(full ? [{ href: `${base}/activities`, label: t("tabActivities") }] : []),
     { href: `${base}/scripts`, label: t("tabScripts") },
   ];
   return (

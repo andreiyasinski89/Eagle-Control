@@ -23,6 +23,13 @@ enum Role {
   CLIENT
 }
 
+/// How much of the CRM a member with CRM access sees: their own people, their team's, or everyone.
+enum CrmScope {
+  OWN
+  TEAM
+  ALL
+}
+
 enum NodeType {
   PROJECT
   EPIC
@@ -255,6 +262,7 @@ model Membership {
   workspaceId String
   role        Role     @default(MEMBER)
   crmAccess   Boolean  @default(false) // separate flag: who may see deal amounts / CRM
+  crmScope    CrmScope @default(ALL) // with crmAccess: whose people the member sees (owners and admins always see all)
   hourlyRate  Decimal? @db.Decimal(10, 2)
   createdAt   DateTime @default(now())
 
@@ -271,6 +279,7 @@ model Invitation {
   email       String
   role        Role             @default(MEMBER)
   crmAccess   Boolean          @default(false)
+  crmScope    CrmScope         @default(ALL)
   tokenHash   String           @unique // sha256 of the emailed token; the token itself is never stored
   status      InvitationStatus @default(PENDING)
   invitedById String

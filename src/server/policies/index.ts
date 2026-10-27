@@ -1,4 +1,5 @@
 import type { Role } from "@prisma/client";
+import { crmLevel, type CrmScope } from "@/modules/crm/access";
 
 export type Action =
   | "workspace:read"
@@ -8,6 +9,7 @@ export type Action =
   | "member:list"
   | "member:invite"
   | "crm:read"
+  | "crm:full"
   | "pipeline:manage"
   | "project:create"
   | "node:write"
@@ -22,6 +24,8 @@ export type Action =
 export interface Actor {
   role: Role;
   crmAccess: boolean;
+  /** Whose people a member with CRM access sees; leaving it out means everyone's. */
+  crmScope?: CrmScope | null;
 }
 
 const RANK: Record<Role, number> = { OWNER: 5, ADMIN: 4, MEMBER: 3, GUEST: 2, CLIENT: 1 };
@@ -52,9 +56,12 @@ export function can(actor: Actor, action: Action): boolean {
     case "tag:manage":
       return role === "OWNER" || role === "ADMIN" || role === "MEMBER";
     case "crm:write":
+      return role === "OWNER" || role === "ADMIN" || (role === "MEMBER" && actor.crmAccess);
+    // Companies, deals, amounts, reports, exports and merging belong to those who see the whole CRM, not to a partner who sees their own people.
+    case "crm:full":
     case "crm:export":
     case "crm:merge":
-      return role === "OWNER" || role === "ADMIN" || (role === "MEMBER" && actor.crmAccess);
+      return crmLevel(actor) === "ALL";
     case "crm:erase":
     case "leadform:manage":
       return role === "OWNER" || role === "ADMIN";

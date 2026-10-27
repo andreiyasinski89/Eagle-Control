@@ -4,11 +4,12 @@ import { db } from "@/server/db";
 import { can } from "@/server/policies";
 
 /** What every CRM page needs from the server: who is asking and what they may do. */
-export async function crmContext(slug: string) {
+/** `full`: the page is for those who see the whole CRM (deals, companies, reports); a member who sees only their people gets a 404. */
+export async function crmContext(slug: string, full = false) {
   const session = await auth();
   const userId = session?.user?.id ?? "";
   const membership = await db.membership.findFirst({ where: { userId, workspace: { slug } }, include: { workspace: { select: { id: true } } } });
-  if (!membership || !can(membership, "crm:read")) notFound();
+  if (!membership || !can(membership, "crm:read") || (full && !can(membership, "crm:full"))) notFound();
   return {
     userId,
     slug,

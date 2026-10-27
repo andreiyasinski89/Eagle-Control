@@ -6,6 +6,8 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+type Level = "NONE" | "OWN" | "TEAM" | "ALL";
+const LEVELS: Level[] = ["NONE", "OWN", "TEAM", "ALL"];
 type Role = "OWNER" | "ADMIN" | "MEMBER" | "GUEST" | "CLIENT";
 const INVITE_ROLES: Role[] = ["ADMIN", "MEMBER", "GUEST", "CLIENT"];
 
@@ -14,7 +16,7 @@ interface Props {
   meId: string;
   canManage: boolean;
   isOwner: boolean;
-  members: { userId: string; name: string | null; email: string; role: Role; crmAccess: boolean; hourlyRate: number | null }[];
+  members: { userId: string; name: string | null; email: string; role: Role; crmAccess: boolean; crmLevel: Level; hourlyRate: number | null }[];
   invitations: { id: string; email: string; role: Role }[];
 }
 
@@ -25,7 +27,7 @@ export function MembersPanel({ workspaceId, meId, canManage, isOwner, members, i
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<Role>("MEMBER");
-  const [crmAccess, setCrmAccess] = useState(false);
+  const [crmLevel, setCrmLevel] = useState<Level>("NONE");
   const [message, setMessage] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const base = `/api/v1/workspaces/${workspaceId}`;
 
@@ -43,7 +45,7 @@ export function MembersPanel({ workspaceId, meId, canManage, isOwner, members, i
   async function invite(e: React.FormEvent) {
     e.preventDefault();
     setMessage(null);
-    if (await call(`${base}/invitations`, { method: "POST", body: JSON.stringify({ email, role, crmAccess }) })) {
+    if (await call(`${base}/invitations`, { method: "POST", body: JSON.stringify({ email, role, crmLevel }) })) {
       setEmail("");
       setMessage({ kind: "ok", text: t("sent") });
     }
@@ -76,10 +78,20 @@ export function MembersPanel({ workspaceId, meId, canManage, isOwner, members, i
               ))}
             </select>
           </div>
-          <label className="flex h-9 items-center gap-2 text-sm">
-            <input type="checkbox" checked={crmAccess} onChange={(e) => setCrmAccess(e.target.checked)} />
-            {t("crmAccess")}
-          </label>
+          {(role === "MEMBER" || role === "GUEST") && (
+            <div className="flex flex-col gap-1">
+              <label htmlFor="invite-crm" className="text-sm font-medium">
+                {t("crmAccess")}
+              </label>
+              <select id="invite-crm" value={crmLevel} onChange={(e) => setCrmLevel(e.target.value as Level)} className="h-9 rounded-md border border-border bg-card px-2 text-sm" data-testid="invite-crm-level">
+                {LEVELS.map((l) => (
+                  <option key={l} value={l}>
+                    {t(`level.${l}`)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <Button type="submit">{t("invite")}</Button>
         </form>
       )}
@@ -98,7 +110,26 @@ export function MembersPanel({ workspaceId, meId, canManage, isOwner, members, i
             </div>
             <div className="flex flex-wrap items-center gap-3 text-sm">
               <span className="rounded bg-muted px-2 py-0.5">{tr(m.role)}</span>
-              {m.crmAccess && <span className="text-muted-foreground">CRM</span>}
+              {m.role === "MEMBER" && canManage ? (
+                <label className="flex items-center gap-1 text-xs text-muted-foreground">
+                  {t("crmAccess")}
+                  <select
+                    value={m.crmLevel}
+                    aria-label={`${t("crmAccess")} ${m.name ?? m.email}`}
+                    data-testid="member-crm-level"
+                    className="h-8 rounded-md border border-border bg-card px-2 text-sm text-foreground"
+                    onChange={(e) => void call(`${base}/members/${m.userId}`, { method: "PATCH", body: JSON.stringify({ crmLevel: e.target.value }) })}
+                  >
+                    {LEVELS.map((l) => (
+                      <option key={l} value={l}>
+                        {t(`level.${l}`)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : (
+                m.crmAccess && <span className="text-muted-foreground">CRM · {t(`level.${m.crmLevel}`)}</span>
+              )}
               {canManage && (
                 <label className="flex items-center gap-1 text-xs text-muted-foreground">
                   {t("hourlyRate")}
