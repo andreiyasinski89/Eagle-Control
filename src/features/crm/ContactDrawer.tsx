@@ -16,6 +16,7 @@ import { useMapStore } from "@/features/mindmap/store";
 import { useTimeZone } from "@/features/views/useTimeZone";
 import { ActivityDialog } from "./DealDialogs";
 import { FunnelFields, type FunnelValues } from "./FunnelFields";
+import { PartnerFields, type TransferRow } from "./PartnerFields";
 import { ScheduleDialog } from "./ScheduleDialog";
 import { dayInput, dayToIso, money } from "./format";
 import { useCompanyOptions, useMembers } from "./hooks";
@@ -51,6 +52,10 @@ export interface ContactDetail {
   country: string | null;
   sponsorName: string | null;
   groupId: string | null;
+  sponsorId: string | null;
+  heldById: string | null;
+  linkedUserId: string | null;
+  transfers: TransferRow[];
   tags: { id: string; name: string; color: string }[];
   consentHistory: { id: string; purpose: string; givenAt: string; source: string | null; revokedAt: string | null }[];
   deals: { id: string; title: string; stage: string; amount: number; currency: string }[];
@@ -114,6 +119,7 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
     void qc.invalidateQueries({ queryKey: ["activities", "contact", contactId] });
     void qc.invalidateQueries({ queryKey: ["contacts"] });
     void qc.invalidateQueries({ queryKey: ["people"] });
+    void qc.invalidateQueries({ queryKey: ["partners"] });
     void qc.invalidateQueries({ queryKey: ["groups"] });
     void qc.invalidateQueries({ queryKey: ["calendar"] });
     void qc.invalidateQueries({ queryKey: ["my-day"] });
@@ -209,6 +215,10 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
           value={{ stage: c.stage, temperature: c.temperature, interests: c.interests, source: c.source, influence: c.influence, nextStep: c.nextStep, nextStepAt: c.nextStepAt, typeTag: c.typeTag, country: c.country, sponsorName: c.sponsorName, groupId: c.groupId }}
           onChange={(patchBody) => patch.mutate(patchBody)}
         />
+      </Section>
+
+      <Section title={t("partnerSection")}>
+        <PartnerFields workspaceId={workspaceId} contactId={contactId} stage={c.stage} sponsorId={c.sponsorId} heldById={c.heldById} linkedUserId={c.linkedUserId} transfers={c.transfers} disabled={dis} onPatch={(body) => patch.mutate(body)} />
       </Section>
 
       {(upcoming.length > 0 || canWrite) && (

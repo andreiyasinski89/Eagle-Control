@@ -193,3 +193,14 @@
 - **API:** `GET|POST /api/v1/workspaces/:id/contact-groups`, `PATCH|DELETE /api/v1/contact-groups/:id`, `POST …/contact-groups/assign` (many people in one call); `groupId` on contacts, `group` filter on `GET …/people`.
 - Database migration `0013_contact_groups`.
 - Tests: `groups.test.ts` (tree rules) and `contact-groups.test.ts` (creation limits, assignment, counts, filtering, moving, deleting, access).
+
+## 0.18.0 — CRM for network marketing, step 3: partners, the team and hand-overs
+
+- **Partners:** a person in the *Partner* stage is a partner. In the card, *Partner* section: the **sponsor** (whose line the person is in; a loop, with someone above themselves, is refused) and, for a partner, the **MeetOwl account** they work in (if any).
+- **New "Team" tab in the CRM:** the sponsor tree of partners, each with how many people they work with, how many stand in their whole line and how many of those are partners; a badge shows who has a MeetOwl account. Press a partner to open the card; branches fold.
+- **Hand people over to a partner:** tick people on the board and choose *Hand over to partner* (up to 500 at once), or choose the partner in a person's card (*Works with*). The board can be filtered by who holds the people (any partner, nobody, one partner), and a card shows its partner.
+- **Two kinds of partner:** one **with an account** receives the people as their own (they become the owner, so they show in the partner's own lists); one **without an account** is worked through you, and the person's card makes a **handoff card**, a ready text (contact, stage, warmth, interests, next step, last notes) to copy into a messenger. Taking people back returns them to you.
+- **History:** every hand-over is kept (who, to whom, when, by whom, the note) and shown in the card; a note is also written to the activity feed. Deleting a partner does not delete anyone or the history.
+- **API:** `GET /api/v1/workspaces/:id/partners`, `POST …/people/transfer`, `GET /api/v1/contacts/:id/handoff`; `sponsorId`, `linkedUserId` on contacts, `held` filter on `GET …/people`.
+- Database migration `0014_partners_transfers`.
+- Tests: `partners.test.ts` (loops, team sizes, the handoff text) and `partners.test.ts` in integration (sponsor tree, team list, hand-over in bulk with the call count, account partner and taking back, history, permissions, removing a partner).

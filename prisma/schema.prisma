@@ -523,20 +523,33 @@ model Contact {
   sponsorName    String?
   /// The one group (or subgroup) the person is listed in, e.g. "Cold market / Gym".
   groupId        String?
+  /// The partner (a contact in the Partner stage) this person's line goes up to: the sponsor tree is made of these.
+  sponsorId      String?
+  /// The partner who works with this person now (a partner with an account sees them as their own; one without gets a handoff card).
+  heldById       String?
+  /// For a partner who has an account in the workspace: that user, so a hand-over also changes the owner.
+  linkedUserId   String?
 
   node    Node          @relation(fields: [nodeId], references: [id], onDelete: Cascade)
   company Company?      @relation(fields: [companyId], references: [nodeId], onDelete: SetNull)
   owner   User?         @relation(fields: [ownerId], references: [id], onDelete: SetNull)
   group   ContactGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  sponsor Contact?      @relation("Sponsor", fields: [sponsorId], references: [nodeId], onDelete: SetNull)
+  heldBy  Contact?      @relation("HeldBy", fields: [heldById], references: [nodeId], onDelete: SetNull)
 
+  downline        Contact[]           @relation("Sponsor")
+  held            Contact[]           @relation("HeldBy")
   primaryForDeals Deal[]
   activities      CrmActivity[]
   stageEvents     ContactStageEvent[]
+  transfers       ContactTransfer[]
 
   @@index([companyId])
   @@index([workspaceId, stage])
   @@index([workspaceId, nextStepAt])
   @@index([workspaceId, groupId])
+  @@index([workspaceId, sponsorId])
+  @@index([workspaceId, heldById])
   @@index([emails], type: Gin)
   @@index([workspaceId])
   @@index([phonesNorm], type: Gin)
@@ -558,6 +571,25 @@ model ContactGroup {
   contacts  Contact[]
 
   @@index([workspaceId, parentId])
+}
+
+/// Every hand-over of a person to a partner (or back), so it is always known who passed whom to whom, and when.
+model ContactTransfer {
+  id            String   @id @default(cuid())
+  contactNodeId String
+  workspaceId   String
+  fromHeldId    String?
+  toHeldId      String?
+  fromOwnerId   String?
+  toOwnerId     String?
+  note          String?
+  actorId       String?
+  at            DateTime @default(now())
+
+  contact Contact @relation(fields: [contactNodeId], references: [nodeId], onDelete: Cascade)
+
+  @@index([contactNodeId, at])
+  @@index([workspaceId, at])
 }
 
 /// Every move of a person along the funnel, so the week's invitations, meetings, clients and partners can be counted from what happened.

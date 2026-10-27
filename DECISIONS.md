@@ -129,3 +129,8 @@
 | 125 | A person is in one group, not many | The groups split a list into lots to work or hand over; a person in two lots would be worked twice and could not be handed over cleanly. Labels that overlap are what tags are for. |
 | 126 | Groups nest three levels deep and a filter on a group includes its subgroups | Deeper trees are hard to see in a side list; people think "all of the cold market" as well as "the gym". |
 | 127 | Deleting a group moves its people and subgroups up instead of deleting them | A group is a way of sorting, not the person; losing the people because a folder was tidied would be the worst surprise. |
+| 128 | A partner is a contact in the Partner stage, not a separate record | The same person is a lead, then a partner; one card keeps their whole story and no second list has to be kept in step. |
+| 129 | The sponsor tree is made of links between contacts, and the sponsor must be a partner | A sponsor is someone who can have a line; a loop would make the team tree endless, so it is refused. |
+| 130 | Handing a person over sets who works with them; only a partner with an account also becomes the owner | Both ways of working are supported: with an account the person shows in the partner's own lists, without one the owner stays and a handoff card is sent. |
+| 131 | Hand-overs are rows of their own, never an overwrite | Who passed whom to whom and when must stay answerable after the partner leaves; deleting a partner removes only the link. |
+| 132 | A partner with an account sees what the workspace lets them see; hiding other people's contacts from them is not part of this step | Visibility by owner is a permissions change that touches every CRM list; it needs its own decision and tests. |

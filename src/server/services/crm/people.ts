@@ -21,6 +21,8 @@ export const listPeopleSchema = z.object({
   source: z.string().trim().max(80).optional(),
   /** A group id (its subgroups count too), or "none" for people in no group. */
   group: z.string().max(40).optional(),
+  /** A partner id: only the people that partner holds; "none": people nobody holds; "any": people held by any partner. */
+  held: z.string().max(40).optional(),
   /** "1": only those whose next step is due today or is already late. */
   due: z.enum(["0", "1"]).default("0"),
 });
@@ -42,7 +44,8 @@ export async function listPeople(userId: string, workspaceId: string, f: z.infer
   let groupWhere: Prisma.ContactWhereInput = {};
   if (f.group === "none") groupWhere = { groupId: null };
   else if (f.group) groupWhere = { groupId: { in: descendantIds(await db.contactGroup.findMany({ where: { workspaceId }, select: { id: true, parentId: true } }), f.group) } };
-  const where: Prisma.ContactWhereInput = { ...base, ...groupWhere, ...(f.source ? { source: f.source } : {}), ...(f.due === "1" ? { nextStepAt: { lt: endOfToday }, stage: { notIn: ["DECLINED", "NO_REPLY"] } } : {}) };
+  const heldWhere: Prisma.ContactWhereInput = f.held === "none" ? { heldById: null } : f.held === "any" ? { heldById: { not: null } } : f.held ? { heldById: f.held } : {};
+  const where: Prisma.ContactWhereInput = { ...base, ...groupWhere, ...heldWhere, ...(f.source ? { source: f.source } : {}), ...(f.due === "1" ? { nextStepAt: { lt: endOfToday }, stage: { notIn: ["DECLINED", "NO_REPLY"] } } : {}) };
   const [all, rows] = await Promise.all([
     db.contact.count({ where: { workspaceId, node: { archivedAt: null } } }),
     db.contact.findMany({
@@ -69,6 +72,7 @@ export async function listPeople(userId: string, workspaceId: string, f: z.infer
       typeTag: c.typeTag,
       country: c.country,
       groupId: c.groupId,
+      heldById: c.heldById,
       ownerId: c.ownerId,
       companyName: c.company?.legalName ?? null,
       lastContactedAt: c.lastContactedAt,

@@ -19,6 +19,7 @@ import { useMembers } from "./hooks";
 import { GroupsPanel, type GroupChoice } from "./GroupsPanel";
 import { ImportWizard } from "./ImportWizard";
 import { useGroups } from "./useGroups";
+import { usePartners } from "./usePartners";
 
 export const TEMP_ICON: Record<Temp, string> = { HOT: "🔥", WARM: "🟡", COLD: "❄️" };
 
@@ -35,6 +36,7 @@ export interface Person {
   typeTag: string | null;
   country: string | null;
   groupId: string | null;
+  heldById: string | null;
   ownerId: string | null;
   lastContactedAt: string | null;
   telegram: string | null;
@@ -80,11 +82,14 @@ export function PeopleBoard({ workspaceId, slug, canWrite, canExport, canErase, 
   const [over, setOver] = useState<Stage | null>(null);
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [target, setTarget] = useState("");
+  const [heldFilter, setHeldFilter] = useState("");
+  const [partnerTarget, setPartnerTarget] = useState("");
+  const partners = usePartners(workspaceId);
   const groups = useGroups(workspaceId);
   const group: GroupChoice = search.get("group") ?? "all";
   const groupOf = (id: string | null) => (id ? groups.data?.items.find((g) => g.id === id) : undefined);
 
-  const params = new URLSearchParams({ ...(q ? { q } : {}), ...(owner ? { ownerId: owner === "me" ? meId : owner } : {}), ...(temp ? { temperature: temp } : {}), ...(source ? { source } : {}), ...(group !== "all" ? { group } : {}), ...(due ? { due: "1" } : {}) });
+  const params = new URLSearchParams({ ...(q ? { q } : {}), ...(owner ? { ownerId: owner === "me" ? meId : owner } : {}), ...(temp ? { temperature: temp } : {}), ...(source ? { source } : {}), ...(group !== "all" ? { group } : {}), ...(heldFilter ? { held: heldFilter } : {}), ...(due ? { due: "1" } : {}) });
   const key = ["people", workspaceId, params.toString()];
   const { data, isLoading, isError } = useQuery({ queryKey: key, placeholderData: (p) => p, queryFn: () => api.get<PeopleData>(`/api/v1/workspaces/${workspaceId}/people?${params}`) });
 
@@ -130,6 +135,14 @@ export function PeopleBoard({ workspaceId, slug, canWrite, canExport, canErase, 
       void qc.invalidateQueries({ queryKey: ["contacts"] });
     },
   });
+  const handOver = useMutation({
+    mutationFn: ({ ids, toPartnerId }: { ids: string[]; toPartnerId: string | null }) => api.post(`/api/v1/workspaces/${workspaceId}/people/transfer`, { ids, toPartnerId }),
+    onSuccess: () => {
+      setPicked(new Set());
+      setPartnerTarget("");
+      for (const k of ["people", "partners", "contacts", "contact", "activities"]) void qc.invalidateQueries({ queryKey: [k] });
+    },
+  });
   const toggle = (id: string) => setPicked((s) => (s.has(id) ? new Set([...s].filter((x) => x !== id)) : new Set([...s, id])));
 
   const byStage = (s: Stage) => (data?.items ?? []).filter((i) => i.stage === s);
@@ -169,6 +182,11 @@ export function PeopleBoard({ workspaceId, slug, canWrite, canExport, canErase, 
           {p.typeTag && <span className="rounded bg-accent px-1.5 py-0.5 font-semibold text-accent-foreground">{p.typeTag}</span>}
           {p.country && <span>{p.country}</span>}
           {p.source && <span className="rounded bg-muted px-1.5 py-0.5">{p.source}</span>}
+          {p.heldById && partners.data?.find((x) => x.id === p.heldById) && (
+            <span className="inline-flex max-w-full items-center gap-1 rounded bg-primary/10 px-1.5 py-0.5 text-primary" data-testid="card-held" title={t("heldBy")}>
+              <span className="truncate">{partners.data?.find((x) => x.id === p.heldById)?.name}</span>
+            </span>
+          )}
           {group === "all" && groupOf(p.groupId) && (
             <span className="inline-flex max-w-full items-center gap-1 rounded bg-muted px-1.5 py-0.5" data-testid="card-group">
               <span className="size-1.5 shrink-0 rounded-full" style={{ background: groupOf(p.groupId)?.color ?? "var(--muted-foreground)" }} aria-hidden />
@@ -296,6 +314,16 @@ export function PeopleBoard({ workspaceId, slug, canWrite, canExport, canErase, 
             </option>
           ))}
         </select>
+        <select aria-label={t("heldBy")} className={cn(selectClass, "w-auto")} value={heldFilter} onChange={(e) => setHeldFilter(e.target.value)} data-testid="filter-held">
+          <option value="">{t("anyHolder")}</option>
+          <option value="none">{t("heldNobody")}</option>
+          <option value="any">{t("heldByPartner")}</option>
+          {partners.data?.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </select>
         <button
           type="button"
           aria-pressed={due}
@@ -326,6 +354,18 @@ export function PeopleBoard({ workspaceId, slug, canWrite, canExport, canErase, 
           </select>
           <Button size="sm" disabled={!target || assign.isPending} onClick={() => assign.mutate({ ids: [...picked], groupId: target === "none" ? null : target })} data-testid="bulk-apply">
             {t("applyGroup")}
+          </Button>
+          <select aria-label={t("handOver")} className={cn(selectClass, "w-auto")} value={partnerTarget} onChange={(e) => setPartnerTarget(e.target.value)} data-testid="bulk-partner">
+            <option value="">{t("handOver")}</option>
+            <option value="none">{t("heldNobody")}</option>
+            {partners.data?.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+          <Button size="sm" variant="outline" disabled={!partnerTarget || handOver.isPending} onClick={() => handOver.mutate({ ids: [...picked], toPartnerId: partnerTarget === "none" ? null : partnerTarget })} data-testid="bulk-hand">
+            {t("handOverApply")}
           </Button>
           <button type="button" className="ml-auto inline-flex items-center gap-1 text-muted-foreground hover:text-foreground" onClick={() => setPicked(new Set())}>
             <X className="size-4" />

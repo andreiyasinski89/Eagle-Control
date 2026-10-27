@@ -11,6 +11,7 @@ import { loadWorkspaceMember, logActivity, type Tx } from "@/server/services/nod
 import { deleteObject } from "@/server/storage";
 import { assertWorkspaceMember, fullName, invalid, loadCrmNode, pageArgs, toDate } from "./common";
 import { assertGroup } from "./groups";
+import { assertPartnerLinks, listTransfers } from "./partners";
 
 const text = (max: number) => z.string().trim().max(max).nullable().optional();
 
@@ -36,6 +37,8 @@ export const contactFieldsSchema = z.object({
   country: text(80),
   sponsorName: text(120),
   groupId: z.string().nullable().optional(),
+  sponsorId: z.string().nullable().optional(),
+  linkedUserId: z.string().nullable().optional(),
 });
 export const createContactSchema = contactFieldsSchema.extend({ allowDuplicate: z.boolean().default(false), consentGiven: z.boolean().default(false) });
 export const patchContactSchema = contactFieldsSchema.partial().refine((v) => Object.keys(v).length > 0, "Nothing to update");
@@ -93,6 +96,8 @@ export interface Funnel {
   country?: string | null;
   sponsorName?: string | null;
   groupId?: string | null;
+  sponsorId?: string | null;
+  linkedUserId?: string | null;
   ownerId?: string | null;
 }
 
@@ -112,6 +117,8 @@ function funnelData(f: Funnel): Partial<Prisma.ContactUncheckedCreateInput> {
   if (f.country !== undefined) out.country = blank(f.country) ?? null;
   if (f.sponsorName !== undefined) out.sponsorName = blank(f.sponsorName) ?? null;
   if (f.groupId !== undefined) out.groupId = f.groupId;
+  if (f.sponsorId !== undefined) out.sponsorId = f.sponsorId;
+  if (f.linkedUserId !== undefined) out.linkedUserId = f.linkedUserId;
   return out as Partial<Prisma.ContactUncheckedCreateInput>;
 }
 
@@ -123,6 +130,7 @@ export async function createContactIn(
 ): Promise<{ id: string }> {
   await assertWorkspaceMember(tx, workspaceId, input.ownerId);
   await assertGroup(tx, workspaceId, input.groupId);
+  await assertPartnerLinks(tx, workspaceId, null, input);
   const { parentId, rootId } = await placement(tx, workspaceId, input.companyId);
   const emails = cleanEmails(input.emails);
   const node = await tx.node.create({
@@ -235,6 +243,7 @@ export async function updateContactIn(tx: Tx, userId: string, contactId: string,
   const cur = await tx.contact.findUniqueOrThrow({ where: { nodeId: contactId } });
   await assertWorkspaceMember(tx, node.workspaceId, patch.ownerId);
   await assertGroup(tx, node.workspaceId, patch.groupId);
+  await assertPartnerLinks(tx, node.workspaceId, contactId, patch);
   const data: Prisma.ContactUncheckedUpdateInput = {};
   if (patch.firstName !== undefined) data.firstName = patch.firstName;
   if (patch.lastName !== undefined) data.lastName = patch.lastName?.trim() || null;
@@ -422,6 +431,10 @@ export async function getContactIn(tx: Tx, userId: string, contactId: string) {
     country: c.country,
     sponsorName: c.sponsorName,
     groupId: c.groupId,
+    sponsorId: c.sponsorId,
+    heldById: c.heldById,
+    linkedUserId: c.linkedUserId,
+    transfers: await listTransfers(tx, contactId),
     tags: tags.map((t) => t.tag),
     consentHistory: consent,
     deals: deals.map((d) => ({ id: d.nodeId, title: d.node.title, stage: d.stage.name, amount: Number(d.amount), currency: d.currency })),
