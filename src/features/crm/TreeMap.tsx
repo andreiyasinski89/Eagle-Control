@@ -4,11 +4,11 @@ import { memo, useMemo } from "react";
 import { Background, Controls, Handle, MiniMap, Position, ReactFlow, ReactFlowProvider, type Edge, type Node as RFNode, type NodeProps, type NodeTypes } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useTheme } from "next-themes";
-import { Building2, CheckSquare, FolderKanban, Handshake, Layers, ListChecks, Timer, User, Workflow } from "lucide-react";
+import { Building2, CheckSquare, Folder, FolderKanban, Handshake, Layers, ListChecks, Network, Timer, User, UserCheck, Workflow } from "lucide-react";
 import { DEFAULT_LAYOUT, tidyLayout } from "@/modules/nodes/layout";
 import { cn } from "@/lib/utils";
 
-export type TreeKind = "pipeline" | "stage" | "company" | "contact" | "deal" | "project" | "epic" | "sprint" | "task" | "subtask" | "doc";
+export type TreeKind = "pipeline" | "stage" | "company" | "contact" | "deal" | "project" | "epic" | "sprint" | "task" | "subtask" | "doc" | "root" | "group" | "partner";
 
 export interface TreeMapNode {
   id: string;
@@ -23,9 +23,11 @@ export interface TreeMapNode {
   linked?: boolean;
   warning?: boolean;
   closed?: boolean;
+  /** A colour for the left edge of the card (a funnel stage, a group); wins over the health colour. */
+  accent?: string | null;
 }
 
-const ICON: Record<TreeKind, typeof User> = { pipeline: Workflow, stage: Layers, company: Building2, contact: User, deal: Handshake, project: FolderKanban, epic: Layers, sprint: Timer, task: CheckSquare, subtask: ListChecks, doc: CheckSquare };
+const ICON: Record<TreeKind, typeof User> = { pipeline: Workflow, stage: Layers, company: Building2, contact: User, deal: Handshake, project: FolderKanban, epic: Layers, sprint: Timer, task: CheckSquare, subtask: ListChecks, doc: CheckSquare, root: Network, group: Folder, partner: UserCheck };
 
 interface CardData extends Record<string, unknown> {
   node: TreeMapNode;
@@ -45,7 +47,7 @@ const Card = memo(function Card({ data }: NodeProps<CardNode>) {
       data-kind={node.kind}
       data-health={node.health ?? ""}
       className={cn("h-[76px] w-[240px] cursor-pointer rounded-lg border border-border bg-card px-3 py-2 shadow-sm hover:border-primary", node.closed && "opacity-70")}
-      style={{ borderLeftWidth: 5, borderLeftColor: color(node.closed ? null : node.health), background: tint ? `color-mix(in srgb, ${color(node.health)} 22%, var(--card))` : undefined }}
+      style={{ borderLeftWidth: 5, borderLeftColor: node.accent ?? color(node.closed ? null : node.health), background: tint ? `color-mix(in srgb, ${color(node.health)} 22%, var(--card))` : undefined }}
     >
       <Handle type="target" position={Position.Left} className="!opacity-0" />
       <div className="flex items-center gap-2">

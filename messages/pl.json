@@ -713,7 +713,23 @@
     "hasAccount": "W MeetOwl",
     "loading": "Ładowanie",
     "expand": "Rozwiń gałąź",
-    "collapse": "Zwiń gałąź"
+    "collapse": "Zwiń gałąź",
+    "tabNetwork": "Mapa sieci",
+    "networkTitle": "Mapa sieci",
+    "netArrange": "Ułóż według",
+    "netMode": {
+      "sponsors": "Według sponsorów",
+      "groups": "Według grup",
+      "held": "Według tego, kto z kim pracuje"
+    },
+    "netShowPeople": "Pokaż osoby",
+    "netHideLost": "Ukryj odmowy i milczących",
+    "netShown": "Na mapie: {n, plural, one {# osoba} few {# osoby} many {# osób} other {# osoby}}",
+    "netTruncated": "Narysowano tylko {n} z {total} osób. Użyj grup lub ukryj utraconych, aby zobaczyć resztę.",
+    "netEmpty": "Mapa jest pusta: najpierw dodaj osoby w zakładce „Ludzie”.",
+    "netYou": "Ty · {n, plural, one {# osoba} few {# osoby} many {# osób} other {# osoby}}",
+    "netBranch": "{n, plural, one {# osoba} few {# osoby} many {# osób} other {# osoby}}",
+    "netNoSponsor": "Bez sponsora"
   },
   "myday": {
     "title": "Mój dzień",

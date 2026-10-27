@@ -204,3 +204,15 @@
 - **API:** `GET /api/v1/workspaces/:id/partners`, `POST …/people/transfer`, `GET /api/v1/contacts/:id/handoff`; `sponsorId`, `linkedUserId` on contacts, `held` filter on `GET …/people`.
 - Database migration `0014_partners_transfers`.
 - Tests: `partners.test.ts` (loops, team sizes, the handoff text) and `partners.test.ts` in integration (sponsor tree, team list, hand-over in bulk with the call count, account partner and taking back, history, permissions, removing a partner).
+
+## 0.19.0 — CRM for network marketing, step 4: the network map
+
+- **New "Network map" tab in the CRM:** the whole network on one MindMap, with you in the middle. It reuses the map of the client page (same layout, zoom, mini-map), so it is read in the same way.
+- **Three ways to arrange it:** *by sponsors* (partners under their sponsors, each person under whoever brought them; people with no sponsor under "No sponsor"), *by groups* (the group tree with people in their groups; the ungrouped under "No group") and *by who works with whom* (partners side by side, each with the people handed to them; the rest under "Nobody").
+- **Colour is the funnel stage** (the legend is above the map); declined and silent people are faded and can be hidden. Cards say the stage, the warmth and the country; roots, groups and partners say how many people are below them.
+- **Toggles:** *Show people* (off: only the structure, partners or groups), *Hide declined and silent*. The way of arranging is kept in the page address.
+- **Press a person or a partner** to open their card beside the map and change anything there (stage, sponsor, group, hand-over).
+- Up to 2,000 people are drawn; above that the map says how many are shown. A sponsor link that would loop (it cannot be made by hand, but a sheet could bring one) never breaks the map: the partner is placed under you.
+- **API:** `GET /api/v1/workspaces/:id/network` (people with their links, groups, the name at the centre).
+- No database changes.
+- Tests: `network.test.ts` (the three arrangements, counts, climbing to the nearest partner, loops) and the network data in the partners integration test.

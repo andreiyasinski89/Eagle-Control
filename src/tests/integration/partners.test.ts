@@ -14,6 +14,7 @@ import { createWorkspace } from "@/server/services/workspace";
 import { createContact, getContact, updateContact } from "@/server/services/crm/contacts";
 import { listPeople } from "@/server/services/crm/people";
 import { getHandoffCard, listPartners, transferContacts } from "@/server/services/crm/partners";
+import { getNetwork } from "@/server/services/crm/network";
 
 let close: () => Promise<void>;
 let raw: PrismaClient;
@@ -137,5 +138,19 @@ describe("handing people to partners", () => {
     expect(d.heldById).toBeNull();
     expect(d.transfers).toHaveLength(1);
     expect(d.transfers[0]).toMatchObject({ to: null, note: "Met at the fair" });
+  });
+});
+
+describe("network map data", () => {
+  it("gives every person with the links the map needs, and is closed to strangers", async () => {
+    const n = await getNetwork(owner, ws.id);
+    expect(n.rootName).toBe("Owner");
+    expect(n.truncated).toBe(false);
+    expect(n.total).toBe(n.people.length);
+    const mid = n.people.find((x) => x.name === "Mid");
+    const top = n.people.find((x) => x.name === "Top");
+    expect(mid).toMatchObject({ stage: "PARTNER", sponsorId: top?.id });
+    expect(n.people.find((x) => x.name === "Alice")).toMatchObject({ stage: "NEW", heldById: null });
+    await expect(getNetwork(outsider, ws.id)).rejects.toBeTruthy();
   });
 });

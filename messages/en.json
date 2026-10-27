@@ -713,7 +713,23 @@
     "hasAccount": "In MeetOwl",
     "loading": "Loading",
     "expand": "Expand branch",
-    "collapse": "Collapse branch"
+    "collapse": "Collapse branch",
+    "tabNetwork": "Network map",
+    "networkTitle": "Network map",
+    "netArrange": "Arrange by",
+    "netMode": {
+      "sponsors": "By sponsors",
+      "groups": "By groups",
+      "held": "By who works with whom"
+    },
+    "netShowPeople": "Show people",
+    "netHideLost": "Hide declined and silent",
+    "netShown": "{n, plural, one {# person} other {# people}} on the map",
+    "netTruncated": "Only {n} of {total} people are drawn. Use groups or hide the lost to see the rest.",
+    "netEmpty": "The map is empty: add people in the People tab first.",
+    "netYou": "You · {n, plural, one {# person} other {# people}}",
+    "netBranch": "{n, plural, one {# person} other {# people}}",
+    "netNoSponsor": "No sponsor"
   },
   "myday": {
     "title": "My day",

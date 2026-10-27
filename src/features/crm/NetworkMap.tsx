@@ -1,0 +1,118 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
+import { Skeleton } from "@/components/ui/skeleton";
+import { api } from "@/features/mindmap/api";
+import { buildNetwork, NET_MODES, ROOT_ID, STAGE_COLOR, type NetGroup, type NetMode, type NetNode, type NetPerson } from "@/modules/crm/network";
+import { cn } from "@/lib/utils";
+import { ContactDrawer } from "./ContactDrawer";
+import { TreeMap, type TreeMapNode } from "./TreeMap";
+
+interface NetworkData {
+  rootName: string;
+  people: NetPerson[];
+  groups: NetGroup[];
+  truncated: boolean;
+  total: number;
+}
+
+const WARM_ICON: Record<string, string> = { HOT: "🔥", WARM: "🟡", COLD: "❄️" };
+const LOST = new Set(["DECLINED", "NO_REPLY"]);
+
+/**
+ * The whole network on one map, with you in the middle. Three ways to arrange it: by sponsors (who brought whom),
+ * by groups (how the list was split) and by who works with whom (what was handed to partners). Colour is the funnel stage.
+ */
+export function NetworkMap({ workspaceId, slug, canWrite, canExport, canErase, meId }: { workspaceId: string; slug: string; canWrite: boolean; canExport: boolean; canErase: boolean; meId: string }) {
+  const t = useTranslations("crm");
+  const router = useRouter();
+  const pathname = usePathname();
+  const search = useSearchParams();
+  const openId = search.get("contact");
+  const modeParam = search.get("mode");
+  const mode: NetMode = (NET_MODES as string[]).includes(modeParam ?? "") ? (modeParam as NetMode) : "sponsors";
+  const [showPeople, setShowPeople] = useState(true);
+  const [hideLost, setHideLost] = useState(true);
+  const { data, isLoading, isError } = useQuery({ queryKey: ["network", workspaceId], staleTime: 15_000, queryFn: () => api.get<NetworkData>(`/api/v1/workspaces/${workspaceId}/network`) });
+
+  const setParam = (name: string, value: string | null) => {
+    const next = new URLSearchParams(search.toString());
+    if (value) next.set(name, value);
+    else next.delete(name);
+    router.replace(next.toString() ? `${pathname}?${next}` : pathname, { scroll: false });
+  };
+
+  const { nodes, shown } = useMemo(() => {
+    if (!data) return { nodes: [] as TreeMapNode[], shown: 0 };
+    const people = hideLost ? data.people.filter((p) => !LOST.has(p.stage)) : data.people;
+    const net = buildNetwork(mode, { rootName: data.rootName, people, groups: data.groups }, { showPeople });
+    const subtitle = (n: NetNode): string | undefined => {
+      if (n.kind === "root") return t("netYou", { n: n.branch ?? 0 });
+      if (n.kind === "group") return t("netBranch", { n: n.branch ?? 0 });
+      const parts = [n.kind === "partner" ? t("funnelStage.PARTNER") : t(`funnelStage.${(n.stage ?? "NEW") as "NEW"}`), n.temperature ? WARM_ICON[n.temperature] : null, n.country, n.kind === "partner" && n.branch ? t("netBranch", { n: n.branch }) : null];
+      return parts.filter(Boolean).join(" · ");
+    };
+    const title = (n: NetNode) => (n.synthetic === "noGroup" ? t("noGroup") : n.synthetic === "noSponsor" ? t("netNoSponsor") : n.synthetic === "nobody" ? t("heldNobody") : n.title);
+    const out: TreeMapNode[] = net.map((n) => ({
+      id: n.id,
+      parentId: n.parentId,
+      position: n.position,
+      kind: n.kind === "person" ? "contact" : n.kind,
+      title: title(n),
+      subtitle: subtitle(n),
+      accent: n.kind === "group" ? (n.color ?? "var(--muted-foreground)") : n.stage ? STAGE_COLOR[n.stage] : null,
+      closed: n.stage ? LOST.has(n.stage) : false,
+    }));
+    return { nodes: out, shown: net.filter((n) => n.kind === "person" || n.kind === "partner").length };
+  }, [data, mode, showPeople, hideLost, t]);
+
+  const pill = (on: boolean) => cn("h-8 rounded-full border px-3 text-sm", on ? "border-primary bg-primary/10 font-medium" : "border-border text-muted-foreground hover:bg-muted");
+
+  return (
+    <div className="flex h-full flex-col gap-3 p-4" data-testid="network-map">
+      <div className="flex flex-wrap items-center gap-2">
+        <h1 className="mr-2 text-xl font-semibold">{t("networkTitle")}</h1>
+        <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label={t("netArrange")}>
+          {NET_MODES.map((m) => (
+            <button key={m} type="button" role="radio" aria-checked={mode === m} data-testid={`mode-${m}`} className={pill(mode === m)} onClick={() => setParam("mode", m === "sponsors" ? null : m)}>
+              {t(`netMode.${m}`)}
+            </button>
+          ))}
+        </div>
+        <div className="ml-auto flex flex-wrap items-center gap-1.5">
+          <button type="button" aria-pressed={showPeople} className={pill(showPeople)} onClick={() => setShowPeople((v) => !v)} data-testid="toggle-people">
+            {t("netShowPeople")}
+          </button>
+          <button type="button" aria-pressed={hideLost} className={pill(hideLost)} onClick={() => setHideLost((v) => !v)} data-testid="toggle-lost">
+            {t("netHideLost")}
+          </button>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground" data-testid="network-legend">
+        {(["NEW", "FIRST_CONTACT", "WARMING", "PRESENTATION", "DECIDING", "CLIENT", "PARTNER"] as const).map((s) => (
+          <span key={s} className="inline-flex items-center gap-1">
+            <span className="size-2.5 rounded-full" style={{ background: STAGE_COLOR[s] }} aria-hidden />
+            {t(`funnelStage.${s}`)}
+          </span>
+        ))}
+        {data && <span className="ml-auto tabular-nums">{t("netShown", { n: shown })}</span>}
+      </div>
+      {data?.truncated && <p className="text-xs text-[var(--health-yellow)]">{t("netTruncated", { n: data.people.length, total: data.total })}</p>}
+      {isError && (
+        <p role="alert" className="text-sm text-danger">
+          {t("error")}
+        </p>
+      )}
+
+      <div className="min-h-96 flex-1 overflow-hidden rounded-lg border border-border bg-card" data-testid="network-canvas">
+        {isLoading ? <Skeleton className="m-4 h-[calc(100%-2rem)] rounded-xl" /> : data && data.people.length === 0 ? <p className="p-6 text-sm text-muted-foreground">{t("netEmpty")}</p> : <TreeMap key={`${mode}-${showPeople}-${hideLost}`} nodes={nodes} heatmap={false} onOpen={(n) => (n.kind === "contact" || n.kind === "partner") && n.id !== ROOT_ID && setParam("contact", n.id)} />}
+      </div>
+
+      {openId && <ContactDrawer key={openId} workspaceId={workspaceId} slug={slug} contactId={openId} canWrite={canWrite} canErase={canErase} canExport={canExport} meId={meId} onClose={() => setParam("contact", null)} />}
+    </div>
+  );
+}

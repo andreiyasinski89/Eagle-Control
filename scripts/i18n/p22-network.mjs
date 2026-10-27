@@ -1,0 +1,51 @@
+const fragment = {
+  en: {
+    crm: {
+      tabNetwork: "Network map",
+      networkTitle: "Network map",
+      netArrange: "Arrange by",
+      netMode: { sponsors: "By sponsors", groups: "By groups", held: "By who works with whom" },
+      netShowPeople: "Show people",
+      netHideLost: "Hide declined and silent",
+      netShown: "{n, plural, one {# person} other {# people}} on the map",
+      netTruncated: "Only {n} of {total} people are drawn. Use groups or hide the lost to see the rest.",
+      netEmpty: "The map is empty: add people in the People tab first.",
+      netYou: "You · {n, plural, one {# person} other {# people}}",
+      netBranch: "{n, plural, one {# person} other {# people}}",
+      netNoSponsor: "No sponsor",
+    },
+  },
+  ru: {
+    crm: {
+      tabNetwork: "Карта сети",
+      networkTitle: "Карта сети",
+      netArrange: "Расположить",
+      netMode: { sponsors: "По спонсорам", groups: "По группам", held: "По тому, кто с кем работает" },
+      netShowPeople: "Показывать людей",
+      netHideLost: "Скрыть отказы и молчащих",
+      netShown: "На карте: {n, plural, one {# человек} few {# человека} many {# человек} other {# человека}}",
+      netTruncated: "Нарисованы только {n} из {total} человек. Используйте группы или скройте потерянных, чтобы увидеть остальных.",
+      netEmpty: "Карта пуста: сначала добавьте людей на вкладке «Люди».",
+      netYou: "Вы · {n, plural, one {# человек} few {# человека} many {# человек} other {# человека}}",
+      netBranch: "{n, plural, one {# человек} few {# человека} many {# человек} other {# человека}}",
+      netNoSponsor: "Без спонсора",
+    },
+  },
+  pl: {
+    crm: {
+      tabNetwork: "Mapa sieci",
+      networkTitle: "Mapa sieci",
+      netArrange: "Ułóż według",
+      netMode: { sponsors: "Według sponsorów", groups: "Według grup", held: "Według tego, kto z kim pracuje" },
+      netShowPeople: "Pokaż osoby",
+      netHideLost: "Ukryj odmowy i milczących",
+      netShown: "Na mapie: {n, plural, one {# osoba} few {# osoby} many {# osób} other {# osoby}}",
+      netTruncated: "Narysowano tylko {n} z {total} osób. Użyj grup lub ukryj utraconych, aby zobaczyć resztę.",
+      netEmpty: "Mapa jest pusta: najpierw dodaj osoby w zakładce „Ludzie”.",
+      netYou: "Ty · {n, plural, one {# osoba} few {# osoby} many {# osób} other {# osoby}}",
+      netBranch: "{n, plural, one {# osoba} few {# osoby} many {# osób} other {# osoby}}",
+      netNoSponsor: "Bez sponsora",
+    },
+  },
+};
+export default fragment;
