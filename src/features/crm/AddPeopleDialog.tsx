@@ -10,6 +10,7 @@ import { api, ApiFailure } from "@/features/mindmap/api";
 import { BOARD_STAGES, INTERESTS, parsePeopleLines, SOURCES, TEMPERATURES, type Stage, type Temp } from "@/modules/crm/people";
 import { cn } from "@/lib/utils";
 import { useMembers } from "./hooks";
+import { useGroups } from "./useGroups";
 
 const TEMP_ICON: Record<Temp, string> = { HOT: "🔥", WARM: "🟡", COLD: "❄️" };
 
@@ -17,10 +18,12 @@ const TEMP_ICON: Record<Temp, string> = { HOT: "🔥", WARM: "🟡", COLD: "❄�
  * "List a hundred": paste or type names, one on a line, and they all go into the funnel at once with what they have in common
  * (how warm, where from, what they are interested in, who looks after them). A name already in the funnel is skipped, not doubled.
  */
-export function AddPeopleDialog({ open, onClose, workspaceId, meId, onAdded }: { open: boolean; onClose: () => void; workspaceId: string; meId: string; onAdded: () => void }) {
+export function AddPeopleDialog({ open, onClose, workspaceId, meId, defaultGroup, onAdded }: { open: boolean; onClose: () => void; workspaceId: string; meId: string; defaultGroup: string; onAdded: () => void }) {
   const t = useTranslations("crm");
   const tc = useTranslations("common");
   const members = useMembers(workspaceId);
+  const groups = useGroups(workspaceId);
+  const [group, setGroup] = useState(defaultGroup);
   const [text, setText] = useState("");
   const [stage, setStage] = useState<Stage>("NEW");
   const [temp, setTemp] = useState<Temp | "">("");
@@ -36,7 +39,8 @@ export function AddPeopleDialog({ open, onClose, workspaceId, meId, onAdded }: {
     setText("");
     setResult(null);
     setError(null);
-  }, [open]);
+    setGroup(defaultGroup);
+  }, [open, defaultGroup]);
 
   const parsed = useMemo(() => parsePeopleLines(text), [text]);
 
@@ -49,6 +53,7 @@ export function AddPeopleDialog({ open, onClose, workspaceId, meId, onAdded }: {
         source: source || null,
         interests: interests.length ? interests : undefined,
         country: country.trim() || null,
+        groupId: group || null,
         ownerId: owner === "me" ? meId : owner,
       }),
     onSuccess: (r) => {
@@ -128,6 +133,16 @@ export function AddPeopleDialog({ open, onClose, workspaceId, meId, onAdded }: {
             </FormField>
             <FormField label={t("field.country")}>
               <Input value={country} maxLength={80} onChange={(e) => setCountry(e.target.value)} />
+            </FormField>
+            <FormField label={t("groupField")}>
+              <select className={selectClass} value={group} onChange={(e) => setGroup(e.target.value)} data-testid="add-people-group">
+                <option value="">{t("noGroup")}</option>
+                {groups.options.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
             </FormField>
             <FormField label={t("owner")}>
               <select className={selectClass} value={owner} onChange={(e) => setOwner(e.target.value)}>

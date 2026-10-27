@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarClock, FileUp, Search, UserPlus, Zap } from "lucide-react";
+import { CalendarClock, FileUp, Search, UserPlus, X, Zap } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,9 @@ import { cn } from "@/lib/utils";
 import { AddPeopleDialog } from "./AddPeopleDialog";
 import { ContactDrawer } from "./ContactDrawer";
 import { useMembers } from "./hooks";
+import { GroupsPanel, type GroupChoice } from "./GroupsPanel";
 import { ImportWizard } from "./ImportWizard";
+import { useGroups } from "./useGroups";
 
 export const TEMP_ICON: Record<Temp, string> = { HOT: "🔥", WARM: "🟡", COLD: "❄️" };
 
@@ -32,6 +34,7 @@ export interface Person {
   nextStepAt: string | null;
   typeTag: string | null;
   country: string | null;
+  groupId: string | null;
   ownerId: string | null;
   lastContactedAt: string | null;
   telegram: string | null;
@@ -75,8 +78,13 @@ export function PeopleBoard({ workspaceId, slug, canWrite, canExport, canErase, 
   const [adding, setAdding] = useState(false);
   const [importing, setImporting] = useState(false);
   const [over, setOver] = useState<Stage | null>(null);
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [target, setTarget] = useState("");
+  const groups = useGroups(workspaceId);
+  const group: GroupChoice = search.get("group") ?? "all";
+  const groupOf = (id: string | null) => (id ? groups.data?.items.find((g) => g.id === id) : undefined);
 
-  const params = new URLSearchParams({ ...(q ? { q } : {}), ...(owner ? { ownerId: owner === "me" ? meId : owner } : {}), ...(temp ? { temperature: temp } : {}), ...(source ? { source } : {}), ...(due ? { due: "1" } : {}) });
+  const params = new URLSearchParams({ ...(q ? { q } : {}), ...(owner ? { ownerId: owner === "me" ? meId : owner } : {}), ...(temp ? { temperature: temp } : {}), ...(source ? { source } : {}), ...(group !== "all" ? { group } : {}), ...(due ? { due: "1" } : {}) });
   const key = ["people", workspaceId, params.toString()];
   const { data, isLoading, isError } = useQuery({ queryKey: key, placeholderData: (p) => p, queryFn: () => api.get<PeopleData>(`/api/v1/workspaces/${workspaceId}/people?${params}`) });
 
@@ -100,12 +108,29 @@ export function PeopleBoard({ workspaceId, slug, canWrite, canExport, canErase, 
     },
   });
 
-  const setOpen = (id: string | null) => {
+  const setParam = (name: string, value: string | null) => {
     const next = new URLSearchParams(search.toString());
-    if (id) next.set("contact", id);
-    else next.delete("contact");
+    if (value) next.set(name, value);
+    else next.delete(name);
     router.replace(next.toString() ? `${pathname}?${next}` : pathname, { scroll: false });
   };
+  const setOpen = (id: string | null) => setParam("contact", id);
+  const setGroup = (g: GroupChoice) => {
+    setPicked(new Set());
+    setParam("group", g === "all" ? null : g);
+  };
+
+  const assign = useMutation({
+    mutationFn: ({ ids, groupId }: { ids: string[]; groupId: string | null }) => api.post(`/api/v1/workspaces/${workspaceId}/contact-groups/assign`, { ids, groupId }),
+    onSuccess: () => {
+      setPicked(new Set());
+      setTarget("");
+      void qc.invalidateQueries({ queryKey: ["people", workspaceId] });
+      void qc.invalidateQueries({ queryKey: ["groups", workspaceId] });
+      void qc.invalidateQueries({ queryKey: ["contacts"] });
+    },
+  });
+  const toggle = (id: string) => setPicked((s) => (s.has(id) ? new Set([...s].filter((x) => x !== id)) : new Set([...s, id])));
 
   const byStage = (s: Stage) => (data?.items ?? []).filter((i) => i.stage === s);
   const total = data?.totals.all ?? 0;
@@ -132,6 +157,7 @@ export function PeopleBoard({ workspaceId, slug, canWrite, canExport, canErase, 
         onClick={() => setOpen(p.id)}
       >
         <div className="flex items-start gap-1.5">
+          {canWrite && <input type="checkbox" aria-label={t("pick", { name: p.name })} checked={picked.has(p.id)} onClick={(e) => e.stopPropagation()} onChange={() => toggle(p.id)} className="mt-0.5 size-3.5 shrink-0 accent-[var(--primary)]" data-testid="pick" />}
           <span className="min-w-0 flex-1 font-medium leading-snug">{p.name}</span>
           {p.temperature && (
             <span title={t(`temp.${p.temperature}`)} aria-label={t(`temp.${p.temperature}`)}>
@@ -143,6 +169,12 @@ export function PeopleBoard({ workspaceId, slug, canWrite, canExport, canErase, 
           {p.typeTag && <span className="rounded bg-accent px-1.5 py-0.5 font-semibold text-accent-foreground">{p.typeTag}</span>}
           {p.country && <span>{p.country}</span>}
           {p.source && <span className="rounded bg-muted px-1.5 py-0.5">{p.source}</span>}
+          {group === "all" && groupOf(p.groupId) && (
+            <span className="inline-flex max-w-full items-center gap-1 rounded bg-muted px-1.5 py-0.5" data-testid="card-group">
+              <span className="size-1.5 shrink-0 rounded-full" style={{ background: groupOf(p.groupId)?.color ?? "var(--muted-foreground)" }} aria-hidden />
+              <span className="truncate">{groupOf(p.groupId)?.name}</span>
+            </span>
+          )}
           {p.influence !== null && (
             <span className="inline-flex items-center gap-0.5" title={t("field.influence")}>
               <Zap className="size-3" aria-hidden />
@@ -280,6 +312,28 @@ export function PeopleBoard({ workspaceId, slug, canWrite, canExport, canErase, 
         </button>
       </div>
 
+      {picked.size > 0 && canWrite && (
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-primary/40 bg-primary/5 px-3 py-2 text-sm" data-testid="bulk-bar">
+          <span className="font-medium">{t("pickedCount", { n: picked.size })}</span>
+          <select aria-label={t("moveToGroup")} className={cn(selectClass, "w-auto")} value={target} onChange={(e) => setTarget(e.target.value)} data-testid="bulk-target">
+            <option value="">{t("moveToGroup")}</option>
+            <option value="none">{t("noGroup")}</option>
+            {groups.options.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+          <Button size="sm" disabled={!target || assign.isPending} onClick={() => assign.mutate({ ids: [...picked], groupId: target === "none" ? null : target })} data-testid="bulk-apply">
+            {t("applyGroup")}
+          </Button>
+          <button type="button" className="ml-auto inline-flex items-center gap-1 text-muted-foreground hover:text-foreground" onClick={() => setPicked(new Set())}>
+            <X className="size-4" />
+            {t("clearPick")}
+          </button>
+        </div>
+      )}
+
       {isLoading && <SkeletonBoard columns={5} />}
       {isError && (
         <p role="alert" className="text-sm text-danger">
@@ -303,14 +357,17 @@ export function PeopleBoard({ workspaceId, slug, canWrite, canExport, canErase, 
         </div>
       )}
       {data && data.totals.all > 0 && (
-        <div className="flex min-h-0 flex-1 gap-3 overflow-x-auto pb-2">
-          {BOARD_STAGES.map(column)}
-          {side && SIDE_STAGES.map(column)}
+        <div className="flex min-h-0 flex-1 gap-3">
+          <GroupsPanel workspaceId={workspaceId} canWrite={canWrite} value={group} onChange={setGroup} />
+          <div className="flex min-h-0 min-w-0 flex-1 gap-3 overflow-x-auto pb-2">
+            {BOARD_STAGES.map(column)}
+            {side && SIDE_STAGES.map(column)}
+          </div>
         </div>
       )}
 
       {openId && <ContactDrawer key={openId} workspaceId={workspaceId} slug={slug} contactId={openId} canWrite={canWrite} canErase={canErase} canExport={canExport} meId={meId} onClose={() => setOpen(null)} />}
-      <AddPeopleDialog open={adding} onClose={() => setAdding(false)} workspaceId={workspaceId} meId={meId} onAdded={() => void qc.invalidateQueries({ queryKey: ["people", workspaceId] })} />
+      <AddPeopleDialog open={adding} onClose={() => setAdding(false)} workspaceId={workspaceId} meId={meId} defaultGroup={group !== "all" && group !== "none" ? group : ""} onAdded={() => (void qc.invalidateQueries({ queryKey: ["people", workspaceId] }), void qc.invalidateQueries({ queryKey: ["groups", workspaceId] }))} />
       <ImportWizard open={importing} onClose={() => (setImporting(false), void qc.invalidateQueries({ queryKey: ["people", workspaceId] }))} workspaceId={workspaceId} entity="contacts" />
     </div>
   );

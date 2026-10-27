@@ -10,6 +10,7 @@ import { normalizeEmail, normalizePhone, uniqueNonNull } from "@/modules/crm/nor
 import { loadWorkspaceMember, logActivity, type Tx } from "@/server/services/nodes/access";
 import { deleteObject } from "@/server/storage";
 import { assertWorkspaceMember, fullName, invalid, loadCrmNode, pageArgs, toDate } from "./common";
+import { assertGroup } from "./groups";
 
 const text = (max: number) => z.string().trim().max(max).nullable().optional();
 
@@ -34,6 +35,7 @@ export const contactFieldsSchema = z.object({
   typeTag: text(10),
   country: text(80),
   sponsorName: text(120),
+  groupId: z.string().nullable().optional(),
 });
 export const createContactSchema = contactFieldsSchema.extend({ allowDuplicate: z.boolean().default(false), consentGiven: z.boolean().default(false) });
 export const patchContactSchema = contactFieldsSchema.partial().refine((v) => Object.keys(v).length > 0, "Nothing to update");
@@ -90,6 +92,7 @@ export interface Funnel {
   typeTag?: string | null;
   country?: string | null;
   sponsorName?: string | null;
+  groupId?: string | null;
   ownerId?: string | null;
 }
 
@@ -108,6 +111,7 @@ function funnelData(f: Funnel): Partial<Prisma.ContactUncheckedCreateInput> {
   if (f.typeTag !== undefined) out.typeTag = blank(f.typeTag) ?? null;
   if (f.country !== undefined) out.country = blank(f.country) ?? null;
   if (f.sponsorName !== undefined) out.sponsorName = blank(f.sponsorName) ?? null;
+  if (f.groupId !== undefined) out.groupId = f.groupId;
   return out as Partial<Prisma.ContactUncheckedCreateInput>;
 }
 
@@ -118,6 +122,7 @@ export async function createContactIn(
   input: ContactFields & { consentGiven?: boolean; consentSource?: string },
 ): Promise<{ id: string }> {
   await assertWorkspaceMember(tx, workspaceId, input.ownerId);
+  await assertGroup(tx, workspaceId, input.groupId);
   const { parentId, rootId } = await placement(tx, workspaceId, input.companyId);
   const emails = cleanEmails(input.emails);
   const node = await tx.node.create({
@@ -229,6 +234,7 @@ export async function updateContactIn(tx: Tx, userId: string, contactId: string,
   const node = await loadCrmNode(tx, userId, contactId, "CONTACT", true);
   const cur = await tx.contact.findUniqueOrThrow({ where: { nodeId: contactId } });
   await assertWorkspaceMember(tx, node.workspaceId, patch.ownerId);
+  await assertGroup(tx, node.workspaceId, patch.groupId);
   const data: Prisma.ContactUncheckedUpdateInput = {};
   if (patch.firstName !== undefined) data.firstName = patch.firstName;
   if (patch.lastName !== undefined) data.lastName = patch.lastName?.trim() || null;
@@ -415,6 +421,7 @@ export async function getContactIn(tx: Tx, userId: string, contactId: string) {
     typeTag: c.typeTag,
     country: c.country,
     sponsorName: c.sponsorName,
+    groupId: c.groupId,
     tags: tags.map((t) => t.tag),
     consentHistory: consent,
     deals: deals.map((d) => ({ id: d.nodeId, title: d.node.title, stage: d.stage.name, amount: Number(d.amount), currency: d.currency })),

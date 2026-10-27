@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/ui/modal";
 import { BOARD_STAGES, INTERESTS, SIDE_STAGES, SOURCES, TEMPERATURES, type Stage, type Temp } from "@/modules/crm/people";
 import { cn } from "@/lib/utils";
+import { useGroups } from "./useGroups";
 
 const TEMP_ICON: Record<Temp, string> = { HOT: "🔥", WARM: "🟡", COLD: "❄️" };
 
@@ -20,6 +21,7 @@ export interface FunnelValues {
   typeTag: string | null;
   country: string | null;
   sponsorName: string | null;
+  groupId: string | null;
 }
 
 const dayOf = (iso: string | null) => (iso ? iso.slice(0, 10) : "");
@@ -28,8 +30,9 @@ const dayOf = (iso: string | null) => (iso ? iso.slice(0, 10) : "");
  * Where the person is in the funnel and what comes next, in the card: pick the stage and the warmth with one press,
  * say what the next step is and when. Every change is saved at once.
  */
-export function FunnelFields({ value, disabled, onChange }: { value: FunnelValues; disabled: boolean; onChange: (patch: Record<string, unknown>) => void }) {
+export function FunnelFields({ value, disabled, workspaceId, onChange }: { value: FunnelValues; disabled: boolean; workspaceId: string; onChange: (patch: Record<string, unknown>) => void }) {
   const t = useTranslations("crm");
+  const groups = useGroups(workspaceId);
   const [influence, setInfluence] = useState(value.influence === null ? "" : String(value.influence));
   useEffect(() => setInfluence(value.influence === null ? "" : String(value.influence)), [value.influence]);
 
@@ -88,6 +91,17 @@ export function FunnelFields({ value, disabled, onChange }: { value: FunnelValue
           <Input disabled={disabled} defaultValue={value.typeTag ?? ""} key={`t${value.typeTag}`} maxLength={10} onBlur={(e) => e.target.value !== (value.typeTag ?? "") && onChange({ typeTag: e.target.value.trim() || null })} />
         </FormField>
       </div>
+
+      <FormField label={t("groupField")}>
+        <select disabled={disabled} className="h-9 w-full rounded-md border border-border bg-card px-2 text-sm" value={value.groupId ?? ""} onChange={(e) => onChange({ groupId: e.target.value || null })} data-testid="contact-group">
+          <option value="">{t("noGroup")}</option>
+          {groups.options.map((o) => (
+            <option key={o.id} value={o.id}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      </FormField>
 
       <FormField label={t("field.sponsorName")}>
         <Input disabled={disabled} defaultValue={value.sponsorName ?? ""} key={`s${value.sponsorName}`} maxLength={120} onBlur={(e) => e.target.value !== (value.sponsorName ?? "") && onChange({ sponsorName: e.target.value.trim() || null })} />

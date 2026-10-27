@@ -126,3 +126,6 @@
 | 122 | The funnel stage is a fixed list on the contact, not the sales-pipeline stage of a deal | A person is in a relationship long before any deal exists; MLM work is about people, not offers. Deals and the pipeline stay for money. |
 | 123 | The "type" letter is stored as typed and the sponsor as a name for now | The meaning of the letters is not settled yet and partners may or may not have accounts; free text loses nothing and can be turned into links in the partners step. |
 | 124 | A name already in the funnel is skipped on bulk add, not merged | Typing the same list twice must not double it; merging would silently overwrite what the person already knows. |
+| 125 | A person is in one group, not many | The groups split a list into lots to work or hand over; a person in two lots would be worked twice and could not be handed over cleanly. Labels that overlap are what tags are for. |
+| 126 | Groups nest three levels deep and a filter on a group includes its subgroups | Deeper trees are hard to see in a side list; people think "all of the cold market" as well as "the gym". |
+| 127 | Deleting a group moves its people and subgroups up instead of deleting them | A group is a way of sorting, not the person; losing the people because a folder was tidied would be the worst surprise. |

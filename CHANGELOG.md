@@ -182,3 +182,14 @@
 - **Import of your own sheets:** the import wizard maps the funnel columns (stage, warmth, interests, source, next step, country, sponsor, type) and reads sheet words such as "Средний", "Запланировать"; words it cannot read stay in the note instead of being lost. Contacts without email or phone are matched by name.
 - Database migration `0012_people_funnel` (new columns on contacts and the `ContactStageEvent` table). The GDPR export includes the stage history.
 - Tests: `people.test.ts` and `people-funnel.test.ts` (fields, stage history, filters, bulk add with call count, MLM sheet import).
+
+## 0.17.0 — CRM for network marketing, step 2: groups and subgroups
+
+- **Groups of people** on the left of the People board: a tree three levels deep ("Cold market" > "Gym" > "Morning class"). Press a group to see its people, subgroups included; *Everyone* and *No group* are always on top. Each group shows how many people it holds.
+- **Make and change groups:** the *+* button makes a group, the folder icon on a group makes a subgroup, the pencil renames, recolours, moves it under another group or deletes it. A group cannot go inside itself or its own subgroup, nor past three levels; two groups on one level cannot share a name.
+- **Deleting a group deletes nobody:** its people and its subgroups move up to the parent group (or to *No group*).
+- **Putting people in groups:** tick the cards (the box at the top left of a card) and *Move to group*; or choose the group in the contact card; or choose it in *Add a list* (it starts on the group you are looking at). Cards show their group while you look at everyone.
+- A person is in one group at a time. The selected group is kept in the page address, so a link opens the board on that group.
+- **API:** `GET|POST /api/v1/workspaces/:id/contact-groups`, `PATCH|DELETE /api/v1/contact-groups/:id`, `POST …/contact-groups/assign` (many people in one call); `groupId` on contacts, `group` filter on `GET …/people`.
+- Database migration `0013_contact_groups`.
+- Tests: `groups.test.ts` (tree rules) and `contact-groups.test.ts` (creation limits, assignment, counts, filtering, moving, deleting, access).

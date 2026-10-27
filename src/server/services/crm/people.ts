@@ -3,11 +3,13 @@ import type { Prisma } from "@prisma/client";
 import { db } from "@/server/db";
 import { contactKeys } from "@/modules/crm/dedupe";
 import { STAGES, TEMPERATURES } from "@/modules/crm/people";
+import { descendantIds } from "@/modules/crm/groups";
 import { splitFullName } from "@/modules/crm/csv";
 import { isValidTimeZone, todayIn, zonedToUtc } from "@/modules/views/tz";
 import { loadWorkspaceMember } from "@/server/services/nodes/access";
 import { assertWorkspaceMember, fullName } from "./common";
 import { assertContactCapacity, contactWhere, createContactsBulk } from "./contacts";
+import { assertGroup } from "./groups";
 
 const DAY = 86_400_000;
 const text = (max: number) => z.string().trim().max(max).nullable().optional();
@@ -17,6 +19,8 @@ export const listPeopleSchema = z.object({
   ownerId: z.string().optional(),
   temperature: z.enum(TEMPERATURES).optional(),
   source: z.string().trim().max(80).optional(),
+  /** A group id (its subgroups count too), or "none" for people in no group. */
+  group: z.string().max(40).optional(),
   /** "1": only those whose next step is due today or is already late. */
   due: z.enum(["0", "1"]).default("0"),
 });
@@ -35,7 +39,10 @@ export async function listPeople(userId: string, workspaceId: string, f: z.infer
   const endOfToday = zonedToUtc(new Date(new Date(`${today}T00:00:00.000Z`).getTime() + DAY).toISOString().slice(0, 10), "00:00", tz);
 
   const base = contactWhere(workspaceId, { q: f.q, ownerId: f.ownerId, temperature: f.temperature });
-  const where: Prisma.ContactWhereInput = { ...base, ...(f.source ? { source: f.source } : {}), ...(f.due === "1" ? { nextStepAt: { lt: endOfToday }, stage: { notIn: ["DECLINED", "NO_REPLY"] } } : {}) };
+  let groupWhere: Prisma.ContactWhereInput = {};
+  if (f.group === "none") groupWhere = { groupId: null };
+  else if (f.group) groupWhere = { groupId: { in: descendantIds(await db.contactGroup.findMany({ where: { workspaceId }, select: { id: true, parentId: true } }), f.group) } };
+  const where: Prisma.ContactWhereInput = { ...base, ...groupWhere, ...(f.source ? { source: f.source } : {}), ...(f.due === "1" ? { nextStepAt: { lt: endOfToday }, stage: { notIn: ["DECLINED", "NO_REPLY"] } } : {}) };
   const [all, rows] = await Promise.all([
     db.contact.count({ where: { workspaceId, node: { archivedAt: null } } }),
     db.contact.findMany({
@@ -61,6 +68,7 @@ export async function listPeople(userId: string, workspaceId: string, f: z.infer
       nextStepAt: c.nextStepAt,
       typeTag: c.typeTag,
       country: c.country,
+      groupId: c.groupId,
       ownerId: c.ownerId,
       companyName: c.company?.legalName ?? null,
       lastContactedAt: c.lastContactedAt,
@@ -87,6 +95,7 @@ export const addPeopleSchema = z.object({
   country: text(80),
   typeTag: text(10),
   sponsorName: text(120),
+  groupId: z.string().nullable().optional(),
   ownerId: z.string().nullable().optional(),
 });
 
@@ -99,6 +108,7 @@ export async function addPeople(userId: string, workspaceId: string, input: z.in
     async (tx) => {
       await loadWorkspaceMember(tx, userId, workspaceId, "crm:write");
       await assertWorkspaceMember(tx, workspaceId, input.ownerId);
+      await assertGroup(tx, workspaceId, input.groupId);
       const existing = new Set<string>();
       for (const c of await tx.contact.findMany({ where: { workspaceId, node: { archivedAt: null } }, select: { firstName: true, lastName: true, emails: true, phones: true } })) for (const k of contactKeys(c)) existing.add(k);
 
@@ -129,7 +139,7 @@ export async function addPeople(userId: string, workspaceId: string, input: z.in
             phones: p.phone ? [p.phone] : [],
             messengers: (p.telegram ? { telegram: p.telegram } : {}) as Record<string, string>,
             note: p.note ?? null,
-            funnel: { stage: input.stage, temperature: input.temperature, source: input.source, interests: input.interests, country: input.country, typeTag: input.typeTag, sponsorName: input.sponsorName, ownerId: input.ownerId ?? userId },
+            funnel: { stage: input.stage, temperature: input.temperature, source: input.source, interests: input.interests, country: input.country, typeTag: input.typeTag, sponsorName: input.sponsorName, groupId: input.groupId, ownerId: input.ownerId ?? userId },
           };
         }),
       );

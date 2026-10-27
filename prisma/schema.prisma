@@ -221,6 +221,7 @@ model Workspace {
   invitations      Invitation[]
   nodes            Node[]
   tags             Tag[]
+  contactGroups    ContactGroup[]
   pipelines        Pipeline[]
   lostReasons      LostReason[]
   templates        ProjectTemplate[]
@@ -520,10 +521,13 @@ model Contact {
   country        String?
   /// Whose link or invitation the person came through, until partners have cards of their own.
   sponsorName    String?
+  /// The one group (or subgroup) the person is listed in, e.g. "Cold market / Gym".
+  groupId        String?
 
-  node    Node     @relation(fields: [nodeId], references: [id], onDelete: Cascade)
-  company Company? @relation(fields: [companyId], references: [nodeId], onDelete: SetNull)
-  owner   User?    @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  node    Node          @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  company Company?      @relation(fields: [companyId], references: [nodeId], onDelete: SetNull)
+  owner   User?         @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  group   ContactGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
 
   primaryForDeals Deal[]
   activities      CrmActivity[]
@@ -532,9 +536,28 @@ model Contact {
   @@index([companyId])
   @@index([workspaceId, stage])
   @@index([workspaceId, nextStepAt])
+  @@index([workspaceId, groupId])
   @@index([emails], type: Gin)
   @@index([workspaceId])
   @@index([phonesNorm], type: Gin)
+}
+
+/// A named group of people, nested up to three levels ("Warm market" > "Colleagues" > "Old job"), to split a long list into lots that can be worked or handed over.
+model ContactGroup {
+  id          String   @id @default(cuid())
+  workspaceId String
+  parentId    String?
+  name        String
+  color       String?
+  position    Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  workspace Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  parent    ContactGroup?  @relation("GroupTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children  ContactGroup[] @relation("GroupTree")
+  contacts  Contact[]
+
+  @@index([workspaceId, parentId])
 }
 
 /// Every move of a person along the funnel, so the week's invitations, meetings, clients and partners can be counted from what happened.

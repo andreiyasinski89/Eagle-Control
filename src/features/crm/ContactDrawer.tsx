@@ -50,6 +50,7 @@ export interface ContactDetail {
   typeTag: string | null;
   country: string | null;
   sponsorName: string | null;
+  groupId: string | null;
   tags: { id: string; name: string; color: string }[];
   consentHistory: { id: string; purpose: string; givenAt: string; source: string | null; revokedAt: string | null }[];
   deals: { id: string; title: string; stage: string; amount: number; currency: string }[];
@@ -113,6 +114,7 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
     void qc.invalidateQueries({ queryKey: ["activities", "contact", contactId] });
     void qc.invalidateQueries({ queryKey: ["contacts"] });
     void qc.invalidateQueries({ queryKey: ["people"] });
+    void qc.invalidateQueries({ queryKey: ["groups"] });
     void qc.invalidateQueries({ queryKey: ["calendar"] });
     void qc.invalidateQueries({ queryKey: ["my-day"] });
   };
@@ -203,7 +205,8 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
       <Section title={t("funnel")}>
         <FunnelFields
           disabled={dis}
-          value={{ stage: c.stage, temperature: c.temperature, interests: c.interests, source: c.source, influence: c.influence, nextStep: c.nextStep, nextStepAt: c.nextStepAt, typeTag: c.typeTag, country: c.country, sponsorName: c.sponsorName }}
+          workspaceId={workspaceId}
+          value={{ stage: c.stage, temperature: c.temperature, interests: c.interests, source: c.source, influence: c.influence, nextStep: c.nextStep, nextStepAt: c.nextStepAt, typeTag: c.typeTag, country: c.country, sponsorName: c.sponsorName, groupId: c.groupId }}
           onChange={(patchBody) => patch.mutate(patchBody)}
         />
       </Section>
