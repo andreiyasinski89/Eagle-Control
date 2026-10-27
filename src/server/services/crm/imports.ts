@@ -118,6 +118,22 @@ export async function previewImport(userId: string, workspaceId: string, bytes: 
   };
 }
 
+/** The funnel fields a row actually carried; the rest are left out so an update does not wipe what is already known. */
+function funnelOf(rec: ContactRecord) {
+  return {
+    ...(rec.stage ? { stage: rec.stage } : {}),
+    ...(rec.temperature ? { temperature: rec.temperature } : {}),
+    ...(rec.interests ? { interests: rec.interests } : {}),
+    ...(rec.source ? { source: rec.source } : {}),
+    ...(rec.influence !== undefined ? { influence: rec.influence } : {}),
+    ...(rec.nextStep ? { nextStep: rec.nextStep } : {}),
+    ...(rec.nextStepAt ? { nextStepAt: rec.nextStepAt } : {}),
+    ...(rec.typeTag ? { typeTag: rec.typeTag } : {}),
+    ...(rec.country ? { country: rec.country } : {}),
+    ...(rec.sponsorName ? { sponsorName: rec.sponsorName } : {}),
+  };
+}
+
 const nameKey = (name: string) => normalizeCompanyName(name) ?? name.toLowerCase();
 
 /**
@@ -177,7 +193,7 @@ export async function commitImport(userId: string, workspaceId: string, bytes: U
           const rec = r.record;
           const companyId = companyOf(rec);
           if (action.kind === "create") {
-            toCreateContacts.push({ firstName: rec.firstName, lastName: rec.lastName, position: rec.position, emails: rec.email, phones: rec.phone, messengers: rec.messengers, companyId, note: rec.notes });
+            toCreateContacts.push({ firstName: rec.firstName, lastName: rec.lastName, position: rec.position, emails: rec.email, phones: rec.phone, messengers: rec.messengers, companyId, note: rec.notes, funnel: funnelOf(rec) });
           } else {
             const cur = await tx.contact.findUniqueOrThrow({ where: { nodeId: action.existingId } });
             await updateContactIn(tx, userId, action.existingId, {
@@ -188,6 +204,7 @@ export async function commitImport(userId: string, workspaceId: string, bytes: U
               phones: [...new Set([...cur.phones, ...rec.phone])],
               messengers: rec.messengers,
               ...(companyId ? { companyId } : {}),
+              ...funnelOf(rec),
             });
           }
         } else {

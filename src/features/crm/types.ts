@@ -135,6 +135,10 @@ export interface ContactListItem {
   ownerId: string | null;
   lastContactedAt: string | null;
   consentGiven: boolean;
+  stage?: "NEW" | "FIRST_CONTACT" | "WARMING" | "PRESENTATION" | "DECIDING" | "CLIENT" | "PARTNER" | "DECLINED" | "NO_REPLY";
+  temperature?: "HOT" | "WARM" | "COLD" | null;
+  nextStep?: string | null;
+  nextStepAt?: string | null;
 }
 
 export interface Paged<T> {

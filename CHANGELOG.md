@@ -173,3 +173,12 @@
 - The list picker names where a sprint sits ("Sprint 1 · Frontend"), so two sprints with the same name can be told apart.
 - **List view:** a *List* column (the epic or sprint a task belongs to, also for subtasks) and a filter by list.
 - After creating, the project reloads and says how many tasks and subtasks were made.
+
+## 0.16.0 — CRM for network marketing, step 1: people and the funnel
+
+- **New "People" tab in the CRM** (first tab): a board of everyone you talk to, by stage: New lead, First contact, Warming up, Presentation, Deciding, Client, Partner; Declined and No reply sit in a folded side column. Move a card by dragging or with the stage menu on it; every move is written to a stage history.
+- **"List of 100":** *Add a list* takes names one per line (`Name; @telegram; phone`, or `Name — note`), sets stage, warmth, source, interests, country and owner for all of them at once, skips names already in the funnel, and shows progress toward 100 names.
+- **Funnel in the contact card:** stage, warmth (hot, warm, cold), next step with a date, source, country, influence 0-100, type letter, sponsor name and interests; every change saves at once. Filters on the board: search, owner, warmth, source and "To do today" (time-zone aware).
+- **Import of your own sheets:** the import wizard maps the funnel columns (stage, warmth, interests, source, next step, country, sponsor, type) and reads sheet words such as "Средний", "Запланировать"; words it cannot read stay in the note instead of being lost. Contacts without email or phone are matched by name.
+- Database migration `0012_people_funnel` (new columns on contacts and the `ContactStageEvent` table). The GDPR export includes the stage history.
+- Tests: `people.test.ts` and `people-funnel.test.ts` (fields, stage history, filters, bulk add with call count, MLM sheet import).

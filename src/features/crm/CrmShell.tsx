@@ -16,6 +16,7 @@ export function CrmTabs({ slug }: { slug: string }) {
   const pathname = usePathname();
   const base = `/w/${slug}/crm`;
   const tabs = [
+    { href: `${base}/people`, label: t("tabPeople") },
     { href: base, label: t("tabPipeline"), exact: true },
     { href: `${base}/companies`, label: t("tabCompanies") },
     { href: `${base}/contacts`, label: t("tabContacts") },

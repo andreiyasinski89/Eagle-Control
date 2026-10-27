@@ -178,6 +178,7 @@ export function ContactsView({ workspaceId, slug, canWrite, canExport, canMerge,
         </div>
       ),
     },
+    { key: "stage", header: t("field.stage"), render: (c) => (c.stage ? <span className="whitespace-nowrap rounded-full bg-muted px-2 py-0.5 text-xs">{t(`funnelStage.${c.stage}`)}</span> : "—") },
     { key: "company", header: t("company"), render: (c) => c.companyName ?? "—" },
     { key: "email", header: t("field.email"), render: (c) => c.emails[0] ?? "—" },
     { key: "phone", header: t("field.phone"), render: (c) => c.phones[0] ?? "—" },

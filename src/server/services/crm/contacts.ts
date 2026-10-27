@@ -5,6 +5,7 @@ import { db } from "@/server/db";
 import { ApiError, limitReached } from "@/server/http/errors";
 import { checkLimit } from "@/modules/plans";
 import { contactKeys, findDuplicateGroups } from "@/modules/crm/dedupe";
+import { STAGES, TEMPERATURES } from "@/modules/crm/people";
 import { normalizeEmail, normalizePhone, uniqueNonNull } from "@/modules/crm/normalize";
 import { loadWorkspaceMember, logActivity, type Tx } from "@/server/services/nodes/access";
 import { deleteObject } from "@/server/storage";
@@ -23,6 +24,16 @@ export const contactFieldsSchema = z.object({
   ownerId: z.string().nullable().optional(),
   birthday: z.string().date().nullable().optional(),
   source: text(80),
+  // The person in a funnel.
+  stage: z.enum(STAGES).optional(),
+  temperature: z.enum(TEMPERATURES).nullable().optional(),
+  interests: z.array(z.string().trim().min(1).max(40)).max(8).optional(),
+  influence: z.number().int().min(0).max(100).nullable().optional(),
+  nextStep: text(200),
+  nextStepAt: z.string().datetime().nullable().optional(),
+  typeTag: text(10),
+  country: text(80),
+  sponsorName: text(120),
 });
 export const createContactSchema = contactFieldsSchema.extend({ allowDuplicate: z.boolean().default(false), consentGiven: z.boolean().default(false) });
 export const patchContactSchema = contactFieldsSchema.partial().refine((v) => Object.keys(v).length > 0, "Nothing to update");
@@ -67,6 +78,39 @@ export async function assertContactCapacity(tx: Tx, workspaceId: string, adding:
   if (!check.allowed) throw limitReached(check.limit, "contacts");
 }
 
+/** The funnel fields a person can carry, as given by the API, the import or the quick add. */
+export interface Funnel {
+  stage?: (typeof STAGES)[number];
+  temperature?: (typeof TEMPERATURES)[number] | null;
+  interests?: string[];
+  source?: string | null;
+  influence?: number | null;
+  nextStep?: string | null;
+  nextStepAt?: string | null;
+  typeTag?: string | null;
+  country?: string | null;
+  sponsorName?: string | null;
+  ownerId?: string | null;
+}
+
+const blank = (v: string | null | undefined) => (v === undefined ? undefined : v === null || v.trim() === "" ? null : v.trim());
+
+/** What goes into the contact row for the funnel fields that were given (the rest keep their defaults). */
+function funnelData(f: Funnel): Partial<Prisma.ContactUncheckedCreateInput> {
+  const out: Record<string, unknown> = {};
+  if (f.stage) out.stage = f.stage;
+  if (f.temperature !== undefined) out.temperature = f.temperature;
+  if (f.interests !== undefined) out.interests = f.interests;
+  if (f.source !== undefined) out.source = blank(f.source) ?? null;
+  if (f.influence !== undefined) out.influence = f.influence;
+  if (f.nextStep !== undefined) out.nextStep = blank(f.nextStep) ?? null;
+  if (f.nextStepAt !== undefined) out.nextStepAt = f.nextStepAt ? new Date(f.nextStepAt) : null;
+  if (f.typeTag !== undefined) out.typeTag = blank(f.typeTag) ?? null;
+  if (f.country !== undefined) out.country = blank(f.country) ?? null;
+  if (f.sponsorName !== undefined) out.sponsorName = blank(f.sponsorName) ?? null;
+  return out as Partial<Prisma.ContactUncheckedCreateInput>;
+}
+
 export async function createContactIn(
   tx: Tx,
   userId: string,
@@ -96,8 +140,10 @@ export async function createContactIn(
       birthday: input.birthday ? new Date(input.birthday) : null,
       consentGiven: input.consentGiven ?? false,
       consentAt: input.consentGiven ? new Date() : null,
+      ...funnelData(input),
     },
   });
+  await tx.contactStageEvent.create({ data: { contactNodeId: node.id, workspaceId, fromStage: null, toStage: input.stage ?? "NEW", actorId: userId } });
   if (input.consentGiven) {
     await tx.consentRecord.create({ data: { contactNodeId: node.id, purpose: "contact", givenAt: new Date(), source: input.consentSource ?? "manual" } });
   }
@@ -115,6 +161,8 @@ export interface BulkContact {
   companyId?: string;
   /** Becomes a NOTE activity on the contact. */
   note?: string | null;
+  /** Where the person stands in the funnel, and the rest of what is known about them. */
+  funnel?: Funnel;
 }
 
 const BULK_CHUNK = 500;
@@ -151,10 +199,12 @@ export async function createContactsBulk(tx: Tx, userId: string, workspaceId: st
         phonesNorm: phoneKeys(r.phones),
         messengers: Object.fromEntries(Object.entries(r.messengers).filter(([, v]) => !!v)) as Prisma.InputJsonValue,
         companyId: r.companyId ?? null,
-        ownerId: userId,
+        ownerId: r.funnel?.ownerId ?? userId,
         consentGiven: false,
+        ...funnelData(r.funnel ?? {}),
       })),
     });
+    await tx.contactStageEvent.createMany({ data: part.map((r, k) => ({ contactNodeId: nodeIds[k] as string, workspaceId, fromStage: null, toStage: r.funnel?.stage ?? "NEW", actorId: userId })) });
     const notes = part.flatMap((r, k) => (r.note ? [{ workspaceId, type: "NOTE" as const, subject: "Imported note", body: r.note, ownerId: userId, contactId: nodeIds[k] as string, companyId: r.companyId ?? null, completedAt: now }] : []));
     if (notes.length) await tx.crmActivity.createMany({ data: notes });
     await tx.activityLog.createMany({ data: part.map((r, k) => ({ workspaceId, nodeId: nodeIds[k] as string, actorId: userId, action: "contact.created", diff: { name: title(r) } as Prisma.InputJsonValue })) });
@@ -193,6 +243,9 @@ export async function updateContactIn(tx: Tx, userId: string, contactId: string,
   }
   if (patch.ownerId !== undefined) data.ownerId = patch.ownerId;
   if (patch.birthday !== undefined) data.birthday = toDate(patch.birthday);
+  Object.assign(data, funnelData(patch));
+  const stageMoved = patch.stage !== undefined && patch.stage !== cur.stage;
+  if (stageMoved) data.stageChangedAt = new Date();
   const nodeData: Prisma.NodeUncheckedUpdateInput = {};
   if (patch.companyId !== undefined) {
     const { parentId, rootId } = await placement(tx, node.workspaceId, patch.companyId);
@@ -204,6 +257,7 @@ export async function updateContactIn(tx: Tx, userId: string, contactId: string,
     nodeData.title = fullName(patch.firstName ?? cur.firstName, patch.lastName !== undefined ? patch.lastName : cur.lastName);
   }
   await tx.contact.update({ where: { nodeId: contactId }, data });
+  if (stageMoved) await tx.contactStageEvent.create({ data: { contactNodeId: contactId, workspaceId: node.workspaceId, fromStage: cur.stage, toStage: patch.stage as (typeof STAGES)[number], actorId: userId } });
   if (Object.keys(nodeData).length) await tx.node.update({ where: { id: contactId }, data: nodeData });
   await logActivity(tx, { workspaceId: node.workspaceId, nodeId: contactId, actorId: userId, action: "contact.updated", diff: { fields: Object.keys(patch) } });
 }
@@ -248,19 +302,23 @@ export const listContactsSchema = z.object({
   companyId: z.string().optional(),
   ownerId: z.string().optional(),
   noTouchDays: z.coerce.number().int().min(1).max(3650).optional(),
+  stage: z.enum(STAGES).optional(),
+  temperature: z.enum(TEMPERATURES).optional(),
   sort: z.enum(["name", "createdAt", "lastContactedAt"]).default("name"),
   dir: z.enum(["asc", "desc"]).default("asc"),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(200).default(50),
 });
 
-export function contactWhere(workspaceId: string, f: Pick<z.infer<typeof listContactsSchema>, "q" | "companyId" | "ownerId" | "noTouchDays">): Prisma.ContactWhereInput {
+export function contactWhere(workspaceId: string, f: Pick<z.infer<typeof listContactsSchema>, "q" | "companyId" | "ownerId" | "noTouchDays"> & { stage?: (typeof STAGES)[number]; temperature?: (typeof TEMPERATURES)[number] }): Prisma.ContactWhereInput {
   const q = f.q;
   return {
     workspaceId,
     node: { archivedAt: null },
     ...(f.companyId ? { companyId: f.companyId } : {}),
     ...(f.ownerId ? { ownerId: f.ownerId } : {}),
+    ...(f.stage ? { stage: f.stage } : {}),
+    ...(f.temperature ? { temperature: f.temperature } : {}),
     ...(f.noTouchDays ? { OR: [{ lastContactedAt: null }, { lastContactedAt: { lt: new Date(Date.now() - f.noTouchDays * 86_400_000) } }] } : {}),
     ...(q
       ? {
@@ -309,6 +367,10 @@ export async function listContacts(userId: string, workspaceId: string, f: z.inf
       lastContactedAt: c.lastContactedAt,
       consentGiven: c.consentGiven,
       createdAt: c.node.createdAt,
+      stage: c.stage,
+      temperature: c.temperature,
+      nextStep: c.nextStep,
+      nextStepAt: c.nextStepAt,
     })),
   };
 }
@@ -342,6 +404,17 @@ export async function getContactIn(tx: Tx, userId: string, contactId: string) {
     consentAt: c.consentAt,
     lastContactedAt: c.lastContactedAt,
     createdAt: node.createdAt,
+    stage: c.stage,
+    stageChangedAt: c.stageChangedAt,
+    temperature: c.temperature,
+    interests: c.interests,
+    source: c.source,
+    influence: c.influence,
+    nextStep: c.nextStep,
+    nextStepAt: c.nextStepAt,
+    typeTag: c.typeTag,
+    country: c.country,
+    sponsorName: c.sponsorName,
     tags: tags.map((t) => t.tag),
     consentHistory: consent,
     deals: deals.map((d) => ({ id: d.nodeId, title: d.node.title, stage: d.stage.name, amount: Number(d.amount), currency: d.currency })),
@@ -361,16 +434,17 @@ export async function gdprExport(userId: string, contactId: string) {
   return db.$transaction(async (tx) => {
     const node = await loadCrmNode(tx, userId, contactId, "CONTACT");
     await loadWorkspaceMember(tx, userId, node.workspaceId, "crm:export");
-    const [contact, consent, activities, comments, ingests, deals] = await Promise.all([
+    const [contact, consent, activities, comments, ingests, deals, stageHistory] = await Promise.all([
       tx.contact.findUniqueOrThrow({ where: { nodeId: contactId } }),
       tx.consentRecord.findMany({ where: { contactNodeId: contactId } }),
       tx.crmActivity.findMany({ where: { contactId } }),
       tx.comment.findMany({ where: { nodeId: contactId }, select: { body: true, createdAt: true } }),
       tx.leadIngest.findMany({ where: { contactId }, select: { source: true, payload: true, createdAt: true } }),
       tx.deal.findMany({ where: { primaryContactId: contactId }, select: { nodeId: true, amount: true, currency: true } }),
+      tx.contactStageEvent.findMany({ where: { contactNodeId: contactId }, select: { fromStage: true, toStage: true, at: true }, orderBy: { at: "asc" } }),
     ]);
     await logActivity(tx, { workspaceId: node.workspaceId, nodeId: null, actorId: userId, action: "contact.gdpr_exported", diff: { contactId } });
-    return { exportedAt: new Date().toISOString(), contact: { ...contact, name: node.title, createdAt: node.createdAt }, consent, activities, comments, leadSubmissions: ingests, deals };
+    return { exportedAt: new Date().toISOString(), contact: { ...contact, name: node.title, createdAt: node.createdAt }, consent, activities, comments, leadSubmissions: ingests, deals, stageHistory };
   });
 }
 

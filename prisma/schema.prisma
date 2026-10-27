@@ -70,6 +70,26 @@ enum LifecycleStage {
   CHURNED
 }
 
+/// Where a person is on the way from "heard of us" to "a client or a partner". The funnel of network marketing.
+enum PersonStage {
+  NEW
+  FIRST_CONTACT
+  WARMING
+  PRESENTATION
+  DECIDING
+  CLIENT
+  PARTNER
+  DECLINED
+  NO_REPLY
+}
+
+/// How close the person is: close friends and family are hot, acquaintances warm, people from the networks cold.
+enum Temperature {
+  HOT
+  WARM
+  COLD
+}
+
 enum CrmActivityType {
   CALL
   EMAIL
@@ -485,17 +505,52 @@ model Contact {
   consentAt       DateTime?
   lastContactedAt DateTime?
 
+  // The person in a funnel (network marketing): where they are, how warm, where they came from, what is next.
+  stage          PersonStage  @default(NEW)
+  stageChangedAt DateTime     @default(now())
+  temperature    Temperature?
+  interests      String[]     @default([])
+  source         String?
+  /// 1 to 12: how much the person can move others, as the team rates it.
+  influence      Int?
+  nextStep       String?
+  nextStepAt     DateTime?
+  /// The letter the team uses for the kind of person ("П" or "Б"); kept as typed.
+  typeTag        String?
+  country        String?
+  /// Whose link or invitation the person came through, until partners have cards of their own.
+  sponsorName    String?
+
   node    Node     @relation(fields: [nodeId], references: [id], onDelete: Cascade)
   company Company? @relation(fields: [companyId], references: [nodeId], onDelete: SetNull)
   owner   User?    @relation(fields: [ownerId], references: [id], onDelete: SetNull)
 
   primaryForDeals Deal[]
   activities      CrmActivity[]
+  stageEvents     ContactStageEvent[]
 
   @@index([companyId])
+  @@index([workspaceId, stage])
+  @@index([workspaceId, nextStepAt])
   @@index([emails], type: Gin)
   @@index([workspaceId])
   @@index([phonesNorm], type: Gin)
+}
+
+/// Every move of a person along the funnel, so the week's invitations, meetings, clients and partners can be counted from what happened.
+model ContactStageEvent {
+  id            String       @id @default(cuid())
+  contactNodeId String
+  workspaceId   String
+  fromStage     PersonStage?
+  toStage       PersonStage
+  at            DateTime     @default(now())
+  actorId       String?
+
+  contact Contact @relation(fields: [contactNodeId], references: [nodeId], onDelete: Cascade)
+
+  @@index([contactNodeId, at])
+  @@index([workspaceId, at])
 }
 
 model Pipeline {

@@ -15,6 +15,7 @@ import { api, ApiFailure } from "@/features/mindmap/api";
 import { useMapStore } from "@/features/mindmap/store";
 import { useTimeZone } from "@/features/views/useTimeZone";
 import { ActivityDialog } from "./DealDialogs";
+import { FunnelFields, type FunnelValues } from "./FunnelFields";
 import { ScheduleDialog } from "./ScheduleDialog";
 import { dayInput, dayToIso, money } from "./format";
 import { useCompanyOptions, useMembers } from "./hooks";
@@ -39,6 +40,16 @@ export interface ContactDetail {
   consentGiven: boolean;
   consentAt: string | null;
   lastContactedAt: string | null;
+  stage: FunnelValues["stage"];
+  temperature: FunnelValues["temperature"];
+  interests: string[];
+  source: string | null;
+  influence: number | null;
+  nextStep: string | null;
+  nextStepAt: string | null;
+  typeTag: string | null;
+  country: string | null;
+  sponsorName: string | null;
   tags: { id: string; name: string; color: string }[];
   consentHistory: { id: string; purpose: string; givenAt: string; source: string | null; revokedAt: string | null }[];
   deals: { id: string; title: string; stage: string; amount: number; currency: string }[];
@@ -101,6 +112,7 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
     void qc.invalidateQueries({ queryKey: ["node", contactId] });
     void qc.invalidateQueries({ queryKey: ["activities", "contact", contactId] });
     void qc.invalidateQueries({ queryKey: ["contacts"] });
+    void qc.invalidateQueries({ queryKey: ["people"] });
     void qc.invalidateQueries({ queryKey: ["calendar"] });
     void qc.invalidateQueries({ queryKey: ["my-day"] });
   };
@@ -187,6 +199,14 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
           </Button>
         </div>
       )}
+
+      <Section title={t("funnel")}>
+        <FunnelFields
+          disabled={dis}
+          value={{ stage: c.stage, temperature: c.temperature, interests: c.interests, source: c.source, influence: c.influence, nextStep: c.nextStep, nextStepAt: c.nextStepAt, typeTag: c.typeTag, country: c.country, sponsorName: c.sponsorName }}
+          onChange={(patchBody) => patch.mutate(patchBody)}
+        />
+      </Section>
 
       {(upcoming.length > 0 || canWrite) && (
         <Section title={t("planUpcoming")}>

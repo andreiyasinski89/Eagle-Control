@@ -1,6 +1,7 @@
 import Papa from "papaparse";
 import { z } from "zod";
 import { normalizeEmail } from "./normalize";
+import { parseInfluence, parseInterests, parseLooseDate, parseStage, parseTemperature, stageFromSheet, type Stage, type Temp } from "./people";
 
 export const MAX_CSV_BYTES = 5 * 1024 * 1024;
 export const MAX_CSV_ROWS = 5000;
@@ -65,7 +66,32 @@ export function parseCsv(text: string): ParsedCsv {
 
 // ── column mapping ─────────────────────────────────────────────────────────
 
-export const CONTACT_FIELDS = ["fullName", "firstName", "lastName", "email", "phone", "position", "company", "website", "telegram", "whatsapp", "instagram", "source", "notes"] as const;
+export const CONTACT_FIELDS = [
+  "fullName",
+  "firstName",
+  "lastName",
+  "email",
+  "phone",
+  "position",
+  "company",
+  "website",
+  "telegram",
+  "whatsapp",
+  "instagram",
+  "source",
+  "notes",
+  // the funnel
+  "stage",
+  "decision",
+  "temperature",
+  "interests",
+  "influence",
+  "nextStep",
+  "nextStepAt",
+  "typeTag",
+  "country",
+  "sponsorName",
+] as const;
 export const COMPANY_FIELDS = ["legalName", "website", "industry", "size", "country", "city", "address", "taxId", "source"] as const;
 export type ContactField = (typeof CONTACT_FIELDS)[number];
 export type CompanyField = (typeof COMPANY_FIELDS)[number];
@@ -85,6 +111,15 @@ const SYNONYMS: Record<string, string[]> = {
   instagram: ["instagram", "insta", "инстаграм"],
   source: ["source", "lead source", "источник", "zrodlo", "źródło"],
   notes: ["notes", "note", "comment", "comments", "заметка", "заметки", "комментарий", "uwagi", "notatki"],
+  stage: ["stage", "status", "funnel", "этап", "статус", "воронка", "etap"],
+  decision: ["decision", "решение", "decyzja"],
+  temperature: ["temperature", "прогрев", "температура", "теплота", "категория"],
+  interests: ["interest", "interests", "интерес", "интересы"],
+  influence: ["influence", "влияние"],
+  nextStep: ["next step", "следующий шаг", "nastepny krok", "następny krok"],
+  nextStepAt: ["next step date", "дата следующего шага", "дата следующего контакта", "дата следующего касания"],
+  typeTag: ["п или б", "тип", "type"],
+  sponsorName: ["sponsor", "спонсор", "наставник", "чья прямая ссылка", "чья ссылка", "кто пригласил", "upline"],
   legalName: ["company", "company name", "legal name", "name", "organization", "organisation", "название", "компания", "организация", "nazwa", "firma"],
   industry: ["industry", "sector", "отрасль", "сфера", "branza", "branża"],
   size: ["size", "company size", "employees", "размер", "число сотрудников", "wielkosc", "wielkość"],
@@ -149,6 +184,16 @@ export interface ContactRecord {
   messengers: Record<string, string>;
   source: string | null;
   notes: string | null;
+  /** The funnel, as far as the file said: what is not in it stays unset and is left alone on update. */
+  stage?: Stage;
+  temperature?: Temp;
+  interests?: string[];
+  influence?: number;
+  nextStep?: string;
+  nextStepAt?: string;
+  typeTag?: string;
+  country?: string;
+  sponsorName?: string;
 }
 
 export interface CompanyRecord {
@@ -192,6 +237,20 @@ export function mapContactRow(row: Record<string, string>, mapping: Mapping<Cont
     const v = get(m);
     if (v) messengers[m] = v;
   }
+
+  // The funnel. A column of words is read by what the words mean; what cannot be read is kept in the note, not lost.
+  const stageWord = get("stage");
+  const decisionWord = get("decision");
+  const stage = stageFromSheet(stageWord, decisionWord);
+  const extra: string[] = [];
+  if (stageWord && parseStage(stageWord) === null) extra.push(`${mapping.stage}: ${stageWord}`);
+  if (decisionWord) extra.push(`${mapping.decision}: ${decisionWord}`);
+  const interests = parseInterests(get("interests"));
+  const temperature = parseTemperature(get("temperature"));
+  const influence = parseInfluence(get("influence"));
+  const nextStepAt = parseLooseDate(get("nextStepAt"));
+  // "Запланировать!!!" in a sheet means: a presentation still has to be arranged.
+  const nextStep = get("nextStep") ?? (/запланировать/i.test(stageWord ?? "") ? "Запланировать презентацию" : undefined);
   return {
     ok: true,
     record: {
@@ -204,7 +263,16 @@ export function mapContactRow(row: Record<string, string>, mapping: Mapping<Cont
       website: get("website") ?? null,
       messengers,
       source: get("source") ?? null,
-      notes: [get("notes"), ...noteColumns.map((h) => (clean(row[h]) ? `${h}: ${clean(row[h])}` : undefined))].filter(Boolean).join("\n") || null,
+      notes: [get("notes"), ...extra, ...noteColumns.map((h) => (clean(row[h]) ? `${h}: ${clean(row[h])}` : undefined))].filter(Boolean).join("\n") || null,
+      ...(stage ? { stage } : {}),
+      ...(temperature ? { temperature } : {}),
+      ...(interests.length ? { interests } : {}),
+      ...(influence !== null ? { influence } : {}),
+      ...(nextStep ? { nextStep } : {}),
+      ...(nextStepAt ? { nextStepAt } : {}),
+      ...(get("typeTag") ? { typeTag: get("typeTag") as string } : {}),
+      ...(get("country") ? { country: get("country") as string } : {}),
+      ...(get("sponsorName") ? { sponsorName: get("sponsorName") as string } : {}),
     },
   };
 }
