@@ -1,7 +1,7 @@
 import type { Role } from "@prisma/client";
 import { db } from "@/server/db";
 import { ApiError, forbidden, notFound } from "@/server/http/errors";
-import { crmLevel, levelFields, type CrmLevel } from "@/modules/crm/access";
+import { levelFields, personalLevel, type CrmLevel } from "@/modules/crm/access";
 import { canManageMember } from "@/server/policies";
 import { logActivity } from "@/server/services/nodes/access";
 
@@ -17,7 +17,7 @@ async function ownerCount(workspaceId: string): Promise<number> {
   return db.membership.count({ where: { workspaceId, role: "OWNER" } });
 }
 
-const levelOf = (m: { role: Role; crmAccess: boolean; crmScope: "OWN" | "TEAM" | "ALL" }) => crmLevel(m);
+const levelOf = (m: { role: Role; crmAccess: boolean; crmScope: "OWN" | "TEAM" | "ALL" }) => personalLevel(m);
 
 const lastOwner = () => new ApiError(409, "last_owner", "A workspace needs at least one owner");
 
@@ -54,5 +54,9 @@ export async function removeMember(
   const leaving = actor.userId === targetUserId;
   if (!leaving && !canManageMember(actor.role, target.role)) throw forbidden();
   if (target.role === "OWNER" && (await ownerCount(workspaceId)) <= 1) throw lastOwner();
-  await db.membership.delete({ where: { id: target.id } });
+  await db.$transaction([
+    db.teamMember.deleteMany({ where: { userId: targetUserId, team: { workspaceId } } }),
+    db.team.updateMany({ where: { workspaceId, leaderId: targetUserId }, data: { leaderId: null } }),
+    db.membership.delete({ where: { id: target.id } }),
+  ]);
 }

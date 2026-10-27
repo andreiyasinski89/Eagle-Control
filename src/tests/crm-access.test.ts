@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { crmLevel, levelFields, reachOf, type ContactLink } from "@/modules/crm/access";
+import { crmLevel, levelFields, personalLevel, poolReach, reachOf, teamGrant, type ContactLink } from "@/modules/crm/access";
 import { can } from "@/server/policies";
 
 describe("the CRM level of a member", () => {
@@ -56,5 +56,37 @@ describe("whose people a scoped member reaches", () => {
   });
   it("team without a partner card is just the member", () => {
     expect(reachOf("TEAM", "u9", links)).toEqual({ userIds: ["u9"], partnerIds: [], lineIds: [] });
+  });
+});
+
+describe("what hand-made teams add", () => {
+  it("a team grant is the best of the teams' settings", () => {
+    expect(teamGrant([])).toBeNull();
+    expect(teamGrant([null, null])).toBeNull();
+    expect(teamGrant([null, "TEAM"])).toBe("TEAM");
+    expect(teamGrant(["TEAM", "ALL", null])).toBe("ALL");
+  });
+  it("the level is the better of the personal one and the team one; a team can open the CRM to a member who had none", () => {
+    expect(crmLevel({ role: "MEMBER", crmAccess: false, teamScope: "TEAM" })).toBe("TEAM");
+    expect(crmLevel({ role: "MEMBER", crmAccess: true, crmScope: "OWN", teamScope: "TEAM" })).toBe("TEAM");
+    expect(crmLevel({ role: "MEMBER", crmAccess: true, crmScope: "TEAM", teamScope: "TEAM" })).toBe("TEAM");
+    expect(crmLevel({ role: "MEMBER", crmAccess: true, crmScope: "OWN", teamScope: "ALL" })).toBe("ALL");
+    expect(crmLevel({ role: "MEMBER", crmAccess: true, crmScope: "ALL", teamScope: null })).toBe("ALL");
+    expect(crmLevel({ role: "GUEST", crmAccess: false, teamScope: "ALL" })).toBe("NONE");
+    expect(personalLevel({ role: "MEMBER", crmAccess: false, teamScope: "ALL" })).toBe("NONE");
+  });
+  it("the policies follow the team grant", () => {
+    expect(can({ role: "MEMBER", crmAccess: false, teamScope: "TEAM" }, "crm:write")).toBe(true);
+    expect(can({ role: "MEMBER", crmAccess: false, teamScope: "TEAM" }, "crm:full")).toBe(false);
+    expect(can({ role: "MEMBER", crmAccess: false, teamScope: "ALL" }, "crm:full")).toBe(true);
+  });
+  it("a team pool is the members' accounts and their partner cards", () => {
+    const links: ContactLink[] = [
+      { id: "a", sponsorId: null, linkedUserId: "u1" },
+      { id: "b", sponsorId: "a", linkedUserId: "u2" },
+      { id: "c", sponsorId: null, linkedUserId: "u3" },
+    ];
+    expect(poolReach(links, ["u1", "u2"])).toEqual({ userIds: ["u1", "u2"], partnerIds: ["a", "b"] });
+    expect(poolReach(links, [])).toEqual({ userIds: [], partnerIds: [] });
   });
 });

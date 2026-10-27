@@ -16,7 +16,7 @@ interface Props {
   meId: string;
   canManage: boolean;
   isOwner: boolean;
-  members: { userId: string; name: string | null; email: string; role: Role; crmAccess: boolean; crmLevel: Level; hourlyRate: number | null }[];
+  members: { userId: string; name: string | null; email: string; role: Role; crmAccess: boolean; crmLevel: Level; teamScope: "OWN" | "TEAM" | "ALL" | null; hourlyRate: number | null }[];
   invitations: { id: string; email: string; role: Role }[];
 }
 
@@ -130,6 +130,7 @@ export function MembersPanel({ workspaceId, meId, canManage, isOwner, members, i
               ) : (
                 m.crmAccess && <span className="text-muted-foreground">CRM · {t(`level.${m.crmLevel}`)}</span>
               )}
+              {(m.teamScope === "TEAM" || m.teamScope === "ALL") && m.role === "MEMBER" && <span className="text-xs text-muted-foreground">{t("viaTeam", { level: t(`level.${m.teamScope}`) })}</span>}
               {canManage && (
                 <label className="flex items-center gap-1 text-xs text-muted-foreground">
                   {t("hourlyRate")}

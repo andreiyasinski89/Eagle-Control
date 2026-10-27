@@ -143,6 +143,7 @@ New API (under `/api/v1`): `nodes/:id/time`, `time/:id`, `timer[/start|/stop]`, 
 - **Start (onboarding):** steps from the first login to a working day that tick themselves from your data, and a dream with targets whose distance is measured from your funnel; a reminder on My day.
 - **Knowledge base:** 15 articles (ru/en) on how things work and the daily and weekly rhythm, with search; Start links to the article for each step.
 - **Access levels:** a member sees no CRM, their own people, their team's (by the sponsor tree) or everything; set when inviting and in Settings → Members. Those who see only people have no deals, companies or reports.
+- **Teams:** Settings → Teams: a named group with a leader that can give its members shared people or everything in the CRM, on top of their personal level.
 - **Notes and links:** a private notebook per person (notes that save as you type, links with a button to open them, search, pins).
 - **Schedule a call or meeting:** *Schedule contact* in the contact card (type, day, start, length); it shows in the calendar at once, in My day and in the card's *Planned* list.
 - **Time zones:** each person picks their own in Settings → Account; the calendar and the new-meeting form use it, everything stored stays UTC.

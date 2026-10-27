@@ -161,6 +161,7 @@ model User {
   accounts          Account[]
   sessions          Session[]
   memberships       Membership[]
+  teamMemberships   TeamMember[]
   projectAccess     ProjectMember[]
   savedFilters      SavedFilter[]
   assignedNodes     Node[]                   @relation("NodeAssignee")
@@ -229,6 +230,7 @@ model Workspace {
 
   memberships      Membership[]
   invitations      Invitation[]
+  teams            Team[]
   nodes            Node[]
   tags             Tag[]
   contactGroups    ContactGroup[]
@@ -263,6 +265,7 @@ model Membership {
   role        Role     @default(MEMBER)
   crmAccess   Boolean  @default(false) // separate flag: who may see deal amounts / CRM
   crmScope    CrmScope @default(ALL) // with crmAccess: whose people the member sees (owners and admins always see all)
+  teamScope   CrmScope? // what the member's teams grant (the best of them); kept in step by the team service
   hourlyRate  Decimal? @db.Decimal(10, 2)
   createdAt   DateTime @default(now())
 
@@ -271,6 +274,33 @@ model Membership {
 
   @@unique([userId, workspaceId])
   @@index([workspaceId])
+}
+
+/// A hand-made team: a few members who may be given CRM access together. TEAM shares the members' people among them, ALL shows everything.
+model Team {
+  id          String   @id @default(cuid())
+  workspaceId String
+  name        String
+  leaderId    String?
+  crmScope    CrmScope?
+  createdAt   DateTime @default(now())
+
+  workspace Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  members   TeamMember[]
+
+  @@unique([workspaceId, name])
+  @@index([workspaceId])
+}
+
+model TeamMember {
+  teamId String
+  userId String
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([teamId, userId])
+  @@index([userId])
 }
 
 model Invitation {

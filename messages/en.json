@@ -30,7 +30,8 @@
     "myTasks": "My tasks",
     "notes": "Notes and links",
     "start": "Start",
-    "knowledge": "Knowledge base"
+    "knowledge": "Knowledge base",
+    "teams": "Teams"
   },
   "auth": {
     "title": "Sign in to MeetOwl",
@@ -86,7 +87,8 @@
       "OWN": "Own people",
       "TEAM": "Own team",
       "ALL": "Everything"
-    }
+    },
+    "viaTeam": "team: {level}"
   },
   "invite": {
     "title": "You are invited to {workspace}",
@@ -1636,5 +1638,22 @@
     "openInApp": "Open in the app",
     "downloadPdf": "Download the guide (PDF)",
     "downloadSlides": "Download the presentation"
+  },
+  "teams": {
+    "title": "Teams",
+    "hint": "A team groups members and can give them CRM access together: shared people, or everything. A member's own level is kept; the better of the two counts.",
+    "name": "Team name",
+    "leader": "Leader",
+    "noLeader": "No leader",
+    "access": "CRM access for the team",
+    "access_NONE": "Gives nothing",
+    "access_TEAM": "Members see each other's people",
+    "access_ALL": "Everything",
+    "members": "Members",
+    "create": "Create the team",
+    "delete": "Delete",
+    "deleteConfirm": "Delete the team {name}? Its members keep their own access.",
+    "empty": "No teams yet.",
+    "exists": "A team with this name is already there"
   }
 }

@@ -299,3 +299,9 @@
 - The rule applies everywhere people appear: the board, the table, groups, the network map, the team tree, the week's team summary, plan of the day, activities, hand-overs, getting started. Another person's card is a 404, to read or to change.
 - A member who sees only their people has no deals, companies, pipelines, reports, exports or merging: those need the whole CRM. Their CRM tabs show only what they may use.
 - Existing members keep what they had (*everything*). Migration `0020_crm_scope`.
+
+## 0.29.0 — Teams (account management, part 2)
+
+- **Settings → Teams** (owners and admins): make a team with a name, a leader and members, and choose what it gives them in the CRM: *nothing*, *members see each other's people* (a shared pool: what the members own and what their partner cards hold), or *everything*.
+- A member's level is the better of what they were given personally and what their teams give; a team can open the CRM to a member who had none. Taking someone out of a team, loosening it or deleting it takes the grant away at once. Members show "team: ..." next to their level.
+- Removing a member from the workspace takes them out of their teams and clears a leader's seat. Team changes are written to the history. Migration `0021_teams`.

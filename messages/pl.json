@@ -30,7 +30,8 @@
     "myTasks": "Moje zadania",
     "notes": "Notatki i linki",
     "start": "Start",
-    "knowledge": "Baza wiedzy"
+    "knowledge": "Baza wiedzy",
+    "teams": "Zespoły"
   },
   "auth": {
     "title": "Zaloguj się do MeetOwl",
@@ -86,7 +87,8 @@
       "OWN": "Tylko swoi",
       "TEAM": "Własny zespół",
       "ALL": "Wszystko"
-    }
+    },
+    "viaTeam": "zespół: {level}"
   },
   "invite": {
     "title": "Zaproszono Cię do {workspace}",
@@ -1636,5 +1638,22 @@
     "openInApp": "Otwórz w aplikacji",
     "downloadPdf": "Pobierz poradnik (PDF, po angielsku)",
     "downloadSlides": "Pobierz prezentację (po angielsku)"
+  },
+  "teams": {
+    "title": "Zespoły",
+    "hint": "Zespół łączy członków i może dać im wspólny dostęp do CRM: wspólnych ludzi albo wszystko. Osobisty poziom członka zostaje, liczy się lepszy z dwóch.",
+    "name": "Nazwa zespołu",
+    "leader": "Lider",
+    "noLeader": "Bez lidera",
+    "access": "Dostęp zespołu do CRM",
+    "access_NONE": "Nic nie daje",
+    "access_TEAM": "Członkowie widzą swoich ludzi nawzajem",
+    "access_ALL": "Wszystko",
+    "members": "Członkowie",
+    "create": "Utwórz zespół",
+    "delete": "Usuń",
+    "deleteConfirm": "Usunąć zespół {name}? Osobisty dostęp członków zostaje.",
+    "empty": "Brak zespołów.",
+    "exists": "Zespół o tej nazwie już istnieje"
   }
 }

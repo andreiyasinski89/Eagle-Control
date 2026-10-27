@@ -4,6 +4,9 @@ const mocks = vi.hoisted(() => ({
   db: {
     membership: { findUnique: vi.fn(), findFirst: vi.fn(), count: vi.fn(), update: vi.fn(), delete: vi.fn() },
     workspace: { findUnique: vi.fn() },
+    teamMember: { deleteMany: vi.fn() },
+    team: { updateMany: vi.fn() },
+    $transaction: vi.fn(async (ops: unknown[]) => Promise.all(ops)),
     invitation: { updateMany: vi.fn(), count: vi.fn(), create: vi.fn() },
   },
   sendMail: vi.fn(),

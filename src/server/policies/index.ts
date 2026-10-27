@@ -26,6 +26,7 @@ export interface Actor {
   crmAccess: boolean;
   /** Whose people a member with CRM access sees; leaving it out means everyone's. */
   crmScope?: CrmScope | null;
+  teamScope?: CrmScope | null;
 }
 
 const RANK: Record<Role, number> = { OWNER: 5, ADMIN: 4, MEMBER: 3, GUEST: 2, CLIENT: 1 };
@@ -56,7 +57,7 @@ export function can(actor: Actor, action: Action): boolean {
     case "tag:manage":
       return role === "OWNER" || role === "ADMIN" || role === "MEMBER";
     case "crm:write":
-      return role === "OWNER" || role === "ADMIN" || (role === "MEMBER" && actor.crmAccess);
+      return crmLevel(actor) !== "NONE";
     // Companies, deals, amounts, reports, exports and merging belong to those who see the whole CRM, not to a partner who sees their own people.
     case "crm:full":
     case "crm:export":
@@ -68,7 +69,7 @@ export function can(actor: Actor, action: Action): boolean {
     case "member:list":
       return role === "OWNER" || role === "ADMIN" || role === "MEMBER";
     case "crm:read":
-      return role === "OWNER" || role === "ADMIN" || (role === "MEMBER" && actor.crmAccess);
+      return crmLevel(actor) !== "NONE";
   }
 }
 

@@ -9,13 +9,33 @@ export interface LevelSource {
   role: string;
   crmAccess: boolean;
   crmScope?: CrmScope | null;
+  /** What the member's teams grant: TEAM shares the team's people, ALL shows everything. */
+  teamScope?: CrmScope | null;
 }
 
-/** Owners and admins always see everything; a member sees what the CRM flag and the scope let them; others see nothing. */
-export function crmLevel(m: LevelSource): CrmLevel {
+const ORDER: Record<CrmLevel, number> = { NONE: 0, OWN: 1, TEAM: 2, ALL: 3 };
+export const bestLevel = (a: CrmLevel, b: CrmLevel): CrmLevel => (ORDER[a] >= ORDER[b] ? a : b);
+
+/** What the member was given personally (owners and admins: everything), leaving the teams out. */
+export function personalLevel(m: LevelSource): CrmLevel {
   if (m.role === "OWNER" || m.role === "ADMIN") return "ALL";
   if (m.role !== "MEMBER" || !m.crmAccess) return "NONE";
   return m.crmScope ?? "ALL";
+}
+
+/** The best of what the member was given personally and what their teams give; a team can open the CRM to a member who had none. */
+export function crmLevel(m: LevelSource): CrmLevel {
+  const personal = personalLevel(m);
+  if (m.role !== "MEMBER") return personal;
+  return bestLevel(personal, m.teamScope === "TEAM" || m.teamScope === "ALL" ? m.teamScope : "NONE");
+}
+
+/** The best level the teams of one member grant, from the teams' own settings. */
+export function teamGrant(scopes: readonly (CrmScope | null)[]): CrmScope | null {
+  let best: CrmScope | null = null;
+  for (const s of scopes) if (s === "ALL") return "ALL";
+  for (const s of scopes) if (s === "TEAM") best = "TEAM";
+  return best;
 }
 
 /** The two stored fields a chosen level stands for. */
@@ -36,6 +56,12 @@ export interface Reach {
   partnerIds: string[];
   /** People whose line goes up to one of these partners are visible (team scope only). */
   lineIds: string[];
+}
+
+/** What a hand-made team adds: everything its members own, and what their partner cards hold. */
+export function poolReach(links: readonly ContactLink[], memberIds: readonly string[]): Pick<Reach, "userIds" | "partnerIds"> {
+  const ids = new Set(memberIds);
+  return { userIds: [...ids], partnerIds: links.filter((l) => l.linkedUserId && ids.has(l.linkedUserId)).map((l) => l.id) };
 }
 
 /**
