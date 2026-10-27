@@ -285,3 +285,9 @@
 - **From Start:** each unfinished step has a **"How to do it"** link to the article that explains it.
 - The articles are kept with the app (no database change), so they appear with the update.
 - Tests: the Markdown subset, links in every article resolve, every article exists in both languages, every step of Start has an article, and search.
+
+## 0.27.0 — The guide and the presentation
+
+- **The knowledge base offers two downloads:** the guide as a **PDF** (22 pages: cover, contents, the four parts with all 15 articles, and a cheat sheet by funnel stage) and a **presentation** (16 slides, for showing to newcomers). Russian and English; Polish gets the English files.
+- The files are kept in `public/guide/` and are made from the same texts as the knowledge base.
+- Tests: the four files exist, the PDFs are PDFs and the presentations are packages.

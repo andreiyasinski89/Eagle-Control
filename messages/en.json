@@ -1627,6 +1627,8 @@
     "pick": "Choose an article on the left.",
     "untranslated": "This article is shown in English: it has not been translated into your language yet.",
     "next": "Read next",
-    "openInApp": "Open in the app"
+    "openInApp": "Open in the app",
+    "downloadPdf": "Download the guide (PDF)",
+    "downloadSlides": "Download the presentation"
   }
 }

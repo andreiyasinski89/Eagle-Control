@@ -1627,6 +1627,8 @@
     "pick": "Wybierz artykuł po lewej.",
     "untranslated": "Ten artykuł jest po angielsku: nie został jeszcze przetłumaczony na Twój język.",
     "next": "Czytaj dalej",
-    "openInApp": "Otwórz w aplikacji"
+    "openInApp": "Otwórz w aplikacji",
+    "downloadPdf": "Pobierz poradnik (PDF, po angielsku)",
+    "downloadSlides": "Pobierz prezentację (po angielsku)"
   }
 }

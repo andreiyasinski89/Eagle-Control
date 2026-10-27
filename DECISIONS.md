@@ -161,3 +161,4 @@
 | 157 | Knowledge-base articles are shipped with the app, not stored in the database | They change with the product (a screen that moves must change its article in the same release); versioned text is reviewable and costs nothing at runtime. |
 | 158 | The articles are written in a small Markdown subset and drawn by the page | No raw HTML means nothing a text says can run; the same text can be reused for the PDF guide and the presentation. |
 | 159 | Polish reads the English articles until it is translated, and says so | A page in a language the person knows is better than a missing one; the note stops it looking like a mistake. |
+| 160 | The PDF guide and the presentation are shipped as static files, made once from the articles | They are for reading offline and showing to a group; generating them on request would need a renderer on the server for no gain. They are re-made when the articles change much. |

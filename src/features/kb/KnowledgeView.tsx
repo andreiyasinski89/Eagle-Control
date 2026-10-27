@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Info, Lightbulb, Search } from "lucide-react";
+import { ArrowLeft, Download, Info, Lightbulb, Search } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { articleFor, articlesFor, CATEGORIES, langFor, searchArticles } from "@/modules/kb/articles";
@@ -75,9 +75,21 @@ export function KnowledgeView({ slug }: { slug: string }) {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-4 p-4 md:p-6" data-testid="kb-view">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-        <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
+      <header className="flex flex-wrap items-end gap-3">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
+        </div>
+        <div className="flex flex-wrap gap-2" data-testid="kb-downloads">
+          <a href={`/guide/MeetOwl-guide-${lang}.pdf`} download className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-card px-3 text-sm hover:border-primary hover:text-primary" data-testid="kb-download-pdf">
+            <Download className="size-4" aria-hidden />
+            {t("downloadPdf")}
+          </a>
+          <a href={`/guide/MeetOwl-presentation-${lang}.pptx`} download className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-card px-3 text-sm hover:border-primary hover:text-primary" data-testid="kb-download-slides">
+            <Download className="size-4" aria-hidden />
+            {t("downloadSlides")}
+          </a>
+        </div>
       </header>
 
       <div className="grid gap-4 md:grid-cols-[18rem_1fr]">
