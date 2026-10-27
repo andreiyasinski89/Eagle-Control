@@ -14,7 +14,7 @@ const pad = (n: number) => String(n).padStart(2, "0");
  * are as tall as they last, overlapping ones share the width, items without a time wait in the "all day" strip,
  * and a red line marks the current time. Presentational; `renderItem` draws one item (optionally as a placed block).
  */
-export function TimeGrid({ days, items, today, onMove, renderItem }: { days: string[]; items: readonly GridItem[]; today: string; onMove?: (id: string, day: string) => void; renderItem: (item: GridItem, placed?: { style: CSSProperties }) => ReactNode }) {
+export function TimeGrid({ days, items, today, onMove, onSlot, renderItem }: { days: string[]; items: readonly GridItem[]; today: string; onMove?: (id: string, day: string) => void; onSlot?: (day: string, time?: string) => void; renderItem: (item: GridItem, placed?: { style: CSSProperties }) => ReactNode }) {
   const t = useTranslations("views");
   const locale = useLocale();
   const [over, setOver] = useState<string | null>(null);
@@ -79,7 +79,13 @@ export function TimeGrid({ days, items, today, onMove, renderItem }: { days: str
         <div className="grid border-b border-border" style={{ gridTemplateColumns: columns }} data-testid="all-day-row">
           <div className="px-1 py-1.5 text-right text-[10px] leading-tight text-muted-foreground">{t("allDay")}</div>
           {days.map((d) => (
-            <div key={d} data-day={d} {...drop(d)} className={cn("flex min-h-9 flex-col gap-1 border-l border-border p-1", over === d && "bg-primary/10")}>
+            <div
+              key={d}
+              data-day={d}
+              {...drop(d)}
+              onClick={onSlot ? (e) => !(e.target as HTMLElement).closest("[data-testid=calendar-item]") && onSlot(d) : undefined}
+              className={cn("flex min-h-9 flex-col gap-1 border-l border-border p-1", onSlot && "cursor-pointer", over === d && "bg-primary/10")}
+            >
               {splitTimed(byDay.get(d) ?? []).allDay.map((i) => renderItem(i))}
             </div>
           ))}
@@ -99,7 +105,24 @@ export function TimeGrid({ days, items, today, onMove, renderItem }: { days: str
           const byId = new Map(timed.map((i) => [i.id, i]));
           const placed = layoutDay(timed.map((i) => ({ id: i.id, start: parseClock(i.time) as number, end: parseClock(i.endTime) })));
           return (
-            <div key={d} data-day={d} {...drop(d)} className={cn("relative border-l border-border", over === d && "bg-primary/5")}>
+            <div
+              key={d}
+              data-day={d}
+              {...drop(d)}
+              data-testid="day-column"
+              onClick={
+                onSlot
+                  ? (e) => {
+                      if ((e.target as HTMLElement).closest("[data-testid=calendar-item]")) return;
+                      // Half-hour steps: a click at 10:20 means a meeting at 10:00, at 10:40 means 10:30.
+                      const y = e.clientY - e.currentTarget.getBoundingClientRect().top;
+                      const half = Math.max(0, Math.min(47, Math.floor(y / (HOUR_PX / 2))));
+                      onSlot(d, `${pad(Math.floor(half / 2))}:${half % 2 ? "30" : "00"}`);
+                    }
+                  : undefined
+              }
+              className={cn("relative border-l border-border", onSlot && "cursor-pointer", over === d && "bg-primary/5")}
+            >
               {HOURS.map((h) => (
                 <div key={h} className={cn("pointer-events-none absolute inset-x-0", h > 0 && "border-t border-border/70")} style={{ top: h * HOUR_PX }} />
               ))}

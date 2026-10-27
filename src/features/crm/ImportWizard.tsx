@@ -51,28 +51,38 @@ export function ImportWizard({ open, onClose, workspaceId, entity }: { open: boo
   const [policy, setPolicy] = useState<"skip" | "update" | "create">("skip");
   const [encoding, setEncoding] = useState("auto");
   const [mapping, setMapping] = useState<Record<string, string> | null>(null);
+  /** Columns without a field whose values go into the contact's note; null until the first preview picks them. */
+  const [noteCols, setNoteCols] = useState<string[] | null>(null);
   const [preview, setPreview] = useState<Preview | null>(null);
   const [result, setResult] = useState<Result | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const base = `/api/v1/workspaces/${workspaceId}/imports`;
-  const form = (f: File, m: Record<string, string> | null, pol = policy, enc = encoding) => {
+  const form = (f: File, m: Record<string, string> | null, pol = policy, enc = encoding, notes = noteCols) => {
     const fd = new FormData();
     fd.set("file", f);
     fd.set("entity", entity);
     fd.set("policy", pol);
     if (enc !== "auto") fd.set("encoding", enc);
     if (m) fd.set("mapping", JSON.stringify(m));
+    if (entity === "contacts" && notes) fd.set("noteColumns", JSON.stringify(notes));
     return fd;
   };
   const fail = (e: unknown) => setError(e instanceof ApiFailure ? (e.code === "plan_limit" ? t("planLimit") : e.message) : t("error"));
 
-  async function runPreview(f: File, m: Record<string, string> | null, pol = policy, enc = encoding) {
+  async function runPreview(f: File, m: Record<string, string> | null, pol = policy, enc = encoding, notes = noteCols) {
     setBusy(true);
     setError(null);
     try {
-      const p = await post<Preview>(`${base}/preview`, form(f, m, pol, enc));
+      let p = await post<Preview>(`${base}/preview`, form(f, m, pol, enc, notes));
+      if (entity === "contacts" && notes === null) {
+        // First look at a file: every column that has no field of its own goes into the note, so nothing is lost silently.
+        const used = new Set(Object.values(p.mapping));
+        const rest = p.headers.filter((h) => !used.has(h));
+        setNoteCols(rest);
+        if (rest.length) p = await post<Preview>(`${base}/preview`, form(f, m, pol, enc, rest));
+      }
       setPreview(p);
       setMapping(p.mapping);
     } catch (e) {
@@ -102,6 +112,7 @@ export function ImportWizard({ open, onClose, workspaceId, entity }: { open: boo
     setPreview(null);
     setResult(null);
     setMapping(null);
+    setNoteCols(null);
     setError(null);
     setEncoding("auto");
     setPolicy("skip");
@@ -135,17 +146,18 @@ export function ImportWizard({ open, onClose, workspaceId, entity }: { open: boo
       ) : (
         <div className="flex flex-col gap-4">
           <div className="grid gap-3 sm:grid-cols-3">
-            <FormField label={t("csvFile")}>
+            <FormField label={t("csvFile")} hint={t("fileHint")}>
               <input
                 ref={input}
                 type="file"
-                accept=".csv,text/csv,.txt"
+                accept=".xlsx,.csv,text/csv,.txt,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 hidden
                 onChange={(e) => {
                   const f = e.target.files?.[0];
                   if (f) {
                     setFile(f);
-                    void runPreview(f, null);
+                    setNoteCols(null);
+                    void runPreview(f, null, policy, encoding, null);
                   }
                 }}
               />
@@ -175,7 +187,7 @@ export function ImportWizard({ open, onClose, workspaceId, entity }: { open: boo
                 value={encoding}
                 onChange={(e) => {
                   setEncoding(e.target.value);
-                  if (file) void runPreview(file, null, policy, e.target.value);
+                  if (file) void runPreview(file, null, policy, e.target.value, null);
                 }}
               >
                 <option value="auto">{t("encodingAuto")}</option>
@@ -229,6 +241,34 @@ export function ImportWizard({ open, onClose, workspaceId, entity }: { open: boo
                   ))}
                 </div>
               </div>
+
+              {entity === "contacts" && (() => {
+                const used = new Set(Object.values(mapping ?? {}));
+                const spare = preview.headers.filter((h) => !used.has(h));
+                if (spare.length === 0) return null;
+                return (
+                  <div data-testid="import-note-columns">
+                    <h3 className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">{t("noteColumns")}</h3>
+                    <p className="mb-1 text-xs text-muted-foreground">{t("noteColumnsHint")}</p>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1">
+                      {spare.map((h) => (
+                        <label key={h} className="flex items-center gap-1.5 text-sm">
+                          <input
+                            type="checkbox"
+                            checked={noteCols?.includes(h) ?? false}
+                            onChange={(e) => {
+                              const next = e.target.checked ? [...(noteCols ?? []), h] : (noteCols ?? []).filter((x) => x !== h);
+                              setNoteCols(next);
+                              if (file) void runPreview(file, mapping, policy, encoding, next);
+                            }}
+                          />
+                          {h}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
 
               <div className="flex flex-wrap gap-3 text-sm" data-testid="import-summary">
                 <span className="text-[var(--health-green)]">{t("willCreate", { count: preview.summary.created })}</span>

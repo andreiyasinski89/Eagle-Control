@@ -6,7 +6,10 @@ import { useTranslations } from "next-intl";
 import { api } from "@/features/mindmap/api";
 import { dayOf, isoDay } from "@/modules/views/views";
 import { CalendarGrid, visibleDays, type CalendarMode, type GridItem } from "./CalendarGrid";
+import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { NewEventDialog } from "./NewEventDialog";
 
 interface Item {
   id: string;
@@ -29,6 +32,7 @@ export function WorkspaceCalendar({ workspaceId, slug }: { workspaceId: string; 
   const [anchor, setAnchor] = useState(() => isoDay(new Date()));
   const [mode, setMode] = useState<CalendarMode>("month");
   const [mine, setMine] = useState(true);
+  const [adding, setAdding] = useState<{ day: string; time?: string } | null>(null);
   const days = visibleDays(mode, anchor);
   const from = days[0] as string;
   const to = days[days.length - 1] as string;
@@ -65,7 +69,21 @@ export function WorkspaceCalendar({ workspaceId, slug }: { workspaceId: string; 
         )}
       </div>
       <div className="min-h-0 flex-1">
-        <CalendarGrid anchor={anchor} mode={mode} onAnchor={setAnchor} onMode={setMode} items={grid} />
+        <CalendarGrid
+          anchor={anchor}
+          mode={mode}
+          onAnchor={setAnchor}
+          onMode={setMode}
+          items={grid}
+          onSlot={(day, time) => setAdding({ day, time })}
+          actions={
+            <Button size="sm" onClick={() => setAdding({ day: mode === "month" ? isoDay(new Date()) : anchor })}>
+              <Plus className="size-4" />
+              <span className="max-sm:sr-only">{t("newEvent")}</span>
+            </Button>
+          }
+        />
+        <NewEventDialog open={adding !== null} onClose={() => setAdding(null)} workspaceId={workspaceId} day={adding?.day ?? anchor} time={adding?.time} />
       </div>
     </div>
   );

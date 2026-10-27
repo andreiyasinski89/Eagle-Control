@@ -114,3 +114,12 @@
 
 - Loading skeletons instead of a bare ellipsis in 15 places (deal board, deal/contact/company pages, client map, reports, time, billing, integrations, account, portal, calendar); a test keeps new bare loaders out.
 - Phone: the view switcher and the map toolbar fit (icons only, labels from tablet width), the mini map is hidden, member rows stack inside their card, settings tabs scroll with a fade at the edge.
+
+## 0.9.0 — Meetings from the calendar, Excel import
+
+- Calendar: **New meeting** button and a click on an empty day (month) or hour (week and day, half-hour steps) open a form: title, day, from/to or all day, project, place, video-call link or a Google Meet request, agenda. The creator is the attendee so the meeting shows under "only mine"; with no project yet the form offers to create "Meetings". Times stay UTC.
+- CRM import takes **.xlsx** as well as CSV: the first sheet is read, blank rows above the table and one-cell titles are skipped, blank rows and columns are dropped, repeated headers are numbered. The workbook is turned into CSV text on the server, so preview, column mapping, duplicate policy and the atomic commit are the same as for CSV (reader: `read-excel-file`).
+- Columns without a field of their own can be kept in the contact's note as "Column: value" (ticked by default, so nothing is lost silently).
+- Contacts without e-mail or phone (a list of names) are matched by full name, so importing the same list twice does not double it.
+- Tests: new meeting form and Excel parsing (`new-event.test.ts`), Excel upload end to end on PGlite with a synthetic fixture (`import-xlsx.test.ts`).
+

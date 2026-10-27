@@ -105,7 +105,7 @@ Sidebar → **CRM** (needs the `crmAccess` flag, or an owner/admin role): **Pipe
 
 - **Deal → project:** mark a deal won (or drag it to *Won*) and a dialog offers a project from a template; name and dates come from the deal. The project is linked to the deal and shows up, dashed, in the company's **Client Map**; a red project flags the client.
 - **Lead capture:** create a form in Settings → Lead capture and paste the iframe or HTML snippet on your site, or POST to the webhook (`Authorization: Bearer <token>`, `Idempotency-Key` for safe retries). Public endpoints: `/f/<key>`, `POST /api/public/leads/<key>`, `POST /api/public/hooks/leads`.
-- **CSV:** *Import CSV* on the Companies / Contacts pages (preview, column mapping, duplicate policy, atomic commit); *Export CSV* respects the active filters.
+- **CSV and Excel:** *Import Excel / CSV* on the Companies / Contacts pages (.xlsx first sheet or CSV; preview, column mapping, other columns into the note, duplicate policy, atomic commit); *Export CSV* respects the active filters.
 - **Privacy:** consent history per contact, personal-data export (JSON) and permanent erase (owner/admin, typed confirmation).
 - The seed adds a small demo CRM; the lead form key is in Settings → Lead capture.
 

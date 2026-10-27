@@ -47,7 +47,7 @@ const TONE: Record<NonNullable<GridItem["tone"]>, string> = {
  * Month grid with day cells, or the hourly week/day grid; prev/next/today, and optional drag-to-reschedule.
  * Presentational: the caller owns `anchor`/`mode` and loads the items for `visibleDays`.
  */
-export function CalendarGrid({ anchor, mode, onAnchor, onMode, items, onMove }: { anchor: string; mode: CalendarMode; onAnchor: (day: string) => void; onMode: (m: CalendarMode) => void; items: readonly GridItem[]; onMove?: (id: string, day: string) => void }) {
+export function CalendarGrid({ anchor, mode, onAnchor, onMode, items, onMove, onSlot, actions }: { anchor: string; mode: CalendarMode; onAnchor: (day: string) => void; onMode: (m: CalendarMode) => void; items: readonly GridItem[]; onMove?: (id: string, day: string) => void; onSlot?: (day: string, time?: string) => void; actions?: React.ReactNode }) {
   const t = useTranslations("views");
   const locale = useLocale();
   const days = visibleDays(mode, anchor);
@@ -110,12 +110,15 @@ export function CalendarGrid({ anchor, mode, onAnchor, onMode, items, onMove }: 
         <h2 className="min-w-40 text-base font-semibold capitalize" aria-live="polite">
           {title}
         </h2>
-        <div className="ml-auto flex gap-1 rounded-lg border border-border bg-card p-1 text-sm" role="tablist">
+        <div className="ml-auto flex items-center gap-2">
+        {actions}
+        <div className="flex gap-1 rounded-lg border border-border bg-card p-1 text-sm" role="tablist">
           {(["month", "week", "day"] as const).map((m) => (
             <button key={m} role="tab" aria-selected={mode === m} onClick={() => onMode(m)} className={cn("rounded-md px-3 py-1", mode === m ? "bg-muted font-medium" : "text-muted-foreground")}>
               {t(m)}
             </button>
           ))}
+        </div>
         </div>
       </div>
 
@@ -148,7 +151,8 @@ export function CalendarGrid({ anchor, mode, onAnchor, onMode, items, onMove }: 
                     const id = e.dataTransfer.getData("text/plain");
                     if (id && onMove) onMove(id, d);
                   }}
-                  className={cn("flex min-h-24 flex-col gap-1 border-b border-r border-border p-1", d.slice(0, 7) !== month && "bg-muted/40 text-muted-foreground", over === d && "bg-primary/10")}
+                  onClick={onSlot ? (e) => !(e.target as HTMLElement).closest("[data-testid=calendar-item]") && onSlot(d) : undefined}
+                  className={cn("flex min-h-24 flex-col gap-1 border-b border-r border-border p-1", onSlot && "cursor-pointer", d.slice(0, 7) !== month && "bg-muted/40 text-muted-foreground", over === d && "bg-primary/10")}
                 >
                   <span className={cn("grid size-6 place-items-center self-end rounded-full text-xs tabular-nums", d === today && "bg-primary font-semibold text-primary-foreground")}>{Number(d.slice(8))}</span>
                   {shown.map((i) => chip(i))}
@@ -159,7 +163,7 @@ export function CalendarGrid({ anchor, mode, onAnchor, onMode, items, onMove }: 
           </div>
         </>
       ) : (
-        <TimeGrid days={days} items={items} today={today} onMove={onMove} renderItem={chip} />
+        <TimeGrid days={days} items={items} today={today} onMove={onMove} onSlot={onSlot} renderItem={chip} />
       )}
     </div>
   );

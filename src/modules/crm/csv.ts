@@ -165,7 +165,7 @@ export interface CompanyRecord {
 
 export type RowResult<T> = { ok: true; record: T } | { ok: false; error: string };
 
-export function mapContactRow(row: Record<string, string>, mapping: Mapping<ContactField>): RowResult<ContactRecord> {
+export function mapContactRow(row: Record<string, string>, mapping: Mapping<ContactField>, noteColumns: readonly string[] = []): RowResult<ContactRecord> {
   const get = (f: ContactField) => (mapping[f] ? clean(row[mapping[f] as string]) : undefined);
   let firstName = get("firstName");
   let lastName: string | null = get("lastName") ?? null;
@@ -204,7 +204,7 @@ export function mapContactRow(row: Record<string, string>, mapping: Mapping<Cont
       website: get("website") ?? null,
       messengers,
       source: get("source") ?? null,
-      notes: get("notes") ?? null,
+      notes: [get("notes"), ...noteColumns.map((h) => (clean(row[h]) ? `${h}: ${clean(row[h])}` : undefined))].filter(Boolean).join("\n") || null,
     },
   };
 }

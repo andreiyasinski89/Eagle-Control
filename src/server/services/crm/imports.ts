@@ -35,6 +35,8 @@ export const importOptionsSchema = z.object({
   policy: z.enum(["skip", "update", "create"]).default("skip"),
   /** field → CSV header; omitted = use the suggestion */
   mapping: z.record(z.string()).optional(),
+  /** Columns without a field of their own: their values are appended to the contact's note as "Header: value". */
+  noteColumns: z.array(z.string()).max(60).optional(),
 });
 export type ImportOptions = z.infer<typeof importOptionsSchema>;
 
@@ -78,12 +80,12 @@ async function prepare(tx: Tx, workspaceId: string, bytes: Uint8Array, opts: Imp
   const base = { encoding: decoded.encoding, guessed: decoded.guessed, delimiter: parsed.delimiter, headers: parsed.headers, truncated: parsed.truncated, parseErrors: parsed.errors.slice(0, 20), mapping, total: parsed.rows.length };
 
   if (opts.entity === "contacts") {
-    const rows = parsed.rows.map((r) => mapContactRow(r, mapping as Mapping<ContactField>));
+    const rows = parsed.rows.map((r) => mapContactRow(r, mapping as Mapping<ContactField>, (opts.noteColumns ?? []).filter((h) => parsed.headers.includes(h))));
     const existing = new Map<string, string>();
-    for (const c of await tx.contact.findMany({ where: { workspaceId, node: { archivedAt: null } }, select: { nodeId: true, emails: true, phones: true } })) {
+    for (const c of await tx.contact.findMany({ where: { workspaceId, node: { archivedAt: null } }, select: { nodeId: true, firstName: true, lastName: true, emails: true, phones: true } })) {
       for (const k of contactKeys(c)) if (!existing.has(k)) existing.set(k, c.nodeId);
     }
-    const actions = classifyRows(rows, (r) => contactKeys({ emails: r.email, phones: r.phone }), existing, opts.policy);
+    const actions = classifyRows(rows, (r) => contactKeys({ emails: r.email, phones: r.phone, firstName: r.firstName, lastName: r.lastName }), existing, opts.policy);
     return { ...base, contacts: rows, actions };
   }
   const rows = parsed.rows.map((r) => mapCompanyRow(r, mapping as Mapping<CompanyField>));

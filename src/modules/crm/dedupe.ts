@@ -29,8 +29,13 @@ export interface CompanyLike {
   ownerId: string | null;
 }
 
-/** Keys two records share when they are probably the same person. */
-export function contactKeys(c: Pick<ContactLike, "emails" | "phones">): string[] {
+/**
+ * Keys two records share when they are probably the same person. A contact with neither e-mail nor phone
+ * (a list of names only) is matched by full name, so importing the same list twice does not double it.
+ */
+export function contactKeys(c: Pick<ContactLike, "emails" | "phones"> & { firstName?: string; lastName?: string | null }): string[] {
+  const name = [c.firstName, c.lastName].filter(Boolean).join(" ").toLowerCase().replace(/\s+/g, " ").trim();
+  if (name && c.emails.length === 0 && c.phones.length === 0) return [`n:${name}`];
   return [
     ...uniqueNonNull(c.emails.map(normalizeEmail)).map((e) => `e:${e}`),
     ...uniqueNonNull(c.phones.map(normalizePhone)).map((p) => `p:${p}`),
