@@ -1059,7 +1059,12 @@
     "tasksMade": "Created {tasks, plural, one {# task} other {# tasks}} and {subtasks, plural, one {# subtask} other {# subtasks}}.",
     "underList": "List in “{project}”",
     "listColumn": "List",
-    "anyList": "Any list"
+    "anyList": "Any list",
+    "quickAdd": "Add a task",
+    "quickAddPlaceholder": "Task title",
+    "quickAddHint": "Enter adds it and opens the next one; Esc closes",
+    "quickList": "Tasks",
+    "quickFailed": "The task could not be added."
   },
   "reports": {
     "title": "Reports",
@@ -1482,7 +1487,8 @@
     "createNext": "Create and add next",
     "createNextHint": "Saves these tasks and opens an empty list for the next ones (Ctrl+Enter)",
     "madeNext": "{n, plural, one {# item} other {# items}} created. Write the next ones.",
-    "done": "Close"
+    "done": "Close",
+    "underList": "List in “{project}”"
   },
   "notes": {
     "title": "Notes and links",

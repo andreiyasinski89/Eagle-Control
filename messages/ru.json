@@ -1059,7 +1059,12 @@
     "tasksMade": "Создано: {tasks, plural, one {# задача} few {# задачи} many {# задач} other {# задачи}} и {subtasks, plural, one {# подзадача} few {# подзадачи} many {# подзадач} other {# подзадачи}}.",
     "underList": "Список в проекте «{project}»",
     "listColumn": "Список",
-    "anyList": "Любой список"
+    "anyList": "Любой список",
+    "quickAdd": "Добавить задачу",
+    "quickAddPlaceholder": "Название задачи",
+    "quickAddHint": "Enter добавляет и открывает следующую; Esc закрывает",
+    "quickList": "Задачи",
+    "quickFailed": "Не удалось добавить задачу."
   },
   "reports": {
     "title": "Отчёты",
@@ -1482,7 +1487,8 @@
     "createNext": "Создать и добавить следующую",
     "createNextHint": "Сохраняет эти задачи и открывает пустой список для следующих (Ctrl+Enter)",
     "madeNext": "{n, plural, one {Создана # задача} few {Созданы # задачи} many {Создано # задач} other {Создано # задачи}}. Пишите следующие.",
-    "done": "Закрыть"
+    "done": "Закрыть",
+    "underList": "Список в проекте «{project}»"
   },
   "notes": {
     "title": "Заметки и ссылки",

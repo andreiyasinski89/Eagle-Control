@@ -1059,7 +1059,12 @@
     "tasksMade": "Utworzono: {tasks, plural, one {# zadanie} few {# zadania} many {# zadań} other {# zadania}} i {subtasks, plural, one {# podzadanie} few {# podzadania} many {# podzadań} other {# podzadania}}.",
     "underList": "Lista w projekcie „{project}”",
     "listColumn": "Lista",
-    "anyList": "Dowolna lista"
+    "anyList": "Dowolna lista",
+    "quickAdd": "Dodaj zadanie",
+    "quickAddPlaceholder": "Tytuł zadania",
+    "quickAddHint": "Enter dodaje i otwiera kolejne; Esc zamyka",
+    "quickList": "Zadania",
+    "quickFailed": "Nie udało się dodać zadania."
   },
   "reports": {
     "title": "Raporty",
@@ -1482,7 +1487,8 @@
     "createNext": "Utwórz i dodaj następne",
     "createNextHint": "Zapisuje te zadania i otwiera pustą listę na kolejne (Ctrl+Enter)",
     "madeNext": "{n, plural, one {Utworzono # zadanie} few {Utworzono # zadania} many {Utworzono # zadań} other {Utworzono # zadania}}. Wpisz kolejne.",
-    "done": "Zamknij"
+    "done": "Zamknij",
+    "underList": "Lista w projekcie „{project}”"
   },
   "notes": {
     "title": "Notatki i linki",

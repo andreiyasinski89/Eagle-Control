@@ -313,3 +313,8 @@
 - Who may give access: owners and admins (everything); the owner of a person (their own people); groups only by those who see the whole CRM. The receiver must be a member who sees part of the CRM (a member who sees everything needs no share, one with no CRM must be given CRM access first).
 - Deleting a group, or taking the member's CRM access away, ends the access. Every grant and revoke is written to the history. Migration `0022_contact_shares`.
 - This completes account management: levels (0.28), teams (0.29), single people and groups (0.30).
+
+## 0.30.1 — Quick add on the project board
+
+- Every column of a project's **Board** has **Add a task**: type a title, Enter adds it (to that column, under the project's first list, assigned to you) and the field stays open for the next one; Esc closes it. A project with no list gets one called Tasks.
+- Fixed: the label of the list field in the Create tasks window, opened from inside a project, showed a missing-text key instead of its name.
