@@ -809,7 +809,18 @@
     "tzDetected": "This device is in {zone}, but the calendar shows UTC.",
     "tzUse": "Use {zone}",
     "tzKeepUtc": "Keep UTC",
-    "eventZoneHint": "Times are in {zone}, your time zone."
+    "eventZoneHint": "Times are in {zone}, your time zone.",
+    "createTasks": "Create tasks",
+    "newList": "New list",
+    "newListTitle": "New list",
+    "listName": "Name of the list",
+    "listHint": "A list is a named group of tasks (an epic), such as “Design” or “Launch”. You can add tasks to it right away.",
+    "listPlaceholder": "For example: Launch",
+    "createList": "Create list",
+    "tasksMade": "Created {tasks, plural, one {# task} other {# tasks}} and {subtasks, plural, one {# subtask} other {# subtasks}}.",
+    "underList": "List in “{project}”",
+    "listColumn": "List",
+    "anyList": "Any list"
   },
   "reports": {
     "title": "Reports",

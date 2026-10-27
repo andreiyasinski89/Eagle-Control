@@ -809,7 +809,18 @@
     "tzDetected": "Это устройство в поясе {zone}, а календарь показывает UTC.",
     "tzUse": "Использовать {zone}",
     "tzKeepUtc": "Оставить UTC",
-    "eventZoneHint": "Время указано в вашем часовом поясе: {zone}."
+    "eventZoneHint": "Время указано в вашем часовом поясе: {zone}.",
+    "createTasks": "Создать задачи",
+    "newList": "Новый список",
+    "newListTitle": "Новый список",
+    "listName": "Название списка",
+    "listHint": "Список — это именованная группа задач (эпик), например «Дизайн» или «Запуск». Задачи в него можно добавить сразу.",
+    "listPlaceholder": "Например: Запуск",
+    "createList": "Создать список",
+    "tasksMade": "Создано: {tasks, plural, one {# задача} few {# задачи} many {# задач} other {# задачи}} и {subtasks, plural, one {# подзадача} few {# подзадачи} many {# подзадач} other {# подзадачи}}.",
+    "underList": "Список в проекте «{project}»",
+    "listColumn": "Список",
+    "anyList": "Любой список"
   },
   "reports": {
     "title": "Отчёты",

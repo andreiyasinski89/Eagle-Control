@@ -809,7 +809,18 @@
     "tzDetected": "To urządzenie jest w strefie {zone}, a kalendarz pokazuje UTC.",
     "tzUse": "Użyj {zone}",
     "tzKeepUtc": "Zostaw UTC",
-    "eventZoneHint": "Godziny w Twojej strefie czasowej: {zone}."
+    "eventZoneHint": "Godziny w Twojej strefie czasowej: {zone}.",
+    "createTasks": "Utwórz zadania",
+    "newList": "Nowa lista",
+    "newListTitle": "Nowa lista",
+    "listName": "Nazwa listy",
+    "listHint": "Lista to nazwana grupa zadań (epik), na przykład „Projekt” lub „Premiera”. Zadania można dodać od razu.",
+    "listPlaceholder": "Na przykład: Premiera",
+    "createList": "Utwórz listę",
+    "tasksMade": "Utworzono: {tasks, plural, one {# zadanie} few {# zadania} many {# zadań} other {# zadania}} i {subtasks, plural, one {# podzadanie} few {# podzadania} many {# podzadań} other {# podzadania}}.",
+    "underList": "Lista w projekcie „{project}”",
+    "listColumn": "Lista",
+    "anyList": "Dowolna lista"
   },
   "reports": {
     "title": "Raporty",

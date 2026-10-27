@@ -28,13 +28,19 @@ interface TreeNode {
   id: string;
   type: string;
   title: string;
+  parentId?: string | null;
+  /** Where a sprint sits ("Frontend"), so two sprints called "Sprint 1" can be told apart. */
+  context?: string;
 }
 
 /**
  * Makes a list of tasks, each with its own subtasks, from lines of text: one line is one task, an indented line
  * (or a line starting with a dash under a plain one) is a subtask of the task above it. They are created together, in one go.
+ *
+ * On the page of a project the project is known: pass `project` and the project's `lists` (its epics and sprints) and the
+ * dialog does not ask for the project; `listId` picks the list the tasks go to first.
  */
-export function CreateTasksDialog({ open, onClose, workspaceId, slug, onCreated }: { open: boolean; onClose: () => void; workspaceId: string; slug: string; onCreated: (made: { tasks: number; subtasks: number }, due: string | null) => void }) {
+export function CreateTasksDialog({ open, onClose, workspaceId, slug, onCreated, project, lists, listId }: { open: boolean; onClose: () => void; workspaceId: string; slug: string; onCreated: (made: { tasks: number; subtasks: number }, due: string | null) => void; project?: { id: string; title: string }; lists?: TreeNode[]; listId?: string | null }) {
   const t = useTranslations("mytasks");
   const tc = useTranslations("common");
   const qc = useQueryClient();
@@ -48,9 +54,15 @@ export function CreateTasksDialog({ open, onClose, workspaceId, slug, onCreated 
   const [due, setDue] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const projects = useQuery({ queryKey: ["projects", workspaceId], enabled: open, queryFn: () => api.get<{ id: string; title: string }[]>(`/api/v1/workspaces/${workspaceId}/projects`) });
-  const tree = useQuery({ queryKey: ["project-tree", projectId], enabled: open && !!projectId, queryFn: () => api.get<{ nodes: TreeNode[] }>(`/api/v1/projects/${projectId}/tree`) });
-  const parents = useMemo(() => (tree.data?.nodes ?? []).filter((n) => n.type === "EPIC" || n.type === "SPRINT"), [tree.data]);
+  const fixed = !!project;
+  const projects = useQuery({ queryKey: ["projects", workspaceId], enabled: open && !fixed, queryFn: () => api.get<{ id: string; title: string }[]>(`/api/v1/workspaces/${workspaceId}/projects`) });
+  const tree = useQuery({ queryKey: ["project-tree", projectId], enabled: open && !!projectId && !fixed, queryFn: () => api.get<{ nodes: TreeNode[] }>(`/api/v1/projects/${projectId}/tree`) });
+  const parents = useMemo(() => {
+    const all = fixed ? (lists ?? []) : (tree.data?.nodes ?? []);
+    const byId = new Map(all.map((n) => [n.id, n]));
+    return all.filter((n) => n.type === "EPIC" || n.type === "SPRINT").map((n) => ({ ...n, context: n.context ?? (n.type === "SPRINT" && n.parentId ? byId.get(n.parentId)?.title : undefined) }));
+  }, [fixed, lists, tree.data]);
+  const loaded = fixed || tree.isSuccess;
   const outline = useMemo(() => parseTaskOutline(text), [text]);
 
   // A fresh form for every opening.
@@ -60,21 +72,23 @@ export function CreateTasksDialog({ open, onClose, workspaceId, slug, onCreated 
     setDue("");
     setAssignee("me");
     setEpicName("");
-    setParentId("");
+    setParentId(listId ?? "");
     setError(null);
+    if (project) setProjectId(project.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- a fresh form per opening
   }, [open]);
 
   useEffect(() => {
     const list = projects.data;
-    if (!open || !list?.length) return;
+    if (!open || fixed || !list?.length) return;
     setProjectId((cur) => (list.some((p) => p.id === cur) ? cur : (list.find((p) => p.id === remembered()) ?? (list[0] as { id: string })).id));
-  }, [open, projects.data]);
+  }, [open, fixed, projects.data]);
 
   // Under the first epic by default; a project with none gets a new one.
   useEffect(() => {
-    if (!open || !projectId || !tree.isSuccess) return;
+    if (!open || !projectId || !loaded) return;
     setParentId((cur) => (cur === NEW_EPIC || parents.some((p) => p.id === cur) ? cur : (parents[0]?.id ?? NEW_EPIC)));
-  }, [open, projectId, tree.isSuccess, parents]);
+  }, [open, projectId, loaded, parents]);
 
   const create = useMutation({
     mutationFn: async () => {
@@ -103,7 +117,7 @@ export function CreateTasksDialog({ open, onClose, workspaceId, slug, onCreated 
     onError: (e) => setError(e instanceof ApiFailure ? e.message : t("createFailed")),
   });
 
-  const noProjects = projects.isSuccess && projects.data.length === 0;
+  const noProjects = !fixed && projects.isSuccess && projects.data.length === 0;
 
   return (
     <Modal open={open} onClose={onClose} title={t("createTitle")} wide>
@@ -125,21 +139,24 @@ export function CreateTasksDialog({ open, onClose, workspaceId, slug, onCreated 
             create.mutate();
           }}
         >
-          <div className="grid gap-3 sm:grid-cols-2">
-            <FormField label={t("project")}>
-              <select className={selectClass} value={projectId} disabled={!projects.isSuccess} onChange={(e) => (setProjectId(e.target.value), setParentId(""))}>
-                {(projects.data ?? []).map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.title}
-                  </option>
-                ))}
-              </select>
-            </FormField>
-            <FormField label={t("under")}>
-              <select className={selectClass} value={parentId} disabled={!tree.isSuccess} onChange={(e) => setParentId(e.target.value)}>
+          <div className={fixed ? "grid gap-3" : "grid gap-3 sm:grid-cols-2"}>
+            {!fixed && (
+              <FormField label={t("project")}>
+                <select className={selectClass} value={projectId} disabled={!projects.isSuccess} onChange={(e) => (setProjectId(e.target.value), setParentId(""))}>
+                  {(projects.data ?? []).map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.title}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+            )}
+            <FormField label={fixed ? t("underList", { project: project?.title ?? "" }) : t("under")}>
+              <select className={selectClass} value={parentId} disabled={!loaded} onChange={(e) => setParentId(e.target.value)} data-testid="task-parent">
                 {parents.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.type === "SPRINT" ? t("sprint") : t("epic")}: {p.title}
+                    {p.context ? ` · ${p.context}` : ""}
                   </option>
                 ))}
                 <option value={NEW_EPIC}>{t("newEpic")}</option>

@@ -32,6 +32,14 @@ export function ListView() {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("");
   const [assignee, setAssignee] = useState("");
+  const [listId, setListId] = useState("");
+  const nodes = useMapStore((s) => s.nodes);
+  /** The epic or sprint a task sits in: walk up until one is found. */
+  const listOf = (id: string): string | null => {
+    for (let n = nodes[id]?.parentId ? nodes[nodes[id]!.parentId as string] : undefined, hops = 0; n && hops < 8; n = n.parentId ? nodes[n.parentId] : undefined, hops++) if (n.type === "EPIC" || n.type === "SPRINT") return n.id;
+    return null;
+  };
+  const lists = Object.values(nodes).filter((n) => n.type === "EPIC" || n.type === "SPRINT").sort((a, b) => a.position - b.position);
   const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: "due", dir: "asc" });
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [bulk, setBulk] = useState<{ status: string; assignee: string; due: string }>({ status: "", assignee: "", due: "" });
@@ -39,11 +47,11 @@ export function ListView() {
 
   const rows = useMemo(() => {
     const needle = q.trim().toLowerCase();
-    const filtered = items.filter((i) => (!needle || i.title.toLowerCase().includes(needle)) && (!status || i.status === status) && (!assignee || (assignee === "none" ? i.assigneeId === null : i.assigneeId === assignee)));
+    const filtered = items.filter((i) => (!needle || i.title.toLowerCase().includes(needle)) && (!status || i.status === status) && (!assignee || (assignee === "none" ? i.assigneeId === null : i.assigneeId === assignee)) && (!listId || listOf(i.id) === listId));
     return sortItems(filtered, sort.key, sort.dir, (id) => name(id));
     // name only reads `people`
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [items, q, status, assignee, sort, people]);
+  }, [items, q, status, assignee, listId, nodes, sort, people]);
 
   const allPicked = rows.length > 0 && rows.every((r) => picked.has(r.id));
   const toggle = (id: string) =>
@@ -100,6 +108,16 @@ export function ListView() {
           <option value="">{t("anyStatus")}</option>
           {statusOptions}
         </select>
+        {lists.length > 0 && (
+          <select aria-label={t("listColumn")} className={selectCls} value={listId} onChange={(e) => setListId(e.target.value)} data-testid="list-filter">
+            <option value="">{t("anyList")}</option>
+            {lists.map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.title}
+              </option>
+            ))}
+          </select>
+        )}
         <select aria-label={t("assignee")} className={selectCls} value={assignee} onChange={(e) => setAssignee(e.target.value)}>
           <option value="">{t("anyone")}</option>
           <option value="none">{t("unassigned")}</option>
@@ -141,6 +159,7 @@ export function ListView() {
             <tr>
               <th className="w-8 px-2 py-2">{canWrite && <input type="checkbox" aria-label={t("selectAll")} checked={allPicked} onChange={() => setPicked(allPicked ? new Set() : new Set(rows.map((r) => r.id)))} />}</th>
               {head("title", t("title"))}
+              <th className="px-2 py-2 text-left font-medium">{t("listColumn")}</th>
               {head("status", t("status"))}
               {head("assignee", t("assignee"))}
               {head("due", t("due"))}
@@ -164,6 +183,9 @@ export function ListView() {
                     onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
                   />
                   {r.blocked && <span className="ml-1 text-xs text-[var(--health-red)]">⛔ {t("blocked")}</span>}
+                </td>
+                <td className="max-w-40 truncate px-2 py-1.5 text-xs text-muted-foreground" data-testid="list-cell">
+                  {nodes[listOf(r.id) ?? ""]?.title ?? "—"}
                 </td>
                 <td className="px-2 py-1.5">
                   <select aria-label={t("status")} disabled={!canWrite} className={selectCls} value={r.status} onChange={(e) => void updateNode(r.id, { status: e.target.value as (typeof STATUSES)[number] })}>
@@ -190,7 +212,7 @@ export function ListView() {
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-3 py-10 text-center text-muted-foreground">
+                <td colSpan={9} className="px-3 py-10 text-center text-muted-foreground">
                   {t("empty")}
                 </td>
               </tr>

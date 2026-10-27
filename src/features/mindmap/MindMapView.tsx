@@ -14,6 +14,7 @@ import { ProjectCalendar } from "@/features/views/ProjectCalendar";
 import { TimelineView } from "@/features/views/TimelineView";
 import { AiAssistant } from "@/features/ai/ai";
 import { PresenceBar } from "@/features/realtime/PresenceBar";
+import { ProjectCreateBar } from "@/features/views/ProjectCreateBar";
 import { useProjectLive } from "@/features/realtime/useProjectLive";
 import { useView, ViewSwitcher } from "@/features/views/ViewSwitcher";
 import { MindMapCanvas } from "./MindMapCanvas";
@@ -64,6 +65,7 @@ export function MindMapView({ payload, backHref }: { payload: TreePayload; backH
           </Link>
           <h1 className="truncate text-base font-semibold">{title}</h1>
           <div className="ml-auto flex min-w-0 max-w-full items-center gap-3">
+            {payload.role !== "CLIENT" && <ProjectCreateBar slug={backHref.split("/")[2] ?? ""} />}
             <PresenceBar />
             {payload.role !== "CLIENT" && payload.role !== "GUEST" && <AiAssistant projectId={payload.project.id} workspaceId={payload.project.workspaceId} />}
             <ViewSwitcher />

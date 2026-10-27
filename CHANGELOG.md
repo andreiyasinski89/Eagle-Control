@@ -167,3 +167,9 @@
 - **API and Claude:** `POST /api/v1/nodes/task-tree` (and the public `POST /nodes/task-tree`) and the MCP tool `create_tasks` make several tasks with subtasks in one call (29 tools now).
 - **Icons for the site:** favicon (`favicon.ico` with 16, 32 and 48 px), an SVG icon, the Apple touch icon and a web app manifest with 192 and 512 px icons, all the violet owl. They are drawn by a small script with no image library; the SVG holds the same shapes.
 - Tests: `task-outline.test.ts` (the typed list and the icon files) and `task-tree.test.ts` (creation, order, history, limits, nesting, permissions, the call count, the to-do hierarchy, the public API and the MCP tool).
+## 0.15.0 — Create tasks and lists inside a project
+
+- **Every section of a project** (map, board, list, calendar, timeline) has two buttons in its header: **Create tasks** (the typed list with subtasks, already known from My tasks, but for this project and its lists) and **New list**. A list is an epic, a named group of tasks; right after making one, the tasks dialog opens with it chosen.
+- The list picker names where a sprint sits ("Sprint 1 · Frontend"), so two sprints with the same name can be told apart.
+- **List view:** a *List* column (the epic or sprint a task belongs to, also for subtasks) and a filter by list.
+- After creating, the project reloads and says how many tasks and subtasks were made.
