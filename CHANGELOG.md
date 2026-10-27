@@ -357,3 +357,7 @@
 - **A second link, for people who will use MeetOwl on their own** (Account → *Invite people to the platform*): each person who creates an account through it gets their own workspace, client base, CRM, reports and projects. They are **not** added to your CRM or your workspace. You see that they joined and how far they have got (joined, made a workspace, added people) and you get **one bonus point** for each. You never see their clients or projects. The link for leads in CRM → Team stays as it was.
 - **Bonus points** are kept as a list of changes whose sum is the balance; what they can be spent on is not decided yet.
 - **Platform admin** (user menu → *Platform admin*, only for the addresses in `SUPERADMIN_EMAILS`; for anyone else the page does not exist): all accounts with search, and for each the registration data (e-mail, name, phone, Telegram, language, when the terms were agreed), who invited them and whom they invited, every workspace they belong to with their role, CRM access, members and people counts. The owner can **block an account** (it cannot sign in and open sessions end; nothing is deleted) and let it back, **set a workspace's plan**, and **change bonus points** with a note. Everything done is recorded. Migration `0025_platform_invites`.
+
+## 0.34.1 — Dark drop-down lists
+
+- In the dark theme the open list of every choice field (stage, owner, language, unit and the rest) is dark too, with light text; date pickers and scrollbars follow the theme the same way.

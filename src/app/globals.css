@@ -4,6 +4,8 @@
 
 /* "Violet Dusk" (21st.dev community theme) mapped onto the app's tokens. */
 :root {
+  /* Native controls (the open list of a select, date pickers, scrollbars) follow the theme. */
+  color-scheme: light;
   --background: hsl(210 40% 98%);
   --foreground: hsl(224 71% 4%);
   --muted: hsl(220 14% 96%);
@@ -23,6 +25,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: hsl(260 25% 3%);
   --foreground: hsl(210 40% 98%);
   --muted: hsl(260 20% 12%);
@@ -61,6 +64,15 @@
   --radius-lg: 0.875rem;
   --radius-xl: 1rem;
   --radius-2xl: 1.25rem;
+}
+
+/* The open list of a select takes the card colours, so it is dark in the dark theme. */
+@layer base {
+  select option,
+  select optgroup {
+    background-color: var(--card);
+    color: var(--foreground);
+  }
 }
 
 body {
