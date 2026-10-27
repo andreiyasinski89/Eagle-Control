@@ -24,7 +24,7 @@ export interface TransferRow {
  * The partner side of a person's card: whose line they are in (the sponsor), which partner works with them now, the history of hand-overs,
  * and, for a partner without an account, the handoff card to paste into a messenger.
  */
-export function PartnerFields({ workspaceId, contactId, stage, sponsorId, heldById, linkedUserId, transfers, disabled, onPatch }: { workspaceId: string; contactId: string; stage: string; sponsorId: string | null; heldById: string | null; linkedUserId: string | null; transfers: TransferRow[]; disabled: boolean; onPatch: (patch: Record<string, unknown>) => void }) {
+export function PartnerFields({ workspaceId, meId, contactId, stage, sponsorId, heldById, linkedUserId, transfers, disabled, onPatch }: { workspaceId: string; meId: string; contactId: string; stage: string; sponsorId: string | null; heldById: string | null; linkedUserId: string | null; transfers: TransferRow[]; disabled: boolean; onPatch: (patch: Record<string, unknown>) => void }) {
   const t = useTranslations("crm");
   const locale = useLocale();
   const qc = useQueryClient();
@@ -34,6 +34,14 @@ export function PartnerFields({ workspaceId, contactId, stage, sponsorId, heldBy
   const [copied, setCopied] = useState(false);
   const others = (partners.data ?? []).filter((p) => p.id !== contactId);
   const holder = partners.data?.find((p) => p.id === heldById);
+  // The signed-in person can be picked too: their own partner card is made the first time they choose it.
+  const mine = partners.data?.find((p) => p.linkedUserId === meId);
+  const ME = "__me__";
+  const label = (p: { name: string; linkedUserId: string | null }) => (p.linkedUserId === meId ? `${p.name} (${t("me")})` : p.name);
+  const myCard = useMutation({
+    mutationFn: () => api.post<{ id: string }>(`/api/v1/workspaces/${workspaceId}/partners/me`),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["partners"] }),
+  });
 
   const hand = useMutation({
     mutationFn: (toPartnerId: string | null) => api.post(`/api/v1/workspaces/${workspaceId}/people/transfer`, { ids: [contactId], toPartnerId }),
@@ -73,21 +81,23 @@ export function PartnerFields({ workspaceId, contactId, stage, sponsorId, heldBy
     <div className="flex flex-col gap-3 text-sm" data-testid="partner-fields">
       <div className="grid grid-cols-2 gap-3">
         <FormField label={t("sponsor")}>
-          <select disabled={disabled} className={selectClass} value={sponsorId ?? ""} onChange={(e) => onPatch({ sponsorId: e.target.value || null })} data-testid="sponsor-select">
+          <select disabled={disabled || myCard.isPending} className={selectClass} value={sponsorId ?? ""} onChange={async (e) => onPatch({ sponsorId: e.target.value === ME ? (await myCard.mutateAsync()).id : e.target.value || null })} data-testid="sponsor-select">
             <option value="">—</option>
+            {!mine && partners.data && <option value={ME}>{t("meCard")}</option>}
             {others.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.name}
+                {label(p)}
               </option>
             ))}
           </select>
         </FormField>
         <FormField label={t("heldBy")}>
-          <select disabled={disabled || hand.isPending} className={selectClass} value={heldById ?? ""} onChange={(e) => hand.mutate(e.target.value || null)} data-testid="held-select">
+          <select disabled={disabled || hand.isPending || myCard.isPending} className={selectClass} value={heldById ?? ""} onChange={async (e) => hand.mutate(e.target.value === ME ? (await myCard.mutateAsync()).id : e.target.value || null)} data-testid="held-select">
             <option value="">{t("heldNobody")}</option>
+            {!mine && partners.data && <option value={ME}>{t("meCard")}</option>}
             {others.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.name}
+                {label(p)}
               </option>
             ))}
           </select>

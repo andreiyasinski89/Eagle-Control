@@ -307,7 +307,7 @@
     "contact": "Kontakt",
     "stage": "Etap",
     "owner": "Opiekun",
-    "me": "Ja",
+    "me": "ja",
     "expectedClose": "Planowane zamknięcie",
     "nextStep": "Następny krok",
     "nextStepDate": "Data kroku",
@@ -804,7 +804,8 @@
     "anyPriority": "Dowolny priorytet",
     "access": "Kto ma dostęp",
     "collapseGroups": "Zwiń grupy",
-    "expandGroups": "Pokaż grupy"
+    "expandGroups": "Pokaż grupy",
+    "meCard": "Ja (utwórz moją kartę)"
   },
   "myday": {
     "title": "Mój dzień",

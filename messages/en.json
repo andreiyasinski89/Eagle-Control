@@ -307,7 +307,7 @@
     "contact": "Contact",
     "stage": "Stage",
     "owner": "Owner",
-    "me": "Me",
+    "me": "me",
     "expectedClose": "Expected close",
     "nextStep": "Next step",
     "nextStepDate": "Next step date",
@@ -804,7 +804,8 @@
     "anyPriority": "Any priority",
     "access": "Who has access",
     "collapseGroups": "Fold the groups",
-    "expandGroups": "Show the groups"
+    "expandGroups": "Show the groups",
+    "meCard": "Me (make my card)"
   },
   "myday": {
     "title": "My day",

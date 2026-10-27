@@ -8,7 +8,7 @@ import { splitFullName } from "@/modules/crm/csv";
 import { isValidTimeZone, todayIn, zonedToUtc } from "@/modules/views/tz";
 import { loadWorkspaceMember } from "@/server/services/nodes/access";
 import { assertWorkspaceMember, fullName } from "./common";
-import { assertContactCapacity, contactWhere, createContactsBulk, priorityField } from "./contacts";
+import { assertContactCapacity, contactWhere, createContactIn, createContactsBulk, priorityField } from "./contacts";
 import { assertGroup } from "./groups";
 import { contactScope, withScope } from "./scope";
 
@@ -154,4 +154,21 @@ export async function addPeople(userId: string, workspaceId: string, input: z.in
     },
     { timeout: 60_000, maxWait: 30_000 },
   );
+}
+
+/**
+ * The signed-in member's own partner card, made if it is not there yet: a person in the Partner stage linked to their account, so they
+ * can be picked as a sponsor or as the partner who works with someone. Asking again returns the same card.
+ */
+export async function ensureMyPartnerCard(userId: string, workspaceId: string): Promise<{ id: string; created: boolean }> {
+  return db.$transaction(async (tx) => {
+    await loadWorkspaceMember(tx, userId, workspaceId, "crm:write");
+    const have = await tx.contact.findFirst({ where: { workspaceId, linkedUserId: userId, stage: "PARTNER", node: { archivedAt: null } }, select: { nodeId: true } });
+    if (have) return { id: have.nodeId, created: false };
+    const me = await tx.user.findUniqueOrThrow({ where: { id: userId }, select: { name: true, email: true } });
+    const { firstName, lastName } = splitFullName(me.name?.trim() || me.email.split("@")[0] || "Me");
+    await assertContactCapacity(tx, workspaceId, 1);
+    const { id } = await createContactIn(tx, userId, workspaceId, { firstName, lastName, position: null, emails: [], phones: [], messengers: {}, stage: "PARTNER", linkedUserId: userId, ownerId: userId });
+    return { id, created: true };
+  });
 }

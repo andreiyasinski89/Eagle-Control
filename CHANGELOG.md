@@ -322,3 +322,7 @@
 ## 0.30.2 — Fold the groups
 
 - The groups panel on the **People** board has a button to fold it to a thin strip on the left (with the number of people), and another to show it again. The choice is remembered on the device. The board takes the room.
+
+## 0.30.3 — Me as a sponsor or as the partner who works with someone
+
+- In a person's card, **Sponsor** and **Works with them** offer **Me (make my card)** when the signed-in member has no partner card yet; choosing it makes the card (a person in the Partner stage linked to their account, named after them) and picks it. Once it exists it is listed with the other partners as "Name (me)". Asking twice never makes two.

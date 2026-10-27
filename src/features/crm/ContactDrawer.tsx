@@ -225,7 +225,7 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
       </Section>
 
       <Section title={t("partnerSection")}>
-        <PartnerFields workspaceId={workspaceId} contactId={contactId} stage={c.stage} sponsorId={c.sponsorId} heldById={c.heldById} linkedUserId={c.linkedUserId} transfers={c.transfers} disabled={dis} onPatch={(body) => patch.mutate(body)} />
+        <PartnerFields workspaceId={workspaceId} meId={meId} contactId={contactId} stage={c.stage} sponsorId={c.sponsorId} heldById={c.heldById} linkedUserId={c.linkedUserId} transfers={c.transfers} disabled={dis} onPatch={(body) => patch.mutate(body)} />
       </Section>
 
       {(upcoming.length > 0 || canWrite) && (

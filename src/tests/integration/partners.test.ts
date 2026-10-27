@@ -12,7 +12,7 @@ vi.mock("@/server/storage", () => ({ deleteObject: vi.fn(), presignUpload: vi.fn
 
 import { createWorkspace } from "@/server/services/workspace";
 import { createContact, getContact, updateContact } from "@/server/services/crm/contacts";
-import { listPeople } from "@/server/services/crm/people";
+import { ensureMyPartnerCard, listPeople } from "@/server/services/crm/people";
 import { getHandoffCard, listPartners, transferContacts } from "@/server/services/crm/partners";
 import { getNetwork } from "@/server/services/crm/network";
 
@@ -152,5 +152,29 @@ describe("network map data", () => {
     expect(mid).toMatchObject({ stage: "PARTNER", sponsorId: top?.id });
     expect(n.people.find((x) => x.name === "Alice")).toMatchObject({ stage: "NEW", heldById: null });
     await expect(getNetwork(outsider, ws.id)).rejects.toBeTruthy();
+  });
+});
+
+describe("my own partner card", () => {
+  it("is made the first time it is asked for, once, in the Partner stage and linked to the account", async () => {
+    const a = await ensureMyPartnerCard(owner, ws.id);
+    expect(a.created).toBe(true);
+    const again = await ensureMyPartnerCard(owner, ws.id);
+    expect(again).toEqual({ id: a.id, created: false });
+    const card = await getContact(owner, a.id);
+    expect(card).toMatchObject({ firstName: "Owner", stage: "PARTNER", linkedUserId: owner, ownerId: owner });
+    expect((await listPartners(owner, ws.id)).items.find((i) => i.id === a.id)).toMatchObject({ linkedUserId: owner, name: "Owner" });
+  });
+
+  it("can then be a sponsor and the partner who works with someone, and the person becomes the member's own", async () => {
+    const mine = (await ensureMyPartnerCard(owner, ws.id)).id;
+    const p = await person("Newcomer");
+    await updateContact(owner, p, { sponsorId: mine });
+    await transferContacts(owner, ws.id, { ids: [p], toPartnerId: mine });
+    expect(await getContact(owner, p)).toMatchObject({ sponsorId: mine, heldById: mine, ownerId: owner });
+  });
+
+  it("is refused to a member without CRM access", async () => {
+    await expect(ensureMyPartnerCard(friend, ws.id)).rejects.toMatchObject({ status: 403 });
   });
 });
