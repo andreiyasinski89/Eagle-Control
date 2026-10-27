@@ -5,7 +5,7 @@ import { db } from "@/server/db";
 import { ApiError, limitReached } from "@/server/http/errors";
 import { checkLimit } from "@/modules/plans";
 import { contactKeys, findDuplicateGroups } from "@/modules/crm/dedupe";
-import { STAGES, TEMPERATURES } from "@/modules/crm/people";
+import { parsePriority, PRIORITIES, STAGES, TEMPERATURES } from "@/modules/crm/people";
 import { normalizeEmail, normalizePhone, uniqueNonNull } from "@/modules/crm/normalize";
 import { loadWorkspaceMember, logActivity, type Tx } from "@/server/services/nodes/access";
 import { deleteObject } from "@/server/storage";
@@ -15,6 +15,8 @@ import { assertPartnerLinks, listTransfers } from "./partners";
 import { autoPlan } from "./stage-rules";
 
 const text = (max: number) => z.string().trim().max(max).nullable().optional();
+/** Travel or business: the team's letters (П, Б) and words are accepted and stored as the code. */
+export const priorityField = z.preprocess((v) => (typeof v === "string" ? (v.trim() === "" ? null : (parsePriority(v) ?? v)) : v), z.enum(PRIORITIES).nullable().optional());
 
 export const contactFieldsSchema = z.object({
   firstName: z.string().trim().min(1).max(100),
@@ -34,7 +36,7 @@ export const contactFieldsSchema = z.object({
   influence: z.number().int().min(0).max(100).nullable().optional(),
   nextStep: text(200),
   nextStepAt: z.string().datetime().nullable().optional(),
-  typeTag: text(10),
+  typeTag: priorityField,
   country: text(80),
   sponsorName: text(120),
   groupId: z.string().nullable().optional(),
@@ -114,7 +116,7 @@ function funnelData(f: Funnel): Partial<Prisma.ContactUncheckedCreateInput> {
   if (f.influence !== undefined) out.influence = f.influence;
   if (f.nextStep !== undefined) out.nextStep = blank(f.nextStep) ?? null;
   if (f.nextStepAt !== undefined) out.nextStepAt = f.nextStepAt ? new Date(f.nextStepAt) : null;
-  if (f.typeTag !== undefined) out.typeTag = blank(f.typeTag) ?? null;
+  if (f.typeTag !== undefined) out.typeTag = f.typeTag ? (parsePriority(f.typeTag) ?? blank(f.typeTag) ?? null) : null;
   if (f.country !== undefined) out.country = blank(f.country) ?? null;
   if (f.sponsorName !== undefined) out.sponsorName = blank(f.sponsorName) ?? null;
   if (f.groupId !== undefined) out.groupId = f.groupId;

@@ -142,3 +142,4 @@
 | 138 | An auto-plan never overwrites a next step the change already carries | A person who writes their own next step while moving someone knows better than the rule. |
 | 139 | Scripts are shared by the workspace and filled in on the person's side (the copy), not stored per person | One text serves everyone at the stage; the name is the only part that changes, so nothing personal is saved. |
 | 140 | Anyone who can read the CRM may set their own weekly targets; scripts and auto-plans need write access | Targets are about a person's own week; scripts and rules change what the whole team sees and does. |
+| 141 | Travel or business is one of two codes, not free text; the old letters are read as the same thing | The team means the same two things by П and Б; a fixed choice can be filtered and counted, and the sheets' letters keep working on import and in the API. |

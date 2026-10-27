@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FormField, Modal, selectClass, textareaClass } from "@/components/ui/modal";
 import { api, ApiFailure } from "@/features/mindmap/api";
-import { BOARD_STAGES, INTERESTS, parsePeopleLines, SOURCES, TEMPERATURES, type Stage, type Temp } from "@/modules/crm/people";
+import { BOARD_STAGES, INTERESTS, parsePeopleLines, PRIORITIES, SOURCES, TEMPERATURES, type Stage, type Temp } from "@/modules/crm/people";
 import { cn } from "@/lib/utils";
+import { PRIORITY_ICON } from "./FunnelFields";
 import { useMembers } from "./hooks";
 import { useGroups } from "./useGroups";
 
@@ -30,6 +31,7 @@ export function AddPeopleDialog({ open, onClose, workspaceId, meId, defaultGroup
   const [source, setSource] = useState("");
   const [interests, setInterests] = useState<string[]>([]);
   const [country, setCountry] = useState("");
+  const [priority, setPriority] = useState("");
   const [owner, setOwner] = useState("me");
   const [result, setResult] = useState<{ created: number; skipped: string[] } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -54,6 +56,7 @@ export function AddPeopleDialog({ open, onClose, workspaceId, meId, defaultGroup
         interests: interests.length ? interests : undefined,
         country: country.trim() || null,
         groupId: group || null,
+        typeTag: priority || null,
         ownerId: owner === "me" ? meId : owner,
       }),
     onSuccess: (r) => {
@@ -127,6 +130,16 @@ export function AddPeopleDialog({ open, onClose, workspaceId, meId, defaultGroup
                 {SOURCES.map((x) => (
                   <option key={x} value={x}>
                     {x}
+                  </option>
+                ))}
+              </select>
+            </FormField>
+            <FormField label={t("field.typeTag")}>
+              <select className={selectClass} value={priority} onChange={(e) => setPriority(e.target.value)} data-testid="add-people-priority">
+                <option value="">—</option>
+                {PRIORITIES.map((x) => (
+                  <option key={x} value={x}>
+                    {PRIORITY_ICON[x]} {t(`priority.${x}`)}
                   </option>
                 ))}
               </select>

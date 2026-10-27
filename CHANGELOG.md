@@ -228,3 +228,11 @@
 - **API:** `GET /api/v1/workspaces/:id/tracker?week=`, `PUT …/tracker/goals`, `GET|POST …/scripts`, `PATCH|DELETE /api/v1/scripts/:id`, `GET|PUT …/stage-rules`, `POST /api/v1/contacts/:id/step-done`.
 - Database migration `0015_scripts_rules_goals` (scripts, auto-plan rules, weekly targets).
 - Tests: `tracker.test.ts` (weeks in a time zone, targets, dates, script names) and `network-routine.test.ts` (scripts, auto-plans, the week's counts, the team summary, closing a step, permissions).
+
+## 0.21.0 — Priority: travel or business
+
+- The "П or Б" mark of a person now means **what matters more to them: Travel or Business**. It is a choice of two (✈️ Travel, 💼 Business) in the person's card, in *Add a list* (for the whole list) and as a filter on the People board; a card on the board shows it.
+- **Import:** the column is read by its words and letters (П, Б, Путешествия, Бизнес, Travel, Business, Podróże, Biznes); a value that cannot be read goes into the person's note, not lost.
+- **Data migration `0016_priority_codes`:** the letters and words already saved (П, Б and the like) become the codes, so nothing has to be re-entered. A value that is neither stays as it was and is shown as plain text.
+- The API accepts the letters as before and keeps the code; `priority` filters `GET …/people`.
+- Tests: reading the letters and words, the code kept through the API and the filter.

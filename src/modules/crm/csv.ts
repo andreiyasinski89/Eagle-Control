@@ -1,7 +1,7 @@
 import Papa from "papaparse";
 import { z } from "zod";
 import { normalizeEmail } from "./normalize";
-import { parseInfluence, parseInterests, parseLooseDate, parseStage, parseTemperature, stageFromSheet, type Stage, type Temp } from "./people";
+import { parseInfluence, parseInterests, parseLooseDate, parsePriority, parseStage, parseTemperature, stageFromSheet, type Priority, type Stage, type Temp } from "./people";
 
 export const MAX_CSV_BYTES = 5 * 1024 * 1024;
 export const MAX_CSV_ROWS = 5000;
@@ -191,7 +191,7 @@ export interface ContactRecord {
   influence?: number;
   nextStep?: string;
   nextStepAt?: string;
-  typeTag?: string;
+  typeTag?: Priority;
   country?: string;
   sponsorName?: string;
 }
@@ -245,6 +245,9 @@ export function mapContactRow(row: Record<string, string>, mapping: Mapping<Cont
   const extra: string[] = [];
   if (stageWord && parseStage(stageWord) === null) extra.push(`${mapping.stage}: ${stageWord}`);
   if (decisionWord) extra.push(`${mapping.decision}: ${decisionWord}`);
+  const priorityWord = get("typeTag");
+  const priority = parsePriority(priorityWord);
+  if (priorityWord && !priority) extra.push(`${mapping.typeTag}: ${priorityWord}`);
   const interests = parseInterests(get("interests"));
   const temperature = parseTemperature(get("temperature"));
   const influence = parseInfluence(get("influence"));
@@ -270,7 +273,7 @@ export function mapContactRow(row: Record<string, string>, mapping: Mapping<Cont
       ...(influence !== null ? { influence } : {}),
       ...(nextStep ? { nextStep } : {}),
       ...(nextStepAt ? { nextStepAt } : {}),
-      ...(get("typeTag") ? { typeTag: get("typeTag") as string } : {}),
+      ...(priority ? { typeTag: priority } : {}),
       ...(get("country") ? { country: get("country") as string } : {}),
       ...(get("sponsorName") ? { sponsorName: get("sponsorName") as string } : {}),
     },

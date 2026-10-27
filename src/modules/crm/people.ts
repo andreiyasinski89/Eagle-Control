@@ -77,6 +77,21 @@ export function parseTemperature(text: string | null | undefined): Temp | null {
   return null;
 }
 
+/** What matters more to the person: travel (П) or business (Б). Stored as a code; the letters of the team's sheets are read as the same thing. */
+export const PRIORITIES = ["TRAVEL", "BUSINESS"] as const;
+export type Priority = (typeof PRIORITIES)[number];
+const PRIORITY_WORDS: Record<Priority, string[]> = {
+  TRAVEL: ["п", "p", "путешествия", "путешествие", "travel", "podróże", "podroze"],
+  BUSINESS: ["б", "b", "бизнес", "business", "biznes"],
+};
+
+export function parsePriority(text: string | null | undefined): Priority | null {
+  const raw = (text ?? "").trim().toLowerCase().replace(/[.!?:;,()\s]+/g, " ").trim();
+  if (!raw) return null;
+  for (const k of PRIORITIES) if (PRIORITY_WORDS[k].includes(raw)) return k;
+  return null;
+}
+
 const INTEREST_WORDS: [string, string[]][] = [
   ["Wellness", ["wellness", "велнес", "здоровье", "нутрициология"]],
   ["Доход/бизнес", ["доход", "бизнес", "доход бизнес", "income", "business"]],

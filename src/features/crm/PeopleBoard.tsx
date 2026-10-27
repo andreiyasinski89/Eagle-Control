@@ -10,10 +10,11 @@ import { Input } from "@/components/ui/input";
 import { selectClass } from "@/components/ui/modal";
 import { SkeletonBoard } from "@/components/ui/skeleton";
 import { api } from "@/features/mindmap/api";
-import { BOARD_STAGES, LIST_GOAL, SIDE_STAGES, SOURCES, TEMPERATURES, type Stage, type Temp } from "@/modules/crm/people";
+import { BOARD_STAGES, LIST_GOAL, PRIORITIES, SIDE_STAGES, SOURCES, TEMPERATURES, type Stage, type Temp } from "@/modules/crm/people";
 import { zonedParts } from "@/modules/views/tz";
 import { cn } from "@/lib/utils";
 import { AddPeopleDialog } from "./AddPeopleDialog";
+import { PRIORITY_ICON } from "./FunnelFields";
 import { ContactDrawer } from "./ContactDrawer";
 import { useMembers } from "./hooks";
 import { GroupsPanel, type GroupChoice } from "./GroupsPanel";
@@ -75,6 +76,7 @@ export function PeopleBoard({ workspaceId, slug, canWrite, canExport, canErase, 
   const [owner, setOwner] = useState("");
   const [temp, setTemp] = useState("");
   const [source, setSource] = useState("");
+  const [priority, setPriority] = useState("");
   const [due, setDue] = useState(false);
   const [side, setSide] = useState(false);
   const [adding, setAdding] = useState(false);
@@ -89,7 +91,7 @@ export function PeopleBoard({ workspaceId, slug, canWrite, canExport, canErase, 
   const group: GroupChoice = search.get("group") ?? "all";
   const groupOf = (id: string | null) => (id ? groups.data?.items.find((g) => g.id === id) : undefined);
 
-  const params = new URLSearchParams({ ...(q ? { q } : {}), ...(owner ? { ownerId: owner === "me" ? meId : owner } : {}), ...(temp ? { temperature: temp } : {}), ...(source ? { source } : {}), ...(group !== "all" ? { group } : {}), ...(heldFilter ? { held: heldFilter } : {}), ...(due ? { due: "1" } : {}) });
+  const params = new URLSearchParams({ ...(q ? { q } : {}), ...(owner ? { ownerId: owner === "me" ? meId : owner } : {}), ...(temp ? { temperature: temp } : {}), ...(source ? { source } : {}), ...(priority ? { priority } : {}), ...(group !== "all" ? { group } : {}), ...(heldFilter ? { held: heldFilter } : {}), ...(due ? { due: "1" } : {}) });
   const key = ["people", workspaceId, params.toString()];
   const { data, isLoading, isError } = useQuery({ queryKey: key, placeholderData: (p) => p, queryFn: () => api.get<PeopleData>(`/api/v1/workspaces/${workspaceId}/people?${params}`) });
 
@@ -179,7 +181,11 @@ export function PeopleBoard({ workspaceId, slug, canWrite, canExport, canErase, 
           )}
         </div>
         <div className="flex flex-wrap items-center gap-1 text-[11px] text-muted-foreground">
-          {p.typeTag && <span className="rounded bg-accent px-1.5 py-0.5 font-semibold text-accent-foreground">{p.typeTag}</span>}
+          {p.typeTag && (
+            <span className="rounded bg-accent px-1.5 py-0.5 font-semibold text-accent-foreground" data-testid="card-priority">
+              {(PRIORITIES as readonly string[]).includes(p.typeTag) ? `${PRIORITY_ICON[p.typeTag as keyof typeof PRIORITY_ICON]} ${t(`priority.${p.typeTag as "TRAVEL"}`)}` : p.typeTag}
+            </span>
+          )}
           {p.country && <span>{p.country}</span>}
           {p.source && <span className="rounded bg-muted px-1.5 py-0.5">{p.source}</span>}
           {p.heldById && partners.data?.find((x) => x.id === p.heldById) && (
@@ -303,6 +309,14 @@ export function PeopleBoard({ workspaceId, slug, canWrite, canExport, canErase, 
           {TEMPERATURES.map((x) => (
             <option key={x} value={x}>
               {TEMP_ICON[x]} {t(`temp.${x}`)}
+            </option>
+          ))}
+        </select>
+        <select aria-label={t("field.typeTag")} className={cn(selectClass, "w-auto")} value={priority} onChange={(e) => setPriority(e.target.value)} data-testid="filter-priority">
+          <option value="">{t("anyPriority")}</option>
+          {PRIORITIES.map((x) => (
+            <option key={x} value={x}>
+              {PRIORITY_ICON[x]} {t(`priority.${x}`)}
             </option>
           ))}
         </select>

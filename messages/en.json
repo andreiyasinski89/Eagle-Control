@@ -422,7 +422,7 @@
       "influence": "Influence",
       "nextStep": "Next step",
       "nextStepAt": "Next step date",
-      "typeTag": "Type (P / B)",
+      "typeTag": "Priority (travel or business)",
       "sponsorName": "Whose link"
     },
     "duplicateContacts": "Duplicate contacts",
@@ -785,7 +785,12 @@
       "DECIDING": "Call for the decision",
       "CLIENT": "Congratulate and explain the next steps",
       "PARTNER": "First session: the start plan"
-    }
+    },
+    "priority": {
+      "TRAVEL": "Travel",
+      "BUSINESS": "Business"
+    },
+    "anyPriority": "Any priority"
   },
   "myday": {
     "title": "My day",

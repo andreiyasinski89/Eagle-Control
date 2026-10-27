@@ -39,8 +39,8 @@ afterAll(async () => close?.());
 
 describe("a person in the funnel", () => {
   it("starts as a new lead, and keeps what is said about them", async () => {
-    const c = await createContact(owner, ws.id, { ...base, firstName: "Anna", lastName: "Kowalska", stage: "WARMING", temperature: "WARM", source: "Instagram", interests: ["Путешествия"], influence: 6, nextStep: "Call", nextStepAt: "2026-11-05T00:00:00.000Z", typeTag: "Б", country: "Poland", sponsorName: "Andrey" });
-    expect(c).toMatchObject({ stage: "WARMING", temperature: "WARM", source: "Instagram", interests: ["Путешествия"], influence: 6, nextStep: "Call", typeTag: "Б", country: "Poland", sponsorName: "Andrey" });
+    const c = await createContact(owner, ws.id, { ...base, firstName: "Anna", lastName: "Kowalska", stage: "WARMING", temperature: "WARM", source: "Instagram", interests: ["Путешествия"], influence: 6, nextStep: "Call", nextStepAt: "2026-11-05T00:00:00.000Z", typeTag: "BUSINESS", country: "Poland", sponsorName: "Andrey" });
+    expect(c).toMatchObject({ stage: "WARMING", temperature: "WARM", source: "Instagram", interests: ["Путешествия"], influence: 6, nextStep: "Call", typeTag: "BUSINESS", country: "Poland", sponsorName: "Andrey" });
     const plain = await createContact(owner, ws.id, { ...base, firstName: "Boris" });
     expect(plain).toMatchObject({ stage: "NEW", temperature: null, interests: [], influence: null });
     const history = await raw.contactStageEvent.findMany({ where: { contactNodeId: c.id } });
@@ -169,8 +169,8 @@ describe("importing a sheet kept the way a team keeps it", () => {
     expect(p.mapping).toMatchObject({ typeTag: "П или Б", fullName: "ФИО", temperature: "Прогрев", stage: "Этап", decision: "Решение", sponsorName: "Чья прямая ссылка", country: "Страна", notes: "Комментарий", influence: "Влияние" });
     expect(p.summary).toMatchObject({ created: 5, errorCount: 0 });
     const byName = Object.fromEntries(p.sample.map((r) => [(r.record as unknown as { firstName: string }).firstName, r.record as unknown as Record<string, unknown>]));
-    expect(byName["Стас"]).toMatchObject({ stage: "PRESENTATION", temperature: "COLD", typeTag: "Б", country: "Португалия", influence: 1 });
-    expect(byName["Валерия"]).toMatchObject({ stage: "PARTNER", temperature: "WARM", typeTag: "П", sponsorName: "Андрей" });
+    expect(byName["Стас"]).toMatchObject({ stage: "PRESENTATION", temperature: "COLD", typeTag: "BUSINESS", country: "Португалия", influence: 1 });
+    expect(byName["Валерия"]).toMatchObject({ stage: "PARTNER", temperature: "WARM", typeTag: "TRAVEL", sponsorName: "Андрей" });
     expect(byName["Леша"]).toMatchObject({ stage: "DECIDING", temperature: "WARM" });
   });
 
@@ -178,7 +178,7 @@ describe("importing a sheet kept the way a team keeps it", () => {
     const r = await commitImport(owner, ws.id, bytes(sheet), { entity: "contacts", policy: "skip" });
     expect(r).toMatchObject({ created: 5, errorCount: 0 });
     const get = (first: string) => raw.contact.findFirstOrThrow({ where: { firstName: first } });
-    expect(await get("Валерия")).toMatchObject({ stage: "PARTNER", temperature: "WARM", typeTag: "П", sponsorName: "Андрей", country: "Польша", influence: 6 });
+    expect(await get("Валерия")).toMatchObject({ stage: "PARTNER", temperature: "WARM", typeTag: "TRAVEL", sponsorName: "Андрей", country: "Польша", influence: 6 });
     expect(await get("Милена")).toMatchObject({ stage: "WARMING", nextStep: "Запланировать презентацию" });
     const ira = await get("Ира");
     expect(ira.stage).toBe("WARMING"); // "Что-то своё" says nothing the funnel knows, but "Пока наблюдает" is a person who is watching
@@ -195,5 +195,23 @@ describe("importing a sheet kept the way a team keeps it", () => {
     const upd = await commitImport(owner, ws.id, bytes("ФИО,Влияние\nЛеша Тест,9"), { entity: "contacts", policy: "update" });
     expect(upd).toMatchObject({ updated: 1, created: 0 });
     expect(await raw.contact.findFirstOrThrow({ where: { firstName: "Леша" } })).toMatchObject({ influence: 9, source: "Instagram", interests: ["Wellness"], stage: "DECIDING" });
+  });
+});
+
+describe("priority: travel or business", () => {
+  it("takes the letters of the sheets and stores a code, filters by it, and refuses what it cannot read", async () => {
+    const t = await createContact(owner, ws.id, { ...base, firstName: "Pri-T", typeTag: "п" as never });
+    const b = await createContact(owner, ws.id, { ...base, firstName: "Pri-B", typeTag: "Business" as never });
+    expect(t.typeTag).toBe("TRAVEL");
+    expect(b.typeTag).toBe("BUSINESS");
+    const { patchContactSchema } = await import("@/server/services/crm/contacts");
+    expect(patchContactSchema.safeParse({ typeTag: "Б" }).data).toEqual({ typeTag: "BUSINESS" });
+    expect(patchContactSchema.safeParse({ typeTag: "" }).data).toEqual({ typeTag: null });
+    expect(patchContactSchema.safeParse({ typeTag: "whatever" }).success).toBe(false);
+    const travel = (await listPeople(owner, ws.id, { due: "0", priority: "TRAVEL" })).items.map((i) => i.name);
+    expect(travel).toContain("Pri-T");
+    expect(travel).not.toContain("Pri-B");
+    await updateContact(owner, t.id, { typeTag: null });
+    expect((await getContact(owner, t.id)).typeTag).toBeNull();
   });
 });

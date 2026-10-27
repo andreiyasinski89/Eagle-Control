@@ -4,11 +4,12 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/ui/modal";
-import { BOARD_STAGES, INTERESTS, SIDE_STAGES, SOURCES, TEMPERATURES, type Stage, type Temp } from "@/modules/crm/people";
+import { BOARD_STAGES, INTERESTS, PRIORITIES, SIDE_STAGES, SOURCES, TEMPERATURES, type Priority, type Stage, type Temp } from "@/modules/crm/people";
 import { cn } from "@/lib/utils";
 import { useGroups } from "./useGroups";
 
 const TEMP_ICON: Record<Temp, string> = { HOT: "🔥", WARM: "🟡", COLD: "❄️" };
+export const PRIORITY_ICON: Record<Priority, string> = { TRAVEL: "✈️", BUSINESS: "💼" };
 
 export interface FunnelValues {
   stage: Stage;
@@ -87,9 +88,17 @@ export function FunnelFields({ value, disabled, workspaceId, onChange }: { value
         <FormField label={t("field.influence")}>
           <Input type="number" min={0} max={100} disabled={disabled} value={influence} onChange={(e) => setInfluence(e.target.value)} onBlur={() => (influence === "" ? value.influence !== null && onChange({ influence: null }) : Number(influence) !== value.influence && onChange({ influence: Math.max(0, Math.min(100, Math.round(Number(influence)))) }))} />
         </FormField>
-        <FormField label={t("field.typeTag")}>
-          <Input disabled={disabled} defaultValue={value.typeTag ?? ""} key={`t${value.typeTag}`} maxLength={10} onBlur={(e) => e.target.value !== (value.typeTag ?? "") && onChange({ typeTag: e.target.value.trim() || null })} />
-        </FormField>
+        <div className="flex flex-col gap-1 text-sm">
+          <span className="font-medium">{t("field.typeTag")}</span>
+          <div className="flex flex-wrap gap-1" role="radiogroup" aria-label={t("field.typeTag")} data-testid="priority-field">
+            {PRIORITIES.map((x) => (
+              <button key={x} type="button" role="radio" aria-checked={value.typeTag === x} disabled={disabled} data-priority={x} onClick={() => onChange({ typeTag: value.typeTag === x ? null : x })} className={cn("rounded-full border px-2.5 py-1 text-xs", value.typeTag === x ? "border-primary bg-primary/10 font-medium" : "border-border text-muted-foreground hover:bg-muted")}>
+                {PRIORITY_ICON[x]} {t(`priority.${x}`)}
+              </button>
+            ))}
+            {value.typeTag && !(PRIORITIES as readonly string[]).includes(value.typeTag) && <span className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">{value.typeTag}</span>}
+          </div>
+        </div>
       </div>
 
       <FormField label={t("groupField")}>

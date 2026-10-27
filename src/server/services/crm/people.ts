@@ -2,13 +2,13 @@ import { z } from "zod";
 import type { Prisma } from "@prisma/client";
 import { db } from "@/server/db";
 import { contactKeys } from "@/modules/crm/dedupe";
-import { STAGES, TEMPERATURES } from "@/modules/crm/people";
+import { PRIORITIES, STAGES, TEMPERATURES } from "@/modules/crm/people";
 import { descendantIds } from "@/modules/crm/groups";
 import { splitFullName } from "@/modules/crm/csv";
 import { isValidTimeZone, todayIn, zonedToUtc } from "@/modules/views/tz";
 import { loadWorkspaceMember } from "@/server/services/nodes/access";
 import { assertWorkspaceMember, fullName } from "./common";
-import { assertContactCapacity, contactWhere, createContactsBulk } from "./contacts";
+import { assertContactCapacity, contactWhere, createContactsBulk, priorityField } from "./contacts";
 import { assertGroup } from "./groups";
 
 const DAY = 86_400_000;
@@ -19,6 +19,7 @@ export const listPeopleSchema = z.object({
   ownerId: z.string().optional(),
   temperature: z.enum(TEMPERATURES).optional(),
   source: z.string().trim().max(80).optional(),
+  priority: z.enum(PRIORITIES).optional(),
   /** A group id (its subgroups count too), or "none" for people in no group. */
   group: z.string().max(40).optional(),
   /** A partner id: only the people that partner holds; "none": people nobody holds; "any": people held by any partner. */
@@ -45,7 +46,7 @@ export async function listPeople(userId: string, workspaceId: string, f: z.infer
   if (f.group === "none") groupWhere = { groupId: null };
   else if (f.group) groupWhere = { groupId: { in: descendantIds(await db.contactGroup.findMany({ where: { workspaceId }, select: { id: true, parentId: true } }), f.group) } };
   const heldWhere: Prisma.ContactWhereInput = f.held === "none" ? { heldById: null } : f.held === "any" ? { heldById: { not: null } } : f.held ? { heldById: f.held } : {};
-  const where: Prisma.ContactWhereInput = { ...base, ...groupWhere, ...heldWhere, ...(f.source ? { source: f.source } : {}), ...(f.due === "1" ? { nextStepAt: { lt: endOfToday }, stage: { notIn: ["DECLINED", "NO_REPLY"] } } : {}) };
+  const where: Prisma.ContactWhereInput = { ...base, ...groupWhere, ...heldWhere, ...(f.source ? { source: f.source } : {}), ...(f.priority ? { typeTag: f.priority } : {}), ...(f.due === "1" ? { nextStepAt: { lt: endOfToday }, stage: { notIn: ["DECLINED", "NO_REPLY"] } } : {}) };
   const [all, rows] = await Promise.all([
     db.contact.count({ where: { workspaceId, node: { archivedAt: null } } }),
     db.contact.findMany({
@@ -97,7 +98,7 @@ export const addPeopleSchema = z.object({
   source: text(80),
   interests: z.array(z.string().trim().min(1).max(40)).max(8).optional(),
   country: text(80),
-  typeTag: text(10),
+  typeTag: priorityField,
   sponsorName: text(120),
   groupId: z.string().nullable().optional(),
   ownerId: z.string().nullable().optional(),

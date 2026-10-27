@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MAX_PEOPLE_AT_ONCE, parseInfluence, parseInterests, parseLooseDate, parsePeopleLines, parseStage, parseTemperature, stageFromSheet } from "@/modules/crm/people";
+import { MAX_PEOPLE_AT_ONCE, parseInfluence, parseInterests, parseLooseDate, parsePeopleLines, parsePriority, parseStage, parseTemperature, stageFromSheet } from "@/modules/crm/people";
 
 describe("reading a stage from the words people write", () => {
   it("knows the names of the funnel, in Russian and English", () => {
@@ -108,5 +108,15 @@ describe("a pasted list of people", () => {
     expect(r.truncated).toBe(true);
     expect(parsePeopleLines("one").truncated).toBe(false);
     expect(parsePeopleLines("").people).toEqual([]);
+  });
+});
+
+describe("travel or business", () => {
+  it("reads the letters and words of the sheets", () => {
+    for (const w of ["П", "п", " П ", "Путешествия", "путешествие", "travel", "p", "Podróże"]) expect(parsePriority(w), w).toBe("TRAVEL");
+    for (const w of ["Б", "б", "Бизнес", "business", "B", "Biznes"]) expect(parsePriority(w), w).toBe("BUSINESS");
+  });
+  it("leaves out what it cannot read", () => {
+    for (const w of ["", "  ", null, undefined, "и то и то", "?"]) expect(parsePriority(w as string), String(w)).toBeNull();
   });
 });
