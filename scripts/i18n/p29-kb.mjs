@@ -1,0 +1,51 @@
+const fragment = {
+  en: {
+    nav: { knowledge: "Knowledge base" },
+    start: { howTo: "How to do it" },
+    kb: {
+      title: "Knowledge base",
+      subtitle: "How things work and how to build a daily routine.",
+      search: "Search articles",
+      category: { start: "Getting started", people: "Working with people", tools: "Tools", rhythm: "Rhythm of the day and week" },
+      noResults: "Nothing found. Try another word.",
+      back: "All articles",
+      pick: "Choose an article on the left.",
+      untranslated: "This article is shown in English: it has not been translated into your language yet.",
+      next: "Read next",
+      openInApp: "Open in the app",
+    },
+  },
+  ru: {
+    nav: { knowledge: "База знаний" },
+    start: { howTo: "Как это делается" },
+    kb: {
+      title: "База знаний",
+      subtitle: "Как всё устроено и как выстроить ежедневный ритм.",
+      search: "Поиск по статьям",
+      category: { start: "Начало работы", people: "Работа с людьми", tools: "Инструменты", rhythm: "Ритм дня и недели" },
+      noResults: "Ничего не найдено. Попробуйте другое слово.",
+      back: "Все статьи",
+      pick: "Выберите статью слева.",
+      untranslated: "Эта статья показана на английском: её ещё не перевели на ваш язык.",
+      next: "Читайте дальше",
+      openInApp: "Открыть в приложении",
+    },
+  },
+  pl: {
+    nav: { knowledge: "Baza wiedzy" },
+    start: { howTo: "Jak to zrobić" },
+    kb: {
+      title: "Baza wiedzy",
+      subtitle: "Jak to wszystko działa i jak zbudować codzienny rytm.",
+      search: "Szukaj artykułów",
+      category: { start: "Pierwsze kroki", people: "Praca z ludźmi", tools: "Narzędzia", rhythm: "Rytm dnia i tygodnia" },
+      noResults: "Nic nie znaleziono. Spróbuj innego słowa.",
+      back: "Wszystkie artykuły",
+      pick: "Wybierz artykuł po lewej.",
+      untranslated: "Ten artykuł jest po angielsku: nie został jeszcze przetłumaczony na Twój język.",
+      next: "Czytaj dalej",
+      openInApp: "Otwórz w aplikacji",
+    },
+  },
+};
+export default fragment;

@@ -158,3 +158,6 @@
 | 154 | The list of 100 counts as started at 25 names and shows the way to 100 | Asking for a hundred before a step is done would leave the first step open for weeks; 25 is a real start. |
 | 155 | The distance to the dream counts the person's own clients and partners | The dream is personal; people handed to others or won by the line belong to the team's picture, not to this one. |
 | 156 | Groups and partners are optional steps | They matter once the list is long and a team exists; they must not make a new person feel behind. |
+| 157 | Knowledge-base articles are shipped with the app, not stored in the database | They change with the product (a screen that moves must change its article in the same release); versioned text is reviewable and costs nothing at runtime. |
+| 158 | The articles are written in a small Markdown subset and drawn by the page | No raw HTML means nothing a text says can run; the same text can be reused for the PDF guide and the presentation. |
+| 159 | Polish reads the English articles until it is translated, and says so | A page in a language the person knows is better than a missing one; the note stops it looking like a mistake. |

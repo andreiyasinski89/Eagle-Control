@@ -24,6 +24,8 @@ export type StepId = "profile" | "firstTask" | "timer" | "notes" | "dream" | "li
 export interface StepDef {
   id: StepId;
   block: Block;
+  /** The knowledge base article that explains how the step is done. */
+  article: string;
   /** Not needed to finish: a step for those who want to go further. */
   optional?: boolean;
   /** The part of the app where the step is done, relative to the workspace (a CRM step is hidden from people without CRM access). */
@@ -41,19 +43,19 @@ export const LIST_STARTED = 25;
 const capped = (value: number, goal: number) => ({ value: Math.min(value, goal), goal });
 
 export const STEPS: StepDef[] = [
-  { id: "profile", block: "platform", path: "/settings", done: (f) => f.timezoneSet },
-  { id: "firstTask", block: "platform", path: "/tasks", done: (f) => f.tasksCreated >= 1 },
-  { id: "timer", block: "platform", path: "/time", done: (f) => f.timeEntries >= 1 },
-  { id: "notes", block: "platform", path: "/notes", done: (f) => f.notes >= 1 },
-  { id: "dream", block: "business", path: "/start", done: (f) => f.hasDream },
-  { id: "list", block: "business", path: "/crm/people", crm: true, done: (f) => f.people >= LIST_STARTED, progress: (f) => capped(f.people, LIST_GOAL) },
-  { id: "funnel", block: "business", path: "/crm/people", crm: true, done: (f) => f.peopleMoved >= 5, progress: (f) => capped(f.peopleMoved, 5) },
-  { id: "nextSteps", block: "business", path: "/crm/people", crm: true, done: (f) => f.nextSteps >= 5, progress: (f) => capped(f.nextSteps, 5) },
-  { id: "scripts", block: "business", path: "/crm/scripts", crm: true, done: (f) => f.scripts >= 1 && f.rules >= 1 },
-  { id: "weekGoals", block: "business", path: "/crm/day", crm: true, done: (f) => f.weekGoals },
-  { id: "firstDay", block: "business", path: "/crm/day", crm: true, done: (f) => f.stepsClosed >= 3, progress: (f) => capped(f.stepsClosed, 3) },
-  { id: "groups", block: "business", optional: true, path: "/crm/people", crm: true, done: (f) => f.groups >= 1 },
-  { id: "partners", block: "business", optional: true, path: "/crm/team", crm: true, done: (f) => f.partners >= 1 },
+  { id: "profile", block: "platform", article: "app-tour", path: "/settings", done: (f) => f.timezoneSet },
+  { id: "firstTask", block: "platform", article: "tasks", path: "/tasks", done: (f) => f.tasksCreated >= 1 },
+  { id: "timer", block: "platform", article: "timer", path: "/time", done: (f) => f.timeEntries >= 1 },
+  { id: "notes", block: "platform", article: "notes", path: "/notes", done: (f) => f.notes >= 1 },
+  { id: "dream", block: "business", article: "dream-goals", path: "/start", done: (f) => f.hasDream },
+  { id: "list", block: "business", article: "list-100", path: "/crm/people", crm: true, done: (f) => f.people >= LIST_STARTED, progress: (f) => capped(f.people, LIST_GOAL) },
+  { id: "funnel", block: "business", article: "funnel", path: "/crm/people", crm: true, done: (f) => f.peopleMoved >= 5, progress: (f) => capped(f.peopleMoved, 5) },
+  { id: "nextSteps", block: "business", article: "day-plan", path: "/crm/people", crm: true, done: (f) => f.nextSteps >= 5, progress: (f) => capped(f.nextSteps, 5) },
+  { id: "scripts", block: "business", article: "scripts-autoplans", path: "/crm/scripts", crm: true, done: (f) => f.scripts >= 1 && f.rules >= 1 },
+  { id: "weekGoals", block: "business", article: "day-plan", path: "/crm/day", crm: true, done: (f) => f.weekGoals },
+  { id: "firstDay", block: "business", article: "daily-rhythm", path: "/crm/day", crm: true, done: (f) => f.stepsClosed >= 3, progress: (f) => capped(f.stepsClosed, 3) },
+  { id: "groups", block: "business", article: "groups", optional: true, path: "/crm/people", crm: true, done: (f) => f.groups >= 1 },
+  { id: "partners", block: "business", article: "partners", optional: true, path: "/crm/team", crm: true, done: (f) => f.partners >= 1 },
 ];
 
 export type StepStatus = "done" | "skipped" | "todo";
@@ -61,6 +63,7 @@ export type StepStatus = "done" | "skipped" | "todo";
 export interface StepView {
   id: StepId;
   block: Block;
+  article: string;
   optional: boolean;
   path: string;
   status: StepStatus;
@@ -84,7 +87,7 @@ export interface Evaluation {
 export function evaluate(facts: Facts, skipped: readonly string[], opts: { crm: boolean }): Evaluation {
   const steps: StepView[] = STEPS.filter((s) => opts.crm || !s.crm).map((s) => {
     const isDone = s.done(facts);
-    return { id: s.id, block: s.block, optional: !!s.optional, path: s.path, status: isDone ? "done" : skipped.includes(s.id) ? "skipped" : "todo", progress: s.progress ? s.progress(facts) : null };
+    return { id: s.id, block: s.block, article: s.article, optional: !!s.optional, path: s.path, status: isDone ? "done" : skipped.includes(s.id) ? "skipped" : "todo", progress: s.progress ? s.progress(facts) : null };
   });
   const counted = steps.filter((s) => !s.optional && s.status !== "skipped");
   const done = counted.filter((s) => s.status === "done").length;

@@ -1,4 +1,4 @@
-import { BarChart3, CalendarDays, Clock, FolderKanban, Handshake, LayoutDashboard, ListChecks, NotebookPen, Rocket } from "lucide-react";
+import { BarChart3, CalendarDays, Clock, FolderKanban, Handshake, LayoutDashboard, ListChecks, NotebookPen, Rocket, BookOpen } from "lucide-react";
 
 /** Up to two letters for an avatar: the initials of a name, else the start of the address. */
 export function initialsOf(name: string | null, email: string): string {
@@ -21,6 +21,7 @@ export function navGroups(slug: string, showCrm: boolean, t: (key: string) => st
         { href: `${base}/calendar`, label: t("calendar"), icon: CalendarDays },
         { href: `${base}/time`, label: t("time"), icon: Clock },
         { href: `${base}/notes`, label: t("notes"), icon: NotebookPen },
+        { href: `${base}/knowledge`, label: t("knowledge"), icon: BookOpen },
       ],
     },
     ...(showCrm

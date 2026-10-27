@@ -29,7 +29,8 @@
     "groupInsights": "Insights",
     "myTasks": "My tasks",
     "notes": "Notes and links",
-    "start": "Start"
+    "start": "Start",
+    "knowledge": "Knowledge base"
   },
   "auth": {
     "title": "Sign in to MeetOwl",
@@ -1608,6 +1609,24 @@
         "title": "Partners and the team",
         "text": "Move the first person to the Partner stage and name their sponsor: the team tree and the network map build themselves."
       }
-    }
+    },
+    "howTo": "How to do it"
+  },
+  "kb": {
+    "title": "Knowledge base",
+    "subtitle": "How things work and how to build a daily routine.",
+    "search": "Search articles",
+    "category": {
+      "start": "Getting started",
+      "people": "Working with people",
+      "tools": "Tools",
+      "rhythm": "Rhythm of the day and week"
+    },
+    "noResults": "Nothing found. Try another word.",
+    "back": "All articles",
+    "pick": "Choose an article on the left.",
+    "untranslated": "This article is shown in English: it has not been translated into your language yet.",
+    "next": "Read next",
+    "openInApp": "Open in the app"
   }
 }

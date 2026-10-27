@@ -141,6 +141,7 @@ New API (under `/api/v1`): `nodes/:id/time`, `time/:id`, `timer[/start|/stop]`, 
 - **Plan of the day (CRM):** the week against its targets (counted from what happened), everyone whose next step is due with one-press Done and next date, scripts to copy with the name filled in, auto-plans that fill the next step when a person moves into a stage, and the team's week.
 - **Working timer:** a Start button on every page, with or without a task; it runs until you stop it; time by day, week, month and all time, counted by your own clock.
 - **Start (onboarding):** steps from the first login to a working day that tick themselves from your data, and a dream with targets whose distance is measured from your funnel; a reminder on My day.
+- **Knowledge base:** 15 articles (ru/en) on how things work and the daily and weekly rhythm, with search; Start links to the article for each step.
 - **Notes and links:** a private notebook per person (notes that save as you type, links with a button to open them, search, pins).
 - **Schedule a call or meeting:** *Schedule contact* in the contact card (type, day, start, length); it shows in the calendar at once, in My day and in the card's *Planned* list.
 - **Time zones:** each person picks their own in Settings → Account; the calendar and the new-meeting form use it, everything stored stays UTC.

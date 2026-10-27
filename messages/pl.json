@@ -29,7 +29,8 @@
     "groupInsights": "Analizy",
     "myTasks": "Moje zadania",
     "notes": "Notatki i linki",
-    "start": "Start"
+    "start": "Start",
+    "knowledge": "Baza wiedzy"
   },
   "auth": {
     "title": "Zaloguj się do MeetOwl",
@@ -1608,6 +1609,24 @@
         "title": "Partnerzy i zespół",
         "text": "Przenieś pierwszą osobę na etap Partner i wskaż jej sponsora: drzewo zespołu i mapa sieci zbudują się same."
       }
-    }
+    },
+    "howTo": "Jak to zrobić"
+  },
+  "kb": {
+    "title": "Baza wiedzy",
+    "subtitle": "Jak to wszystko działa i jak zbudować codzienny rytm.",
+    "search": "Szukaj artykułów",
+    "category": {
+      "start": "Pierwsze kroki",
+      "people": "Praca z ludźmi",
+      "tools": "Narzędzia",
+      "rhythm": "Rytm dnia i tygodnia"
+    },
+    "noResults": "Nic nie znaleziono. Spróbuj innego słowa.",
+    "back": "Wszystkie artykuły",
+    "pick": "Wybierz artykuł po lewej.",
+    "untranslated": "Ten artykuł jest po angielsku: nie został jeszcze przetłumaczony na Twój język.",
+    "next": "Czytaj dalej",
+    "openInApp": "Otwórz w aplikacji"
   }
 }

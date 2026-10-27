@@ -7,6 +7,7 @@ import type { Block, Distance, StepStatus } from "@/modules/onboarding/steps";
 export interface StartStep {
   id: string;
   block: Block;
+  article: string;
   optional: boolean;
   path: string;
   status: StepStatus;

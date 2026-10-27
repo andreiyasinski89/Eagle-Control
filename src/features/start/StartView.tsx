@@ -125,6 +125,9 @@ function StepCard({ step, slug, isNext, onSkip }: { step: StartStep; slug: strin
               </Link>
             </Button>
           )}
+          <Link href={`/w/${slug}/knowledge?a=${step.article}`} className="text-xs text-primary hover:underline" data-testid="step-howto">
+            {t("howTo")}
+          </Link>
           <button type="button" className="text-xs text-muted-foreground hover:text-foreground" onClick={() => onSkip(!skipped)} data-testid="step-skip">
             {skipped ? t("unskip") : t("skip")}
           </button>

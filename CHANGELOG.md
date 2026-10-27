@@ -276,3 +276,12 @@
 - **API:** `GET /api/v1/workspaces/:id/onboarding`, `PUT …/onboarding/goal`, `POST …/onboarding/skip`, `POST …/onboarding/hide`.
 - Database migration `0019_onboarding` (the dream and goal; skipped steps and the hidden list).
 - Tests: `onboarding.test.ts` (the steps, the distance to the dream) and `onboarding.test.ts` in integration (each step ticking by data, the dream and its distance, skipping and hiding, a member without CRM, strangers).
+
+## 0.26.0 — Knowledge base
+
+- **New "Knowledge base" section** in the menu (after Notes and links): 15 articles in four groups, with search. **Getting started:** quick start (the first 10 minutes), how the app is laid out, tasks and projects. **Working with people:** the funnel and its stages, the list of 100, scripts and auto-plans, the plan of the day and the week's targets, groups and subgroups, partners and sponsors and handing over contacts, the network map, dream and goal. **Tools:** the timer and time, notes and links. **Rhythm:** the daily rhythm and the weekly rhythm.
+- **Russian and English;** Polish shows the English articles with a note, until they are translated.
+- Articles link to the pages of the app ("Open [Plan of the day]"), to each other and to the web, and end with "Read next". The text is drawn by the page, never as raw HTML, and only app, article and web addresses become links.
+- **From Start:** each unfinished step has a **"How to do it"** link to the article that explains it.
+- The articles are kept with the app (no database change), so they appear with the update.
+- Tests: the Markdown subset, links in every article resolve, every article exists in both languages, every step of Start has an article, and search.
