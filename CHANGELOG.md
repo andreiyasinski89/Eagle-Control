@@ -265,3 +265,14 @@
 - **API:** `POST /api/v1/timer/start` takes `{ nodeId }` or `{ workspaceId, label }`; `GET /api/v1/workspaces/:id/time-summary?period=day|week|month|all&date=`.
 - Database migration `0018_timer_without_task` (the task of an entry becomes optional; entries and timers keep their workspace and a label; existing rows get their workspace from their task).
 - Tests: `time-period.test.ts` (periods, cutting time into days), `time-tracking.test.ts` (timer without a task, Warsaw midnight, the 24-hour limit, totals for day, week, month and all time, the other person's and workspace's time kept out) and the clock.
+
+## 0.25.0 — Getting started (onboarding)
+
+- **New "Start" section** (second in the menu): the way from the first login to a working day, in two blocks. **The platform in four steps:** time zone, a first task, the timer, a first note. **Working with people:** a dream and goal, the list of 100, moving people through the funnel, a next step for everyone, scripts and auto-plans, the week's targets, a first day by the plan; and, for those who want to go further, groups and partners with a sponsor.
+- **Steps tick themselves** from what you have done (counted from your own data), with counts for the steps that are counts (for example 40 of 100 names). Each step says what to do and why, and opens the place to do it. A step can be **skipped** and brought back; optional steps never hold the progress back.
+- **My dream and goal:** write the dream, why it matters, the date, and how many clients and partners it takes. The **distance to the dream** is measured from the clients and partners you have won (your own people in the Client and Partner stages): the share of the way, how many are left, the days left (or how long past the date) and the weekly pace needed.
+- **A reminder on My day** while getting started is not finished: how far you are, the next step with a button to do it, and a link to all steps. It can be hidden (and shown again) from the Start page.
+- Without CRM access only the platform steps and the dream are shown.
+- **API:** `GET /api/v1/workspaces/:id/onboarding`, `PUT …/onboarding/goal`, `POST …/onboarding/skip`, `POST …/onboarding/hide`.
+- Database migration `0019_onboarding` (the dream and goal; skipped steps and the hidden list).
+- Tests: `onboarding.test.ts` (the steps, the distance to the dream) and `onboarding.test.ts` in integration (each step ticking by data, the dream and its distance, skipping and hiding, a member without CRM, strangers).

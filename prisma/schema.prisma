@@ -129,16 +129,18 @@ enum IntegrationKind {
 
 model User {
   notes               Note[]
-  id                  String    @id @default(cuid())
+  personalGoals       PersonalGoal[]
+  onboardingStates    OnboardingState[]
+  id                  String            @id @default(cuid())
   name                String?
-  email               String    @unique
+  email               String            @unique
   emailVerified       DateTime?
   avatar              String?
   image               String? // Auth.js OAuth avatar; `avatar` is user-chosen
-  timezone            String    @default("UTC")
-  locale              String    @default("en")
+  timezone            String            @default("UTC")
+  locale              String            @default("en")
   skills              String[]
-  createdAt           DateTime  @default(now())
+  createdAt           DateTime          @default(now())
   /// Set when the account was erased; the row stays as an anonymous "Deleted user" so work they authored keeps its structure.
   deletedAt           DateTime?
   /// Set while a deletion is scheduled; the account is erased once the grace period has passed.
@@ -228,6 +230,8 @@ model Workspace {
   networkGoals     NetworkGoal[]
   notes            Note[]
   timeEntries      TimeEntry[]
+  personalGoals    PersonalGoal[]
+  onboardingStates OnboardingState[]
   runningTimers    RunningTimer[]
   pipelines        Pipeline[]
   lostReasons      LostReason[]
@@ -585,6 +589,39 @@ model ContactGroup {
   contacts  Contact[]
 
   @@index([workspaceId, parentId])
+}
+
+/// A person's dream and what it takes: written once at the start and measured against the funnel (clients and partners won, days left).
+model PersonalGoal {
+  id             String    @id @default(cuid())
+  workspaceId    String
+  userId         String
+  dream          String    @default("")
+  why            String    @default("")
+  targetDate     DateTime? @db.Date
+  targetClients  Int?
+  targetPartners Int?
+  updatedAt      DateTime  @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+}
+
+/// Which onboarding steps a person set aside, and whether they put the whole list away. What is done is read from their data, not stored.
+model OnboardingState {
+  id          String   @id @default(cuid())
+  workspaceId String
+  userId      String
+  skipped     String[] @default([])
+  hidden      Boolean  @default(false)
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
 }
 
 enum NoteKind {

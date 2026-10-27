@@ -20,7 +20,7 @@ describe("sidebar navigation", () => {
   const flat = (showCrm: boolean) => navGroups("acme", showCrm, t).flatMap((g) => g.items.map((i) => i.href));
 
   it("points every link into the workspace", () => {
-    expect(flat(true)).toEqual(["/w/acme", "/w/acme/tasks", "/w/acme/projects", "/w/acme/calendar", "/w/acme/time", "/w/acme/notes", "/w/acme/crm", "/w/acme/reports"]);
+    expect(flat(true)).toEqual(["/w/acme", "/w/acme/start", "/w/acme/tasks", "/w/acme/projects", "/w/acme/calendar", "/w/acme/time", "/w/acme/notes", "/w/acme/crm", "/w/acme/reports"]);
   });
 
   it("hides customers for people who may not read the CRM", () => {

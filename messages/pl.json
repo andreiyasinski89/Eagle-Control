@@ -28,7 +28,8 @@
     "groupCustomers": "Klienci",
     "groupInsights": "Analizy",
     "myTasks": "Moje zadania",
-    "notes": "Notatki i linki"
+    "notes": "Notatki i linki",
+    "start": "Start"
   },
   "auth": {
     "title": "Zaloguj się do MeetOwl",
@@ -1511,5 +1512,102 @@
     "notFound": "Tej notatki już nie ma.",
     "limit": "Możesz mieć do 500 notatek i linków.",
     "failed": "Coś poszło nie tak. Spróbuj ponownie."
+  },
+  "start": {
+    "title": "Start",
+    "subtitle": "Od pierwszego logowania do produktywnego dnia pracy. Kroki zaznaczają się same, gdy je wykonujesz.",
+    "progress": "{done} z {total} kroków",
+    "allDone": "Wszystko gotowe. Trzymaj codzienny rytm.",
+    "next": "Następny krok",
+    "open": "Otwórz",
+    "skip": "Pomiń",
+    "unskip": "Przywróć",
+    "skippedBadge": "pominięty",
+    "optionalBadge": "opcjonalny",
+    "doneBadge": "gotowe",
+    "hide": "Ukryj w „Moim dniu”",
+    "show": "Pokazuj w „Moim dniu”",
+    "hiddenNote": "Przypomnienie w „Moim dniu” jest ukryte.",
+    "allSteps": "Wszystkie kroki",
+    "blockPlatform": "Platforma w czterech krokach",
+    "blockPlatformHint": "Szybkie spojrzenie na podstawy.",
+    "blockBusiness": "Praca z ludźmi",
+    "blockBusinessHint": "Od listy nazwisk do codziennej rutyny i rosnącego zespołu.",
+    "dreamTitle": "Moje marzenie i cel",
+    "dreamHint": "Napisz, dokąd zmierzasz i czego to wymaga. Dystans do marzenia liczy się z Twojego lejka.",
+    "dream": "Moje marzenie",
+    "dreamPlaceholder": "Dom nad morzem, wolność finansowa, podróż dookoła świata…",
+    "why": "Dlaczego to dla mnie ważne",
+    "whyPlaceholder": "Dla rodziny, dla wolności, żeby udowodnić sobie…",
+    "targetDate": "Do kiedy",
+    "targetClients": "Ilu klientów potrzebuję",
+    "targetPartners": "Ilu partnerów potrzebuję",
+    "saveDream": "Zapisz",
+    "saved": "Zapisano",
+    "distanceTitle": "Dystans do marzenia",
+    "distancePercent": "Przebyte {n}% drogi",
+    "clientsLeft": "{left, plural, =0 {Klienci: gotowe} one {Został # klient} few {Zostało # klientów} many {Zostało # klientów} other {Zostało # klienta}} ({have} z {target})",
+    "partnersLeft": "{left, plural, =0 {Partnerzy: gotowe} one {Został # partner} few {Zostało # partnerów} many {Zostało # partnerów} other {Zostało # partnera}} ({have} z {target})",
+    "daysLeft": "{n, plural, one {Został # dzień} few {Zostały # dni} many {Zostało # dni} other {Zostało # dnia}}",
+    "daysOver": "Termin minął {n, plural, one {# dzień} few {# dni} many {# dni} other {# dnia}} temu. Przesuń go lub idź dalej.",
+    "pace": "Potrzebne tempo: {clients} klientów i {partners} partnerów tygodniowo.",
+    "noTargets": "Wpisz, ilu klientów i partnerów potrzebujesz, a dystans pojawi się tutaj.",
+    "cardTitle": "Start: {done} z {total}",
+    "cardNext": "Dalej: {step}",
+    "noCrm": "Kroki pracy z ludźmi pojawią się, gdy będziesz miał dostęp do CRM.",
+    "step": {
+      "profile": {
+        "title": "Profil i strefa czasowa",
+        "text": "Ustaw strefę czasową w ustawieniach, aby dni, tygodnie i przypomnienia liczyły się według Twojego zegara."
+      },
+      "firstTask": {
+        "title": "Pierwsze zadanie",
+        "text": "Utwórz zadanie lub listę zadań: tak wyglądają tu rzeczy do zrobienia."
+      },
+      "timer": {
+        "title": "Włącz stoper",
+        "text": "Uruchom i zatrzymaj stoper przynajmniej raz. Pokaże, na co idzie Twój czas."
+      },
+      "notes": {
+        "title": "Pierwsza notatka",
+        "text": "Napisz notatkę lub zapisz przydatny link. Notatnik jest prywatny."
+      },
+      "dream": {
+        "title": "Marzenie i cel",
+        "text": "Napisz, dokąd zmierzasz, po co, do kiedy i ilu klientów i partnerów to wymaga. Aplikacja pokaże dystans do celu."
+      },
+      "list": {
+        "title": "Lista 100",
+        "text": "Wypisz wszystkich, których znasz, bez filtrowania: sortowanie potem. Na start wystarczy 25 nazwisk, cel to 100."
+      },
+      "funnel": {
+        "title": "Prowadź ludzi przez lejek",
+        "text": "Przenieś co najmniej 5 osób poza „Nowy lead”: napisz do nich, zaproś, rozgrzej."
+      },
+      "nextSteps": {
+        "title": "Następny krok dla każdego",
+        "text": "Dla co najmniej 5 osób wpisz, co robić dalej i kiedy. Wtedy pojawią się w planie dnia we właściwym dniu."
+      },
+      "scripts": {
+        "title": "Skrypty i autoplany",
+        "text": "Napisz pierwszy gotowy tekst i włącz autoplan dla etapu, aby następny krok wypełniał się sam."
+      },
+      "weekGoals": {
+        "title": "Cele tygodnia",
+        "text": "Ustaw cele tygodnia (nawiązane kontakty, prezentacje, klienci). Fakty aplikacja liczy sama."
+      },
+      "firstDay": {
+        "title": "Pierwszy dzień według planu",
+        "text": "Zamknij 3 kroki z listy „Do zrobienia dziś”. Tak zaczyna się codzienny rytm."
+      },
+      "groups": {
+        "title": "Grupy",
+        "text": "Podziel długą listę na grupy i podgrupy: zimny rynek, ciepły rynek, miasto."
+      },
+      "partners": {
+        "title": "Partnerzy i zespół",
+        "text": "Przenieś pierwszą osobę na etap Partner i wskaż jej sponsora: drzewo zespołu i mapa sieci zbudują się same."
+      }
+    }
   }
 }

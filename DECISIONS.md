@@ -153,3 +153,8 @@
 | 149 | Time may have no task; it carries a label and its workspace | Much of the work (calls, messages, study) has no task. Making people invent one would make them stop using the timer. |
 | 150 | A day of time is the day in the person's own time zone; a timer across midnight is split | Totals by day, week and month must match what the person lived; the UTC day put late evenings on the wrong day. |
 | 151 | Time with no task stays out of client reports | A client is billed for work on their projects; time with no task has no project to belong to. |
+| 152 | The steps are read from the person's data, not ticked by hand | A checklist that depends on being ticked is dropped or lied to; what the person has done is already in the workspace. |
+| 153 | Platform steps come first and are short; the rest is about working with people | The onboarding is for any new user, with the weight on the MLM work the product is shaped around. |
+| 154 | The list of 100 counts as started at 25 names and shows the way to 100 | Asking for a hundred before a step is done would leave the first step open for weeks; 25 is a real start. |
+| 155 | The distance to the dream counts the person's own clients and partners | The dream is personal; people handed to others or won by the line belong to the team's picture, not to this one. |
+| 156 | Groups and partners are optional steps | They matter once the list is long and a team exists; they must not make a new person feel behind. |

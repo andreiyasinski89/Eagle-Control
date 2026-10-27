@@ -13,6 +13,7 @@ import { zonedParts } from "@/modules/views/tz";
 import { cn } from "@/lib/utils";
 import { shortDate } from "./format";
 import type { DealCardDto } from "./types";
+import { OnboardingCard } from "@/features/start/OnboardingCard";
 
 interface AgileTask {
   id: string;
@@ -233,6 +234,7 @@ export function MyDayView({ workspaceId, slug, workspaceName, userName }: { work
           {workspaceName} · {data ? new Date(data.date).toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }) : ""}
         </p>
       </div>
+      <OnboardingCard workspaceId={workspaceId} slug={slug} />
       {isLoading && (
         <div className="flex flex-col gap-4" data-testid="myday-loading">
           <div className="grid gap-3 sm:grid-cols-3">
