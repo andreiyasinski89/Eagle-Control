@@ -76,12 +76,12 @@ describe("entries", () => {
 
 describe("timer", () => {
   it("runs one timer per person; starting another logs the first", async () => {
-    const s = await startTimer(member, task, at("2026-10-26T09:00:00"));
+    const s = await startTimer(member, { nodeId: task }, at("2026-10-26T09:00:00"));
     expect(s.stopped).toBeNull();
     expect((await currentTimer(holder.db, member, at("2026-10-26T09:10:00")))?.seconds).toBe(600);
     const sprint = (await getTree(owner, projectId)).nodes.find((n) => n.type === "SPRINT")!;
     const other = (await transact(owner, (ctx) => createNode(ctx, { parentId: sprint.id, type: "TASK", title: "Other" }))).result.id;
-    const s2 = await startTimer(member, other, at("2026-10-26T09:30:00"));
+    const s2 = await startTimer(member, { nodeId: other }, at("2026-10-26T09:30:00"));
     expect(s2.stopped).toMatchObject({ nodeId: task, minutes: 30 });
     const stop = await stopTimer(member, at("2026-10-26T09:30:10"));
     expect(stop.entry).toBeNull();

@@ -85,7 +85,7 @@ describe("My day: plan against fact", () => {
     const oldDone = await act("TASK", "Old follow-up finished today", "2026-11-01T10:00:00.000Z", false);
     await raw.crmActivity.update({ where: { id: oldDone.id }, data: { completedAt: new Date("2026-11-03T11:00:00.000Z") } });
     // time tracked today
-    await raw.timeEntry.create({ data: { nodeId: epicId, userId: owner, minutes: 95, date: new Date("2026-11-03T00:00:00.000Z") } });
+    await raw.timeEntry.create({ data: { nodeId: epicId, workspaceId: ws.id, userId: owner, minutes: 95, date: new Date("2026-11-03T00:00:00.000Z") } });
 
     const { plan } = await getMyDay(owner, ws.id, NOW);
     expect(plan.tasks).toEqual({ planned: 3, done: 1 });

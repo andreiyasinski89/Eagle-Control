@@ -227,6 +227,8 @@ model Workspace {
   stageRules       StageRule[]
   networkGoals     NetworkGoal[]
   notes            Note[]
+  timeEntries      TimeEntry[]
+  runningTimers    RunningTimer[]
   pipelines        Pipeline[]
   lostReasons      LostReason[]
   templates        ProjectTemplate[]
@@ -450,18 +452,25 @@ model ActivityLog {
 }
 
 model TimeEntry {
-  id       String   @id @default(cuid())
-  nodeId   String
-  userId   String
-  minutes  Int
-  date     DateTime @db.Date
-  billable Boolean  @default(false)
-  note     String?
+  id          String   @id @default(cuid())
+  /// The task the time was spent on; none for plain "I worked on this" time.
+  nodeId      String?
+  workspaceId String
+  userId      String
+  minutes     Int
+  /// The day the time belongs to, in the person's own time zone.
+  date        DateTime @db.Date
+  billable    Boolean  @default(false)
+  note        String?
+  /// What the time was spent on, when there is no task.
+  label       String?
 
-  node Node @relation(fields: [nodeId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id])
+  node      Node?     @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id])
 
   @@index([userId, date])
+  @@index([workspaceId, userId, date])
   @@index([nodeId])
 }
 
@@ -965,12 +974,15 @@ model DealStageEvent {
 
 // At most one running timer per person.
 model RunningTimer {
-  userId    String   @id
-  nodeId    String
-  startedAt DateTime @default(now())
+  userId      String   @id
+  nodeId      String?
+  workspaceId String
+  label       String?
+  startedAt   DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  node Node @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  node      Node?     @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
 
 // A person's own connection to an external service (Google Calendar, Telegram).

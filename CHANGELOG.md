@@ -254,3 +254,14 @@
 - **API:** `GET|POST /api/v1/workspaces/:id/notes`, `GET|PATCH|DELETE /api/v1/notes/:id` (personal; not in the public API or for Claude).
 - Database migration `0017_notes`.
 - Tests: `notes.test.ts` (addresses) and `notes.test.ts` in integration (kinds, order, search, addresses, limits, privacy between members and from outsiders, removal with the workspace).
+
+## 0.24.0 — The working timer
+
+- **A Start button on every page** (top bar): press it, say what you are working on or pick one of your tasks, and the timer runs until **you** stop it. While it runs the bar shows what it is on, the clock and a Stop button. Over 8 hours it shows a warning mark (it never stops on its own).
+- **A timer with no task:** time can be spent on "calls to the list" or "reading" with no task at all. It shows in your totals, with a "no task" mark, but not in client reports.
+- **Time page, rebuilt:** a big Start/Stop at the top; four totals (**today, this week, this month, all time**) that open their period; and **Day / Week / Month / All time** tabs with arrows to go back. Each shows the total, the time per day (per month for all time) as bars, where the time went (by task or label) and the entries, which can be deleted. The old table by task and day is kept in the Week tab.
+- **Days by your own clock:** time is counted in the day of your time zone, and a timer left on over midnight is cut into both days (a day never holds more than 24 hours).
+- Starting a timer while another runs stops the first and keeps its time; under 30 seconds records nothing (as before).
+- **API:** `POST /api/v1/timer/start` takes `{ nodeId }` or `{ workspaceId, label }`; `GET /api/v1/workspaces/:id/time-summary?period=day|week|month|all&date=`.
+- Database migration `0018_timer_without_task` (the task of an entry becomes optional; entries and timers keep their workspace and a label; existing rows get their workspace from their task).
+- Tests: `time-period.test.ts` (periods, cutting time into days), `time-tracking.test.ts` (timer without a task, Warsaw midnight, the 24-hour limit, totals for day, week, month and all time, the other person's and workspace's time kept out) and the clock.

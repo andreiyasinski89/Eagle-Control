@@ -139,6 +139,7 @@ New API (under `/api/v1`): `nodes/:id/time`, `time/:id`, `timer[/start|/stop]`, 
 - **Team (CRM):** partners as a sponsor tree with the size of each line; hand people over to a partner in bulk or from the card (with an account they become the partner's own, without one you copy a handoff card), with the full history of hand-overs.
 - **Network map (CRM):** everyone on one MindMap with you in the middle, arranged by sponsors, by groups or by who works with whom; colour is the funnel stage, a press opens the card.
 - **Plan of the day (CRM):** the week against its targets (counted from what happened), everyone whose next step is due with one-press Done and next date, scripts to copy with the name filled in, auto-plans that fill the next step when a person moves into a stage, and the team's week.
+- **Working timer:** a Start button on every page, with or without a task; it runs until you stop it; time by day, week, month and all time, counted by your own clock.
 - **Notes and links:** a private notebook per person (notes that save as you type, links with a button to open them, search, pins).
 - **Schedule a call or meeting:** *Schedule contact* in the contact card (type, day, start, length); it shows in the calendar at once, in My day and in the card's *Planned* list.
 - **Time zones:** each person picks their own in Settings → Account; the calendar and the new-meeting form use it, everything stored stays UTC.

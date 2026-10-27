@@ -270,6 +270,7 @@ async function clientHours(tx: Tx, projectIds: string[]): Promise<{ total: numbe
   let total = 0;
   let billable = 0;
   for (const r of rows) {
+    if (!r.node) continue; // time with no task belongs to no client
     const pid = r.node.rootId ?? r.node.id;
     byProject[pid] = (byProject[pid] ?? 0) + r.minutes / 60;
     total += r.minutes / 60;

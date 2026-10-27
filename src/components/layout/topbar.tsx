@@ -12,7 +12,7 @@ export function Topbar({ current, shell }: { current: { id: string; slug: string
       <MobileNav {...shell} />
       <SearchButton />
       <div className="ml-auto flex items-center gap-1.5">
-        <TimerChip />
+        <TimerChip workspaceId={current.id} />
         <NotificationBell workspaceId={current.id} slug={current.slug} />
         <LocaleSwitcher />
         <ThemeToggle />

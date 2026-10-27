@@ -20,6 +20,14 @@ export function weekDays(start: Date): Date[] {
 
 export const dayKey = (d: Date) => d.toISOString().slice(0, 10);
 
+/** The clock of a running timer: "0:07", "12:05", "1:02:09". */
+export function formatClock(totalSeconds: number): string {
+  const s = Math.max(0, Math.floor(totalSeconds));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  return `${h ? `${h}:` : ""}${String(m).padStart(h ? 2 : 1, "0")}:${String(s % 60).padStart(2, "0")}`;
+}
+
 /** "1h 30m", "45m", "2h" */
 export function formatMinutes(m: number): string {
   const h = Math.floor(m / 60);

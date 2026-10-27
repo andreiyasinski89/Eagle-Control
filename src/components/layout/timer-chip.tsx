@@ -1,75 +1,54 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { Square, Timer } from "lucide-react";
+import { useState } from "react";
+import { Play, Square, Timer } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { StartTimerDialog, useRunningTimer } from "@/features/time/useTimer";
+import { formatClock } from "@/modules/time/time";
 
-interface Running {
-  nodeId: string;
-  title: string;
-  projectId: string | null;
-  slug: string;
-  startedAt: string;
-}
+/** More than this and the timer was probably forgotten: the chip says so (it never stops on its own). */
+const LONG_SECONDS = 8 * 3600;
 
-const clock = (s: number) => {
-  const h = Math.floor(s / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  return `${h ? `${h}:` : ""}${String(m).padStart(h ? 2 : 1, "0")}:${String(s % 60).padStart(2, "0")}`;
-};
-
-/** The running timer, visible on every page. Ticks locally; re-reads the server when something starts or stops it. */
-export function TimerChip() {
+/**
+ * The timer, on every page: a Start button when none runs, and when one runs, what it is on, the clock and a Stop button.
+ * It runs until the person stops it.
+ */
+export function TimerChip({ workspaceId }: { workspaceId: string }) {
   const t = useTranslations("time");
-  const [timer, setTimer] = useState<Running | null>(null);
-  const [now, setNow] = useState(() => Date.now());
+  const { timer, seconds, stop } = useRunningTimer();
+  const [starting, setStarting] = useState(false);
 
-  const load = useCallback(async () => {
-    try {
-      const res = await fetch("/api/v1/timer");
-      if (res.ok) setTimer(((await res.json()) as { timer: Running | null }).timer);
-    } catch {
-      /* offline: keep showing the last known state */
-    }
-  }, []);
-
-  useEffect(() => {
-    void load();
-    const poll = setInterval(load, 60_000);
-    window.addEventListener("meetowl:timer", load);
-    return () => {
-      clearInterval(poll);
-      window.removeEventListener("meetowl:timer", load);
-    };
-  }, [load]);
-
-  useEffect(() => {
-    if (!timer) return;
-    const tick = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(tick);
-  }, [timer]);
-
-  if (!timer) return null;
-  const seconds = Math.max(0, Math.floor((now - new Date(timer.startedAt).getTime()) / 1000));
-  const href = timer.projectId ? `/w/${timer.slug}/projects/p/${timer.projectId}?node=${timer.nodeId}` : `/w/${timer.slug}/projects`;
-
-  async function stop() {
-    await fetch("/api/v1/timer/stop", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" });
-    setTimer(null);
-    window.dispatchEvent(new Event("meetowl:timer-stopped"));
+  if (!timer) {
+    return (
+      <>
+        <button type="button" onClick={() => setStarting(true)} data-testid="timer-start" className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-sm text-muted-foreground hover:bg-muted hover:text-foreground">
+          <Play className="size-3.5" aria-hidden />
+          <span className="max-sm:sr-only">{t("start")}</span>
+        </button>
+        <StartTimerDialog open={starting} onClose={() => setStarting(false)} workspaceId={workspaceId} />
+      </>
+    );
   }
+
+  const href = timer.nodeId ? (timer.projectId ? `/w/${timer.slug}/projects/p/${timer.projectId}?node=${timer.nodeId}` : `/w/${timer.slug}/projects`) : `/w/${timer.slug}/time`;
+  const long = seconds >= LONG_SECONDS;
 
   return (
     <div data-testid="timer-chip" className="flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1 text-sm">
       <Timer className="size-4 text-primary" aria-hidden />
-      <Link href={href} className="max-w-40 truncate hover:underline" title={timer.title}>
-        {timer.title}
+      <Link href={href} className="max-w-40 truncate hover:underline max-sm:hidden" title={timer.title || t("noTask")}>
+        {timer.title || t("noTask")}
       </Link>
-      <span className="tabular-nums" aria-live="off">
-        {clock(seconds)}
+      <span className="tabular-nums" aria-live="off" data-testid="timer-clock">
+        {formatClock(seconds)}
       </span>
-      <button type="button" onClick={() => void stop()} aria-label={t("stop")} className="rounded-full p-1 hover:bg-card">
+      {long && (
+        <span className="text-xs text-[var(--health-yellow)]" title={t("longRunning")} data-testid="timer-long">
+          ⚠
+        </span>
+      )}
+      <button type="button" onClick={() => void stop()} aria-label={t("stop")} title={t("stop")} data-testid="timer-stop" className="rounded-full p-1 hover:bg-card">
         <Square className="size-3.5 fill-current" />
       </button>
     </div>

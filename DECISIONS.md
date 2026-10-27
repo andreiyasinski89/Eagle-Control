@@ -149,3 +149,7 @@
 | 145 | A note saves itself and flushes when you leave it | A notepad that asks to be saved is a form. Edits are sent after a short pause, and when the note closes or the page hides. |
 | 146 | Only http and https addresses become links | A note may hold anything a person pastes; a "javascript:" address must never become a clickable thing. |
 | 147 | Notes are not in the public API or the Claude connector | They are personal; handing a token or an assistant a person's private notebook is a decision for a later, explicit step. |
+| 148 | The timer runs until the person stops it, and only warns when it has run long | An automatic stop would silently lose or invent time; the person knows if they forgot, and a mark in the bar reminds them. |
+| 149 | Time may have no task; it carries a label and its workspace | Much of the work (calls, messages, study) has no task. Making people invent one would make them stop using the timer. |
+| 150 | A day of time is the day in the person's own time zone; a timer across midnight is split | Totals by day, week and month must match what the person lived; the UTC day put late evenings on the wrong day. |
+| 151 | Time with no task stays out of client reports | A client is billed for work on their projects; time with no task has no project to belong to. |

@@ -116,7 +116,7 @@ export async function exportAccount(userId: string, code: string, now = new Date
     nodesAssignedToYou: assigned,
     comments: comments.map((c) => ({ id: c.id, on: c.node.title, body: c.body, createdAt: c.createdAt })),
     attachments: attachments.map((a) => ({ id: a.id, fileName: a.fileName, mime: a.mime, size: a.size, on: a.node.title, createdAt: a.createdAt })),
-    timeEntries: time.map((t) => ({ on: t.node.title, date: t.date, minutes: t.minutes, billable: t.billable, note: t.note })),
+    timeEntries: time.map((t) => ({ on: t.node?.title ?? t.label ?? null, date: t.date, minutes: t.minutes, billable: t.billable, note: t.note })),
     crmActivities: crmActs.map((a) => ({ type: a.type, subject: a.subject, body: a.body, dueAt: a.dueAt, completedAt: a.completedAt, createdAt: a.createdAt })),
     runningTimer: timer ? { startedAt: timer.startedAt } : null,
     reminders: reminders.map((r) => ({ remindAt: r.remindAt, channel: r.channel, done: r.done })),

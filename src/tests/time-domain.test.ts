@@ -64,3 +64,10 @@ describe("summarize", () => {
     expect(summarize([], "project", () => 1)).toEqual([]);
   });
 });
+
+import { formatClock } from "@/modules/time/time";
+describe("the clock of a running timer", () => {
+  it("shows minutes and seconds, and hours when there are some", () => {
+    expect([0, 7, 65, 725, 3600, 3729, -5].map(formatClock)).toEqual(["0:00", "0:07", "1:05", "12:05", "1:00:00", "1:02:09", "0:00"]);
+  });
+});

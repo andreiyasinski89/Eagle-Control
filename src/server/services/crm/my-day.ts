@@ -89,7 +89,7 @@ export async function getMyDay(userId: string, workspaceId: string, now = new Da
       where: { toStatus: "DONE", at: { gte: dayFrom, lt: dayTo }, node: { workspaceId, assigneeId: userId, archivedAt: null, dueDate: { lt: start }, ...(reachable ? { rootId: { in: reachable } } : {}) } },
       select: { nodeId: true },
     }),
-    db.timeEntry.aggregate({ where: { userId, date: start, node: { workspaceId } }, _sum: { minutes: true } }),
+    db.timeEntry.aggregate({ where: { userId, workspaceId, date: start }, _sum: { minutes: true } }),
   ]);
   const taskPair = { planned: plannedTaskRows.length, done: plannedTaskRows.filter((r) => r.status === "DONE" || r.progress >= 100).length };
   const nowMs = now.getTime();
