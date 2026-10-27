@@ -88,6 +88,20 @@ export const healthOverrideSchema = z.object({
   note: z.string().trim().min(3, "A comment is required").max(1000),
 });
 
+/** Tasks with their subtasks, created together under an epic or a sprint. */
+export const createTaskTreeSchema = z.object({
+  parentId: z.string().min(1),
+  tasks: z
+    .array(z.object({ title: z.string().trim().min(1).max(200), subtasks: z.array(z.string().trim().min(1).max(200)).max(30).default([]) }))
+    .min(1)
+    .max(40)
+    .refine((t) => t.reduce((n, x) => n + 1 + x.subtasks.length, 0) <= 100, "At most 100 tasks and subtasks at once"),
+  /** Given to every task and subtask; omitted = unassigned. */
+  assigneeId: z.string().nullable().optional(),
+  /** A deadline for every task and subtask; omitted = none. */
+  dueDate: z.string().datetime().nullable().optional(),
+});
+export type CreateTaskTreeInput = z.infer<typeof createTaskTreeSchema>;
 export type CreateNodeInput = z.infer<typeof createNodeSchema>;
 export type PatchNodeInput = z.infer<typeof patchNodeSchema>;
 export type MoveNodeInput = z.infer<typeof moveNodeSchema>;

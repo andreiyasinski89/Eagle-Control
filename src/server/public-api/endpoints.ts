@@ -1,7 +1,7 @@
 import { z, type ZodTypeAny } from "zod";
 import { db } from "@/server/db";
 import { ApiError, notFound } from "@/server/http/errors";
-import { createNodeSchema, nodeTypeSchema, patchNodeSchema } from "@/modules/nodes/schemas";
+import { createNodeSchema, createTaskTreeSchema, nodeTypeSchema, patchNodeSchema } from "@/modules/nodes/schemas";
 import { createComment, createCommentSchema, listComments } from "@/server/services/comments";
 import { activitySchema, createActivity, listActivities, listActivitiesSchema } from "@/server/services/crm/activities";
 import { companyFieldsSchema, createCompany, createCompanySchema, getCompany, listCompanies, listCompaniesSchema, patchCompanySchema, updateCompany } from "@/server/services/crm/companies";
@@ -10,6 +10,7 @@ import { createDeal, createDealSchema, getDeal, listDeals, listDealsSchema, move
 import { loadNode } from "@/server/services/nodes/access";
 import { nodeDto } from "@/server/services/nodes/batch";
 import { archiveNode, createNode, patchNode, transact } from "@/server/services/nodes/ops";
+import { createTaskTree } from "@/server/services/nodes/task-tree";
 import { getNodeDetail, getTree, listProjects, searchNodes } from "@/server/services/nodes/queries";
 import { calendarQuerySchema, workspaceCalendar } from "@/server/services/nodes/views";
 import { getMyDay } from "@/server/services/crm/my-day";
@@ -96,6 +97,18 @@ export const endpoints: Endpoint[] = [
       await inWorkspace(t, body.parentId);
       const { result } = await transact(t.userId, (ctx) => createNode(ctx, body));
       return one(nodeDto(result), 201);
+    },
+  }),
+  ep({
+    method: "POST",
+    path: "/nodes/task-tree",
+    summary: "Create several tasks, each with its own subtasks, under an epic or a sprint",
+    tag: "Nodes",
+    body: createTaskTreeSchema,
+    run: async ({ t, body }) => {
+      await inWorkspace(t, body.parentId);
+      const { result } = await transact(t.userId, (ctx) => createTaskTree(ctx, body));
+      return one(result, 201);
     },
   }),
   ep({
