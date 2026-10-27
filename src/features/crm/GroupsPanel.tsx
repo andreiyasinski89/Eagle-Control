@@ -10,6 +10,7 @@ import { FormField, Modal, selectClass } from "@/components/ui/modal";
 import { api, ApiFailure } from "@/features/mindmap/api";
 import { GROUP_COLORS, MAX_GROUP_DEPTH, descendantIds, type GroupNode } from "@/modules/crm/groups";
 import { cn } from "@/lib/utils";
+import { SharePanel } from "./SharePanel";
 import { useGroups, type GroupDto } from "./useGroups";
 
 /** "all" = everyone, "none" = people in no group, otherwise a group id. */
@@ -92,6 +93,7 @@ export function GroupsPanel({ workspaceId, canWrite, value, onChange }: { worksp
 
 function GroupDialog({ workspaceId, editing, onClose, onGone, onCreated }: { workspaceId: string; editing: Editing; onClose: () => void; onGone: (id: string) => void; onCreated: (id: string) => void }) {
   const t = useTranslations("crm");
+  const ts = useTranslations("share");
   const tc = useTranslations("common");
   const qc = useQueryClient();
   const { data, options } = useGroups(workspaceId);
@@ -168,6 +170,12 @@ function GroupDialog({ workspaceId, editing, onClose, onGone, onCreated }: { wor
             ))}
           </div>
         </div>
+        {g && (
+          <div className="flex flex-col gap-1 text-sm">
+            <span className="font-medium">{ts("title")}</span>
+            <SharePanel kind="group" id={g.id} />
+          </div>
+        )}
         {error && (
           <p role="alert" className="text-sm text-danger">
             {error}

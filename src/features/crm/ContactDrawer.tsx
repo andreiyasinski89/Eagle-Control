@@ -12,6 +12,7 @@ import { Attachments } from "@/features/drawer/Attachments";
 import { Comments } from "@/features/drawer/Comments";
 import type { NodeDetail } from "@/features/drawer/types";
 import { api, ApiFailure } from "@/features/mindmap/api";
+import { SharePanel } from "./SharePanel";
 import { useMapStore } from "@/features/mindmap/store";
 import { useTimeZone } from "@/features/views/useTimeZone";
 import { ActivityDialog } from "./DealDialogs";
@@ -29,6 +30,7 @@ import { zonedParts } from "@/modules/views/tz";
 export interface ContactDetail {
   id: string;
   name: string;
+  access: { canEdit: boolean; canShare: boolean };
   firstName: string;
   lastName: string | null;
   position: string | null;
@@ -157,7 +159,7 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
   const shell = "z-40 w-[440px] shrink-0 overflow-y-auto border-l border-border bg-card max-md:fixed max-md:inset-0 max-md:w-full";
   if (isError) return <aside className={`${shell} p-4 text-sm text-muted-foreground`}>{t("contactGone")}</aside>;
   if (!c) return <aside className={`${shell} p-4`}><SkeletonRows rows={5} /></aside>;
-  const dis = !canWrite;
+  const dis = !canWrite || !c.access.canEdit;
   const cold = !c.lastContactedAt || Date.now() - new Date(c.lastContactedAt).getTime() > 30 * 86_400_000;
 
   return (
@@ -359,6 +361,12 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
           </ul>
         )}
       </Section>
+
+      {c.access.canShare && (
+        <Section title={t("access")}>
+          <SharePanel kind="contact" id={contactId} />
+        </Section>
+      )}
 
       <Section title={t("tags")}>
         <NodeTags nodeId={contactId} workspaceId={workspaceId} current={c.tags} canWrite={canWrite} onChange={refresh} />

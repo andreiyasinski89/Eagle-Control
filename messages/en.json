@@ -801,7 +801,8 @@
       "TRAVEL": "Travel",
       "BUSINESS": "Business"
     },
-    "anyPriority": "Any priority"
+    "anyPriority": "Any priority",
+    "access": "Who has access"
   },
   "myday": {
     "title": "My day",
@@ -1655,5 +1656,21 @@
     "deleteConfirm": "Delete the team {name}? Its members keep their own access.",
     "empty": "No teams yet.",
     "exists": "A team with this name is already there"
+  },
+  "share": {
+    "title": "Who has access",
+    "nobody": "Nobody else has been given access.",
+    "giveTo": "Give access to…",
+    "give": "Give",
+    "level": "Access",
+    "VIEW": "View",
+    "EDIT": "Edit",
+    "revoke": "Take access away from",
+    "team": "Team",
+    "noCandidates": "No one left to give access to. Members need CRM access first (Settings → Members).",
+    "error": "Something went wrong",
+    "error_grantee_no_crm": "Give this member access to the CRM first (Settings → Members).",
+    "error_already_sees_all": "This member already sees everything.",
+    "error_self_share": "Access is given to somebody else."
   }
 }

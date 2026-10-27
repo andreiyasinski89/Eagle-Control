@@ -41,6 +41,8 @@ export async function loadNode(tx: Tx, userId: string, nodeId: string, action: A
     if (node.type === "CONTACT" ? !(await contactVisible(tx, membership, node.id)) : !can(membership, "crm:full")) throw notFound("node");
     const writes = action !== "workspace:read" && action !== "comment:write";
     if (writes && !can(membership, "crm:write")) throw forbidden();
+    // Seen through a view-only share: readable, not changeable.
+    if (writes && node.type === "CONTACT" && !(await contactVisible(tx, membership, node.id, { write: true }))) throw forbidden();
     return { node, membership, projectId };
   }
   await assertProjectReachable(tx, membership, projectId);

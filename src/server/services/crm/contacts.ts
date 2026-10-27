@@ -7,8 +7,9 @@ import { checkLimit } from "@/modules/plans";
 import { contactKeys, findDuplicateGroups } from "@/modules/crm/dedupe";
 import { parsePriority, PRIORITIES, STAGES, TEMPERATURES } from "@/modules/crm/people";
 import { normalizeEmail, normalizePhone, uniqueNonNull } from "@/modules/crm/normalize";
+import { can } from "@/server/policies";
 import { loadWorkspaceMember, logActivity, type Tx } from "@/server/services/nodes/access";
-import { contactScope, withScope } from "./scope";
+import { contactScope, contactVisible, withScope } from "./scope";
 import { deleteObject } from "@/server/storage";
 import { assertWorkspaceMember, fullName, invalid, loadCrmNode, pageArgs, toDate } from "./common";
 import { assertGroup } from "./groups";
@@ -408,6 +409,8 @@ export async function getContact(userId: string, contactId: string) {
 export async function getContactIn(tx: Tx, userId: string, contactId: string) {
   const node = await loadCrmNode(tx, userId, contactId, "CONTACT");
   const c = await tx.contact.findUniqueOrThrow({ where: { nodeId: contactId }, include: { company: { select: { legalName: true } } } });
+  const me = await tx.membership.findUniqueOrThrow({ where: { userId_workspaceId: { userId, workspaceId: node.workspaceId } } });
+  const canEdit = can(me, "crm:write") && (await contactVisible(tx, me, contactId, { write: true }));
   const [deals, consent, tags] = await Promise.all([
     tx.deal.findMany({ where: { primaryContactId: contactId, node: { archivedAt: null } }, include: { node: { select: { title: true } }, stage: true } }),
     tx.consentRecord.findMany({ where: { contactNodeId: contactId }, orderBy: { givenAt: "desc" } }),
@@ -416,6 +419,8 @@ export async function getContactIn(tx: Tx, userId: string, contactId: string) {
   return {
     id: node.id,
     name: node.title,
+    /** What this person may do with the card: change it, and give or take away access to it. */
+    access: { canEdit, canShare: can(me, "crm:full") || (canEdit && c.ownerId === userId) },
     firstName: c.firstName,
     lastName: c.lastName,
     position: c.position,

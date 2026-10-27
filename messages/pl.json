@@ -801,7 +801,8 @@
       "TRAVEL": "Podróże",
       "BUSINESS": "Biznes"
     },
-    "anyPriority": "Dowolny priorytet"
+    "anyPriority": "Dowolny priorytet",
+    "access": "Kto ma dostęp"
   },
   "myday": {
     "title": "Mój dzień",
@@ -1655,5 +1656,21 @@
     "deleteConfirm": "Usunąć zespół {name}? Osobisty dostęp członków zostaje.",
     "empty": "Brak zespołów.",
     "exists": "Zespół o tej nazwie już istnieje"
+  },
+  "share": {
+    "title": "Kto ma dostęp",
+    "nobody": "Nikt inny nie ma dostępu.",
+    "giveTo": "Daj dostęp…",
+    "give": "Daj",
+    "level": "Dostęp",
+    "VIEW": "Podgląd",
+    "EDIT": "Edycja",
+    "revoke": "Odbierz dostęp",
+    "team": "Zespół",
+    "noCandidates": "Nie ma komu dać dostępu. Członek musi najpierw mieć dostęp do CRM (Ustawienia → Członkowie).",
+    "error": "Coś poszło nie tak",
+    "error_grantee_no_crm": "Najpierw daj temu członkowi dostęp do CRM (Ustawienia → Członkowie).",
+    "error_already_sees_all": "Ten członek już widzi wszystko.",
+    "error_self_share": "Dostęp daje się komuś innemu."
   }
 }

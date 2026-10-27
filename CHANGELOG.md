@@ -305,3 +305,11 @@
 - **Settings → Teams** (owners and admins): make a team with a name, a leader and members, and choose what it gives them in the CRM: *nothing*, *members see each other's people* (a shared pool: what the members own and what their partner cards hold), or *everything*.
 - A member's level is the better of what they were given personally and what their teams give; a team can open the CRM to a member who had none. Taking someone out of a team, loosening it or deleting it takes the grant away at once. Members show "team: ..." next to their level.
 - Removing a member from the workspace takes them out of their teams and clears a leader's seat. Team changes are written to the history. Migration `0021_teams`.
+
+## 0.30.0 — Access to single people and groups (account management, part 3)
+
+- **Who has access** in a person's card: give a member or a team *view* or *edit* access to that one person, and take it away with one press. The same in the edit window of a group: a share on a group covers its people and those of its subgroups.
+- A person's card shows only what the viewer may do: with view access the fields are locked, and changing the card, handing it over, putting it in a group or writing a note about it is refused.
+- Who may give access: owners and admins (everything); the owner of a person (their own people); groups only by those who see the whole CRM. The receiver must be a member who sees part of the CRM (a member who sees everything needs no share, one with no CRM must be given CRM access first).
+- Deleting a group, or taking the member's CRM access away, ends the access. Every grant and revoke is written to the history. Migration `0022_contact_shares`.
+- This completes account management: levels (0.28), teams (0.29), single people and groups (0.30).

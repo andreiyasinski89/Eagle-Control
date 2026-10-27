@@ -89,9 +89,9 @@ export async function transferContacts(userId: string, workspaceId: string, inpu
   return db.$transaction(
     async (tx) => {
       const member = await loadWorkspaceMember(tx, userId, workspaceId, "crm:write");
-      const scope = await contactScope(tx, member);
+      const scope = await contactScope(tx, member, { write: true });
       const to = input.toPartnerId ? await loadPartner(tx, workspaceId, input.toPartnerId, "invalid_partner") : null;
-      if (to && !(await contactVisible(tx, member, to.nodeId))) throw invalid("invalid_partner", "Partner not found in this workspace");
+      if (to && !(await contactVisible(tx, member, to.nodeId, { write: true }))) throw invalid("invalid_partner", "Partner not found in this workspace");
       const people = await tx.contact.findMany({ where: withScope({ workspaceId, nodeId: { in: input.ids }, node: { archivedAt: null } }, scope), select: { nodeId: true, heldById: true, ownerId: true, companyId: true, heldBy: { select: { linkedUserId: true, firstName: true, lastName: true } } } });
       const moving = people.filter((p) => p.heldById !== (to?.nodeId ?? null) && p.nodeId !== to?.nodeId);
       if (moving.length === 0) return { moved: 0, skipped: input.ids.length, ids: [] as string[] };

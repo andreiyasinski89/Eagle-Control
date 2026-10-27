@@ -98,7 +98,7 @@ export async function assignToGroup(userId: string, workspaceId: string, input: 
   return db.$transaction(async (tx) => {
     const member = await loadWorkspaceMember(tx, userId, workspaceId, "crm:write");
     await assertGroup(tx, workspaceId, input.groupId);
-    const r = await tx.contact.updateMany({ where: withScope({ workspaceId, nodeId: { in: input.ids }, node: { archivedAt: null } }, await contactScope(tx, member)), data: { groupId: input.groupId } });
+    const r = await tx.contact.updateMany({ where: withScope({ workspaceId, nodeId: { in: input.ids }, node: { archivedAt: null } }, await contactScope(tx, member, { write: true })), data: { groupId: input.groupId } });
     await logActivity(tx, { workspaceId, nodeId: null, actorId: userId, action: "contact_group.assigned", diff: { groupId: input.groupId, people: r.count } });
     return { updated: r.count };
   });

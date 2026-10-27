@@ -30,6 +30,12 @@ enum CrmScope {
   ALL
 }
 
+/// What a share lets the person do with a contact or a group of contacts.
+enum ShareLevel {
+  VIEW
+  EDIT
+}
+
 enum NodeType {
   PROJECT
   EPIC
@@ -162,6 +168,7 @@ model User {
   sessions          Session[]
   memberships       Membership[]
   teamMemberships   TeamMember[]
+  contactShares     ContactShare[]
   projectAccess     ProjectMember[]
   savedFilters      SavedFilter[]
   assignedNodes     Node[]                   @relation("NodeAssignee")
@@ -231,6 +238,7 @@ model Workspace {
   memberships      Membership[]
   invitations      Invitation[]
   teams            Team[]
+  contactShares    ContactShare[]
   nodes            Node[]
   tags             Tag[]
   contactGroups    ContactGroup[]
@@ -287,6 +295,7 @@ model Team {
 
   workspace Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   members   TeamMember[]
+  shares    ContactShare[]
 
   @@unique([workspaceId, name])
   @@index([workspaceId])
@@ -301,6 +310,30 @@ model TeamMember {
 
   @@id([teamId, userId])
   @@index([userId])
+}
+
+/// Access to one contact, or to a whole group of contacts (its subgroups included), given to one member or to a team.
+model ContactShare {
+  id            String     @id @default(cuid())
+  workspaceId   String
+  contactId     String?
+  groupId       String?
+  userId        String?
+  teamId        String?
+  level         ShareLevel @default(VIEW)
+  grantedById   String?
+  createdAt     DateTime   @default(now())
+
+  workspace Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  contact   Contact?      @relation(fields: [contactId], references: [nodeId], onDelete: Cascade)
+  group     ContactGroup? @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user      User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team      Team?         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, userId])
+  @@index([workspaceId, teamId])
+  @@index([contactId])
+  @@index([groupId])
 }
 
 model Invitation {
@@ -600,6 +633,7 @@ model Contact {
   activities      CrmActivity[]
   stageEvents     ContactStageEvent[]
   transfers       ContactTransfer[]
+  shares          ContactShare[]
 
   @@index([companyId])
   @@index([workspaceId, stage])
@@ -626,6 +660,7 @@ model ContactGroup {
   parent    ContactGroup?  @relation("GroupTree", fields: [parentId], references: [id], onDelete: SetNull)
   children  ContactGroup[] @relation("GroupTree")
   contacts  Contact[]
+  shares    ContactShare[]
 
   @@index([workspaceId, parentId])
 }

@@ -79,9 +79,9 @@ export async function createActivityIn(tx: Tx, userId: string, workspaceId: stri
 }
 
 /** A member who sees only their people may write about those people alone: no deals, no companies, nobody else's contacts. */
-async function assertLinksVisible(tx: Tx, m: Parameters<typeof contactVisible>[1], links: { contactId?: string | null; companyId?: string | null; dealId?: string | null }) {
+async function assertLinksVisible(tx: Tx, m: Parameters<typeof contactVisible>[1], links: { contactId?: string | null; companyId?: string | null; dealId?: string | null }, write = true) {
   if (can(m, "crm:full")) return;
-  if (!links.contactId || !(await contactVisible(tx, m, links.contactId))) throw notFound("contact");
+  if (!links.contactId || !(await contactVisible(tx, m, links.contactId, { write }))) throw notFound("contact");
 }
 
 export async function createActivity(userId: string, workspaceId: string, input: ActivityInput) {
@@ -97,7 +97,7 @@ async function loadActivity(tx: Tx, userId: string, id: string, action: "crm:rea
   const a = await tx.crmActivity.findUnique({ where: { id } });
   if (!a) throw notFound("activity");
   const m = await loadWorkspaceMember(tx, userId, a.workspaceId, action);
-  await assertLinksVisible(tx, m, { contactId: a.contactId });
+  await assertLinksVisible(tx, m, { contactId: a.contactId }, action === "crm:write");
   return a;
 }
 
