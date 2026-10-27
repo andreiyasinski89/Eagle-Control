@@ -1296,7 +1296,17 @@
     "graceExpired": "The payment was not received in time; the workspace is on the Free plan. Nothing was deleted.",
     "notConfigured": "Billing is not configured on this server.",
     "ownerOnly": "Only the workspace owner can change the plan.",
-    "granted": "Pro was granted to this workspace by the administrator."
+    "granted": "Pro was granted to this workspace by the administrator.",
+    "trialBanner": "Pro trial: {n, plural, one {# day} other {# days}} left.",
+    "trialChoose": "Choose a plan",
+    "trialEnded": "The Pro trial has ended. Nothing was deleted; the Free limits apply to new items. Choose a plan to get Pro back.",
+    "source": {
+      "trial": "Pro trial until {date} ({n, plural, one {# day} other {# days}} left).",
+      "bonus": "Pro from bonus points until {date}.",
+      "gift": "Pro as a gift until {date}."
+    },
+    "betaPlan": "Open beta",
+    "betaOpen": "Paid plans are not open yet: everything is free and without limits for now."
   },
   "developers": {
     "title": "API and webhooks",
@@ -1812,6 +1822,15 @@
     "suspendConfirm": "Block {name}? They are signed out at once and cannot sign in until you let them back.",
     "suspendNote": "Blocks signing in and ends open sessions. Nothing is deleted.",
     "suspendedNote": "Blocked since {date}.",
-    "error": "Something went wrong"
+    "error": "Something went wrong",
+    "paidPlans": "Paid plans",
+    "mode_off": "off",
+    "mode_preview": "preview",
+    "mode_on": "on",
+    "modeHint_off": "Everyone has everything for free; no trial, no limits, nothing can be bought.",
+    "modeHint_preview": "Only workspaces of the people in PAID_PLANS_PREVIEW_EMAILS live under the paid rules; everyone else has everything.",
+    "modeHint_on": "The paid rules apply to everyone: Free limits, Pro locks, the trial and payments.",
+    "recompute": "Recalculate plans",
+    "recomputed": "Plans recalculated: {n} of {total} workspaces changed."
   }
 }

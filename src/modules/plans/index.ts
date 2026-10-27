@@ -3,7 +3,7 @@ import type { Plan } from "@prisma/client";
 export type LimitKey = "users" | "projects" | "pipelines" | "contacts";
 
 export const PLAN_LIMITS: Record<Plan, Record<LimitKey, number>> = {
-  FREE: { users: 5, projects: 3, pipelines: 1, contacts: 500 },
+  FREE: { users: 3, projects: 3, pipelines: 1, contacts: 300 },
   PRO: { users: Infinity, projects: Infinity, pipelines: Infinity, contacts: Infinity },
   ENTERPRISE: { users: Infinity, projects: Infinity, pipelines: Infinity, contacts: Infinity },
 };

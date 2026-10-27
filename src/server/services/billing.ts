@@ -8,6 +8,8 @@ import { graceEndsAt, planFor } from "@/modules/plans/billing";
 import { can } from "@/server/policies";
 import { loadWorkspaceMember } from "./nodes/access";
 import { notify } from "./notify";
+import { entitlementOf, syncPlan } from "./entitlements";
+import { isEnforcedFor } from "./paid-plans";
 import { getUsage } from "./workspace";
 
 export const billingConfigured = () => !!env().STRIPE_SECRET_KEY && !!env().STRIPE_PRICE_PRO;
@@ -31,7 +33,7 @@ async function owner(userId: string, workspaceId: string) {
 
 export async function getBilling(userId: string, workspaceId: string, now = new Date()) {
   const m = await loadWorkspaceMember(db, userId, workspaceId, "workspace:read");
-  const ws = await db.workspace.findUniqueOrThrow({ where: { id: workspaceId }, select: { plan: true } });
+  const ws = await db.workspace.findUniqueOrThrow({ where: { id: workspaceId }, select: { plan: true, basePlan: true } });
   const sub = await db.subscription.findUnique({ where: { workspaceId } });
   const grace = sub?.status === "past_due" && sub.pastDueSince ? graceEndsAt(sub.pastDueSince) : null;
   return {
@@ -39,7 +41,10 @@ export async function getBilling(userId: string, workspaceId: string, now = new 
     canManage: can(m, "billing:manage"),
     status: sub?.status ?? "none",
     /** Pro that the administrator gave (PRO_OWNER_EMAILS), not a Stripe subscription. */
-    granted: !sub && ws.plan !== "FREE",
+    granted: !sub && ws.basePlan !== "FREE",
+    entitlement: await entitlementOf(workspaceId, now),
+    /** False while paid plans are off for this workspace: everything is open and nothing can be bought yet. */
+    enforced: await isEnforcedFor(workspaceId),
     renewsAt: sub?.currentPeriodEnd ?? null,
     cancelAtPeriodEnd: sub?.cancelAtPeriodEnd ?? false,
     pastDue: !!grace,
@@ -64,8 +69,10 @@ async function customerFor(workspaceId: string, email: string, name: string): Pr
 export async function startCheckout(userId: string, workspaceId: string): Promise<{ url: string }> {
   await owner(userId, workspaceId);
   if (!billingConfigured()) throw notConfigured("Billing");
-  const ws = await db.workspace.findUniqueOrThrow({ where: { id: workspaceId }, select: { plan: true, name: true, slug: true } });
-  if (ws.plan !== "FREE") throw new ApiError(409, "already_subscribed", "This workspace already has a paid plan");
+  if (!(await isEnforcedFor(workspaceId))) throw new ApiError(409, "paid_plans_off", "Paid plans are not open yet: everything is free for now");
+  const ws = await db.workspace.findUniqueOrThrow({ where: { id: workspaceId }, select: { plan: true, basePlan: true, name: true, slug: true } });
+  // A trial, bonus or gift is no reason to refuse a subscription; a lasting paid plan is.
+  if (ws.basePlan !== "FREE" || (ws.plan !== "FREE" && (await entitlementOf(workspaceId)).sources.length === 0)) throw new ApiError(409, "already_subscribed", "This workspace already has a paid plan");
   const me = await db.user.findUniqueOrThrow({ where: { id: userId }, select: { email: true } });
   const customer = await customerFor(workspaceId, me.email, ws.name);
   const back = `${appUrl()}/w/${ws.slug}/settings/billing`;
@@ -129,11 +136,12 @@ async function workspaceOf(customer: string | undefined, metadataId: string | un
 }
 
 async function setPlan(workspaceId: string, now: Date): Promise<Plan> {
-  const ws = await db.workspace.findUniqueOrThrow({ where: { id: workspaceId }, select: { plan: true } });
+  const ws = await db.workspace.findUniqueOrThrow({ where: { id: workspaceId }, select: { basePlan: true } });
   const sub = await db.subscription.findUniqueOrThrow({ where: { workspaceId } });
-  const plan = planFor(ws.plan, { status: sub.status, pastDueSince: sub.pastDueSince }, now);
-  if (plan !== ws.plan) await db.workspace.update({ where: { id: workspaceId }, data: { plan } });
-  return plan;
+  // The subscription decides the lasting plan; a running trial, bonus or gift may still keep Pro on top of it.
+  const base = planFor(ws.basePlan, { status: sub.status, pastDueSince: sub.pastDueSince }, now);
+  if (base !== ws.basePlan) await db.workspace.update({ where: { id: workspaceId }, data: { basePlan: base } });
+  return (await syncPlan(workspaceId, now)).after;
 }
 
 async function tellOwners(workspaceId: string, title: string, body: string, key: string): Promise<void> {

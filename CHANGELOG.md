@@ -361,3 +361,13 @@
 ## 0.34.1 — Dark drop-down lists
 
 - In the dark theme the open list of every choice field (stage, owner, language, unit and the rest) is dark too, with light text; date pickers and scrollbars follow the theme the same way.
+
+## 0.35.0 — The plan in force, the Pro trial and the new Free limits (tariffs, part 1)
+
+- **The whole paid system is behind a master switch, `PAID_PLANS`, and ships OFF.** Off (the default): every workspace has everything, with no limits, no trial, no upgrade button and nothing to buy; the billing page says *Open beta*. **Preview** (`PAID_PLANS_PREVIEW_EMAILS`, a list of addresses, while the switch is off): only the workspaces of those people live under the paid rules, to test them. **On**: the paid rules apply to everyone. After changing the switch, press **Recalculate plans** in the platform admin (it also runs daily); the admin shows the current mode.
+
+- **A workspace's plan now comes from several sources:** the lasting plan (a Stripe subscription, the administrator's list, a permanent gift) and three time-limited kinds of Pro: the **14-day trial**, **bonus points** and a **gift with an end date**. The plan in force is the best of them, recomputed whenever one changes and every day, so an ended source falls away by itself. Migration `0026_plan_sources`.
+- **Every new person's first workspace starts with 14 days of Pro, no card needed** (once per workspace and once per person; not for those who already have Pro from the list of addresses). The owner sees a bar with the days left (yellow in the last three days) and a link to choose a plan, gets a reminder in the last three days, and when it ends the workspace goes to Free: nothing is deleted, the Free limits apply to new items.
+- A subscription can be started during the trial; ending a subscription keeps Pro while a trial, bonus or gift still runs.
+- **New Free limits:** 300 people, 3 members, 3 projects, 1 pipeline (were 500 and 5). Pro is unlimited.
+- The billing page shows where Pro comes from and keeps the Upgrade button during a trial.

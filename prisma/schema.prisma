@@ -249,7 +249,14 @@ model Workspace {
   id        String   @id @default(cuid())
   name      String
   slug      String   @unique
+  /// The plan in force now: the best of `basePlan` and the time-limited Pro below. Everything that checks limits and features reads this.
   plan      Plan     @default(FREE)
+  /// What is lasting: a Stripe subscription, the administrator's list or a permanent gift.
+  basePlan  Plan     @default(FREE)
+  /// Pro until these days, from the 14-day trial, from bonus points and from a gift with an end date.
+  trialEndsAt DateTime?
+  bonusUntil  DateTime?
+  giftUntil   DateTime?
   region    String   @default("eu")
   createdAt DateTime @default(now())
 

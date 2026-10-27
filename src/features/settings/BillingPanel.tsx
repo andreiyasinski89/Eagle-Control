@@ -19,6 +19,8 @@ interface Billing {
   graceExpired: boolean;
   hasCustomer: boolean;
   granted: boolean;
+  enforced: boolean;
+  entitlement: { plan: string; basePlan: "FREE" | "PRO" | "ENTERPRISE"; sources: { source: "trial" | "bonus" | "gift"; until: string; daysLeft: number }[]; trialDaysLeft: number | null; trialEnded: boolean };
   usage: Record<string, { used: number; limit: number | null }>;
 }
 
@@ -61,13 +63,13 @@ export function BillingPanel({ workspaceId, checkout }: { workspaceId: string; c
           <div>
             <div className="text-xs text-muted-foreground">{t("plan")}</div>
             <div className="text-2xl font-semibold" data-testid="plan">
-              {t(`plans.${data.plan}`)}
+              {data.enforced ? t(`plans.${data.plan}`) : t("betaPlan")}
             </div>
             {data.renewsAt && data.plan !== "FREE" && <div className="text-xs text-muted-foreground">{data.cancelAtPeriodEnd ? t("endsOn", { date: date(data.renewsAt) }) : t("renewsOn", { date: date(data.renewsAt) })}</div>}
           </div>
           {data.canManage && data.configured && (
             <div className="flex gap-2">
-              {data.plan === "FREE" && <Button onClick={() => void go("checkout")}>{t("upgrade")}</Button>}
+              {data.enforced && data.entitlement.basePlan === "FREE" && <Button onClick={() => void go("checkout")} data-testid="upgrade">{t("upgrade")}</Button>}
               {data.hasCustomer && (
                 <Button variant="outline" onClick={() => void go("portal")}>
                   {t("manage")}
@@ -76,12 +78,27 @@ export function BillingPanel({ workspaceId, checkout }: { workspaceId: string; c
             </div>
           )}
         </div>
+        {!data.enforced && (
+          <p className="mt-3 rounded-md bg-primary/10 px-3 py-2 text-sm" data-testid="beta-open">
+            {t("betaOpen")}
+          </p>
+        )}
+        {data.enforced && data.entitlement.sources.map((s) => (
+          <p key={s.source} className="mt-3 rounded-md bg-primary/10 px-3 py-2 text-sm" data-testid={`source-${s.source}`}>
+            {t(`source.${s.source}`, { date: date(s.until), n: s.daysLeft })}
+          </p>
+        ))}
+        {data.entitlement.trialEnded && data.plan === "FREE" && (
+          <p className="mt-3 text-sm text-muted-foreground" data-testid="trial-ended">
+            {t("trialEnded")}
+          </p>
+        )}
         {data.granted && (
           <p className="mt-3 text-sm text-muted-foreground" data-testid="plan-granted">
             {t("granted")}
           </p>
         )}
-        {!data.configured && !data.granted && <p className="mt-3 text-sm text-muted-foreground">{t("notConfigured")}</p>}
+        {data.enforced && !data.configured && !data.granted && <p className="mt-3 text-sm text-muted-foreground">{t("notConfigured")}</p>}
         {!data.canManage && <p className="mt-3 text-sm text-muted-foreground">{t("ownerOnly")}</p>}
       </section>
       <section className="rounded-lg border border-border bg-card p-4">

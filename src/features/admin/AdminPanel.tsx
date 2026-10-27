@@ -24,6 +24,7 @@ interface Row {
   workspaces: { id: string; name: string; plan: Plan }[];
 }
 interface List {
+  mode: "off" | "preview" | "on";
   total: number;
   page: number;
   pageSize: number;
@@ -76,6 +77,8 @@ export function AdminPanel() {
   const fail = (e: unknown) => setError(e instanceof ApiFailure ? e.message : t("error"));
   const suspend = useMutation({ mutationFn: (v: { id: string; suspended: boolean }) => api.post(`/api/v1/admin/users/${v.id}/suspend`, { suspended: v.suspended }), onSuccess: () => (setError(null), refresh()), onError: fail });
   const plan = useMutation({ mutationFn: (v: { id: string; plan: Plan }) => api.patch(`/api/v1/admin/workspaces/${v.id}`, { plan: v.plan }), onSuccess: () => (setError(null), refresh()), onError: fail });
+  const recompute = useMutation({ mutationFn: () => api.post<{ checked: number; changed: number }>("/api/v1/admin/plans/recompute"), onSuccess: (r) => (setError(null), setRecomputed(t("recomputed", { n: r.changed, total: r.checked })), refresh()), onError: fail });
+  const [recomputed, setRecomputed] = useState<string | null>(null);
   const [points, setPoints] = useState("");
   const [note, setNote] = useState("");
   const bonus = useMutation({
@@ -104,6 +107,23 @@ export function AdminPanel() {
         <p role="alert" className="text-sm text-danger">
           {error}
         </p>
+      )}
+      {list.data && (
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card px-4 py-2.5 text-sm" data-testid="admin-paid-mode">
+          <span className="font-medium">{t("paidPlans")}:</span>
+          <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-medium", list.data.mode === "on" ? "bg-[var(--health-green)]/15 text-[var(--health-green)]" : list.data.mode === "preview" ? "bg-[var(--health-yellow)]/20" : "bg-muted")} data-testid="admin-mode">
+            {t(`mode_${list.data.mode}`)}
+          </span>
+          <span className="min-w-0 flex-1 text-xs text-muted-foreground">{t(`modeHint_${list.data.mode}`)}</span>
+          <Button type="button" variant="outline" size="sm" disabled={recompute.isPending} onClick={() => recompute.mutate()} data-testid="admin-recompute">
+            {t("recompute")}
+          </Button>
+          {recomputed && (
+            <span role="status" className="w-full text-xs text-muted-foreground">
+              {recomputed}
+            </span>
+          )}
+        </div>
       )}
 
       <div className={cn("grid gap-4", open && "lg:grid-cols-[1fr_26rem]")}>

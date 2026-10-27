@@ -18,11 +18,11 @@ export async function syncGrantedPlans(userId?: string): Promise<{ granted: numb
   if (emails.length === 0) return { granted: 0 };
   const r = await db.workspace.updateMany({
     where: {
-      plan: "FREE",
+      basePlan: "FREE",
       subscription: { is: null },
       memberships: { some: { role: "OWNER", ...(userId ? { userId } : {}), user: { OR: emails.map((email) => ({ email: { equals: email, mode: "insensitive" as const } })) } } },
     },
-    data: { plan: "PRO" },
+    data: { plan: "PRO", basePlan: "PRO" },
   });
   return { granted: r.count };
 }

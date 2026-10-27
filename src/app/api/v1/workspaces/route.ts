@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { json, parseBody, route } from "@/server/http/handler";
+import { startTrial, syncPlan } from "@/server/services/entitlements";
 import { assertCanCreateWorkspace, sendWelcome } from "@/server/services/signup";
 import { createWorkspace, listWorkspacesForUser } from "@/server/services/workspace";
 
@@ -17,5 +18,8 @@ export const POST = route({ rateLimit: { limit: 10, windowMs: 60_000 } }, async 
   const ws = await createWorkspace(userId ?? "", input.name, input.slug);
   // The first workspace of a new person: a short welcome with the first steps.
   if (first) await sendWelcome(userId ?? "", ws);
+  // While paid plans are off the new workspace has everything at once; when they are on, a person's first one starts with 14 days of Pro, no card needed.
+  await syncPlan(ws.id).catch((e) => console.error("plan sync failed", e instanceof Error ? e.message : e));
+  await startTrial(userId ?? "", ws.id).catch((e) => console.error("trial failed", e instanceof Error ? e.message : e));
   return json(ws, 201);
 });

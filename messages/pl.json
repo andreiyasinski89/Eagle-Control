@@ -1296,7 +1296,17 @@
     "graceExpired": "Płatność nie wpłynęła na czas, przestrzeń ma plan Free. Nic nie usunięto.",
     "notConfigured": "Płatności nie są skonfigurowane na tym serwerze.",
     "ownerOnly": "Plan może zmienić tylko właściciel przestrzeni.",
-    "granted": "Plan Pro został przyznany tej przestrzeni przez administratora."
+    "granted": "Plan Pro został przyznany tej przestrzeni przez administratora.",
+    "trialBanner": "Okres próbny Pro: zostało {n, plural, one {# dzień} few {# dni} many {# dni} other {# dnia}}.",
+    "trialChoose": "Wybierz plan",
+    "trialEnded": "Okres próbny Pro się skończył. Nic nie usunięto; dla nowych elementów obowiązują limity Free. Wybierz plan, aby odzyskać Pro.",
+    "source": {
+      "trial": "Okres próbny Pro do {date} (zostało {n, plural, one {# dzień} few {# dni} many {# dni} other {# dnia}}).",
+      "bonus": "Pro za punkty bonusowe do {date}.",
+      "gift": "Pro w prezencie do {date}."
+    },
+    "betaPlan": "Otwarta beta",
+    "betaOpen": "Płatne plany nie są jeszcze otwarte: na razie wszystko jest za darmo i bez limitów."
   },
   "developers": {
     "title": "API i webhooki",
@@ -1812,6 +1822,15 @@
     "suspendConfirm": "Zablokować {name}? Zostanie od razu wylogowany i nie zaloguje się, dopóki nie przywrócisz dostępu.",
     "suspendNote": "Blokuje logowanie i kończy otwarte sesje. Nic nie jest usuwane.",
     "suspendedNote": "Zablokowany od {date}.",
-    "error": "Coś poszło nie tak"
+    "error": "Coś poszło nie tak",
+    "paidPlans": "Płatne plany",
+    "mode_off": "wyłączone",
+    "mode_preview": "podgląd",
+    "mode_on": "włączone",
+    "modeHint_off": "Wszyscy mają wszystko za darmo: bez okresu próbnego, limitów, nic nie można kupić.",
+    "modeHint_preview": "Płatne zasady obowiązują tylko w przestrzeniach osób z PAID_PLANS_PREVIEW_EMAILS; reszta ma wszystko.",
+    "modeHint_on": "Płatne zasady obowiązują wszystkich: limity Free, blokady Pro, okres próbny i płatności.",
+    "recompute": "Przelicz plany",
+    "recomputed": "Plany przeliczone: zmieniło się {n} z {total} przestrzeni."
   }
 }

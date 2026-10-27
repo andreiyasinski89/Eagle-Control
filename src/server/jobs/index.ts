@@ -4,6 +4,7 @@ import "@/server/integrations/register";
 import { resetDemo } from "@/server/services/demo-mode";
 import { runDueErasures } from "@/server/services/account";
 import { expireGrace } from "@/server/services/billing";
+import { expireTimed, recomputePlans } from "@/server/services/entitlements";
 import { purgeIdempotency } from "@/server/public-api/dispatch";
 import { purgeOAuth } from "@/server/services/oauth";
 import { deliverDue, purgeDeliveries } from "@/server/webhooks";
@@ -21,7 +22,8 @@ export const handlers = {
     for (const id of Array.isArray(data.nodeIds) ? (data.nodeIds as string[]) : []) await pushEvent(id).catch((e) => console.error("calendar push failed", e instanceof Error ? e.message : e));
   },
   "calendar/poll": async () => pollAll(),
-  "billing/expire": async () => expireGrace(),
+  // Failed payments past their grace period, then trials, bonuses and gifts that have run out.
+  "billing/expire": async () => ({ ...(await expireGrace()), ...(await expireTimed()), recomputed: (await recomputePlans()).changed }),
   "account/erase": async () => runDueErasures(),
   /** Public demo only: puts the sample workspace back as it was. */
   "demo/reset": async () => (env().DEMO_MODE ? resetDemo() : { skipped: true }),

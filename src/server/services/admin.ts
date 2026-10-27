@@ -4,6 +4,8 @@ import { env } from "@/lib/env";
 import { crmLevel } from "@/modules/crm/access";
 import { db } from "@/server/db";
 import { ApiError, forbidden, notFound } from "@/server/http/errors";
+import { recomputePlans, syncPlan } from "./entitlements";
+import { paidMode } from "./paid-plans";
 
 /** The platform owner(s): the addresses in SUPERADMIN_EMAILS, lower-cased. Nobody else may open the admin. */
 export function superAdminEmails(): string[] {
@@ -48,6 +50,7 @@ export async function listUsers(actorId: string, f: z.infer<typeof listUsersSche
   const points = rows.length ? await db.bonusPoint.groupBy({ by: ["userId"], where: { userId: { in: rows.map((r) => r.id) } }, _sum: { points: true } }) : [];
   const pts = new Map(points.map((p) => [p.userId, p._sum.points ?? 0]));
   return {
+    mode: paidMode(),
     total,
     page: f.page,
     pageSize: f.pageSize,
@@ -127,9 +130,18 @@ export async function setWorkspacePlan(actorId: string, workspaceId: string, pla
   await requireSuperAdmin(actorId);
   const w = await db.workspace.findUnique({ where: { id: workspaceId }, select: { id: true, plan: true, name: true } });
   if (!w) throw notFound("workspace");
-  await db.workspace.update({ where: { id: workspaceId }, data: { plan } });
+  await db.workspace.update({ where: { id: workspaceId }, data: { basePlan: plan } });
+  await syncPlan(workspaceId);
   await log(actorId, "workspace.plan", null, { workspaceId, name: w.name, from: w.plan, to: plan });
   return { plan };
+}
+
+/** After changing the switch (or the list of preview addresses) in Vercel: puts every workspace's plan right now instead of waiting for the daily run. */
+export async function recomputeAllPlans(actorId: string) {
+  await requireSuperAdmin(actorId);
+  const r = await recomputePlans();
+  await log(actorId, "plans.recomputed", null, { ...r });
+  return r;
 }
 
 export const bonusSchema = z.object({ points: z.number().int().min(-1000).max(1000).refine((n) => n !== 0, "Give a number other than 0"), note: z.string().trim().max(200).optional() });

@@ -16,6 +16,13 @@ const schema = z.object({
   SMTP_SECURE: z.preprocess((v) => (v === undefined || v === "" ? undefined : v === "true" || v === "1"), z.boolean().optional()),
   /** Sign-in e-mails the whole installation sends per day (Gmail allows about 500). */
   MAIL_DAILY_LIMIT: z.coerce.number().int().min(1).default(300),
+  /**
+   * The master switch of paid plans. Off (the default): every workspace has everything, with no limits, no trial and no upgrade buttons.
+   * On: the Free limits, the Pro locks, the trial and payments apply to everyone.
+   */
+  PAID_PLANS: z.preprocess((v) => v === "true" || v === "1", z.boolean()),
+  /** Comma-separated e-mail addresses: while PAID_PLANS is off, workspaces owned by these people already live under the paid rules (a preview, to test with). */
+  PAID_PLANS_PREVIEW_EMAILS: z.string().optional(),
   /** Comma-separated e-mail addresses whose owned workspaces get the Pro plan without Stripe. */
   PRO_OWNER_EMAILS: z.string().optional(),
   /** Comma-separated e-mail addresses of the platform owner(s): the only people who may open the platform admin and manage other accounts. */

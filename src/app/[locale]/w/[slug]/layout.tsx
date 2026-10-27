@@ -1,6 +1,7 @@
 import { redirect } from "@/i18n/navigation";
 import { CommandPalette } from "@/components/layout/command-palette";
 import { Sidebar, type ShellProps } from "@/components/layout/sidebar";
+import { TrialBanner } from "@/components/layout/trial-banner";
 import { DeletionBanner } from "@/components/layout/deletion-banner";
 import { Topbar } from "@/components/layout/topbar";
 import { QueryProvider } from "@/components/query-provider";
@@ -39,6 +40,7 @@ export default async function WorkspaceLayout({
         <Sidebar {...shell} />
         <div className="flex min-w-0 flex-1 flex-col">
           <DeletionBanner userId={userId} />
+          <TrialBanner workspaceId={membership.workspace.id} slug={slug} isOwner={membership.role === "OWNER"} />
           <Topbar current={membership.workspace} shell={shell} />
           <main className="min-w-0 flex-1">{children}</main>
         </div>

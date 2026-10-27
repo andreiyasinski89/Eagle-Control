@@ -20,6 +20,7 @@ export async function createWorkspace(userId: string, name: string, slug?: strin
     data: {
       name,
       plan: owner && isGrantedEmail(owner.email) ? "PRO" : "FREE",
+      basePlan: owner && isGrantedEmail(owner.email) ? "PRO" : "FREE",
       slug: finalSlug,
       memberships: { create: { userId, role: "OWNER", crmAccess: true } },
       pipelines: {
