@@ -18,6 +18,8 @@ const schema = z.object({
   MAIL_DAILY_LIMIT: z.coerce.number().int().min(1).default(300),
   /** Comma-separated e-mail addresses whose owned workspaces get the Pro plan without Stripe. */
   PRO_OWNER_EMAILS: z.string().optional(),
+  /** Comma-separated e-mail addresses of the platform owner(s): the only people who may open the platform admin and manage other accounts. */
+  SUPERADMIN_EMAILS: z.string().optional(),
   /** Shown in the privacy policy and terms as the party responsible for the service. */
   LEGAL_OPERATOR_NAME: z.string().optional(),
   LEGAL_CONTACT_EMAIL: z.string().optional(),

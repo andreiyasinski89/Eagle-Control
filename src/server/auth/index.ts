@@ -64,6 +64,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   callbacks: {
+    // An account the platform owner has suspended cannot sign in (its open sessions are removed when it is suspended).
+    async signIn({ user }) {
+      if (!user.id) return true;
+      const u = await db.user.findUnique({ where: { id: user.id }, select: { suspendedAt: true } });
+      return !u?.suspendedAt;
+    },
     session({ session, user }) {
       session.user.id = user.id;
       return session;

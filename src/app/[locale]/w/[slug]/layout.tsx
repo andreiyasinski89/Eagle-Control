@@ -5,6 +5,7 @@ import { DeletionBanner } from "@/components/layout/deletion-banner";
 import { Topbar } from "@/components/layout/topbar";
 import { QueryProvider } from "@/components/query-provider";
 import { auth } from "@/server/auth";
+import { isSuperAdminEmail } from "@/server/services/admin";
 import { db } from "@/server/db";
 import { can } from "@/server/policies";
 import { listWorkspacesForUser } from "@/server/services/workspace";
@@ -31,7 +32,7 @@ export default async function WorkspaceLayout({
   if (membership.role === "CLIENT") return redirect({ href: `/portal/${slug}`, locale }); // clients never see the workspace app
 
   const workspaces = await listWorkspacesForUser(userId);
-  const shell: ShellProps = { slug, showCrm: can(membership, "crm:read"), workspaces, user: { name: session?.user?.name ?? null, email: session?.user?.email ?? "" } };
+  const shell: ShellProps = { slug, showCrm: can(membership, "crm:read"), workspaces, user: { name: session?.user?.name ?? null, email: session?.user?.email ?? "", isSuperAdmin: isSuperAdminEmail(session?.user?.email) } };
   return (
     <QueryProvider>
       <div className="flex min-h-screen">

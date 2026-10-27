@@ -15,7 +15,7 @@ type Mode = "signin" | "signup";
  * Signing in and creating an account are the same door: an e-mail address, the agreement, and a one-time link. Creating an
  * account also asks for the name, and may come through a sponsor's invitation link (then it says who invited and what they will see).
  */
-export function SignInForm({ googleEnabled, callbackUrl, initialMode, refCode, inviter }: { googleEnabled: boolean; callbackUrl: string; initialMode: Mode; refCode: string | null; inviter: string | null }) {
+export function SignInForm({ googleEnabled, callbackUrl, initialMode, refCode, inviter, invCode, platformInviter }: { googleEnabled: boolean; callbackUrl: string; initialMode: Mode; refCode: string | null; inviter: string | null; invCode: string | null; platformInviter: string | null }) {
   const t = useTranslations("auth");
   const locale = useLocale();
   const [mode, setMode] = useState<Mode>(initialMode);
@@ -36,7 +36,7 @@ export function SignInForm({ googleEnabled, callbackUrl, initialMode, refCode, i
     setError(null);
     try {
       // `terms` is checked again on the server: the link is not sent without it. So are the temporary mailboxes.
-      const res = await signIn("email", { email, terms: "1", mode, firstName, lastName, ref: signup && refCode ? refCode : "", locale, website: trap, redirect: false, redirectTo: callbackUrl });
+      const res = await signIn("email", { email, terms: "1", mode, firstName, lastName, ref: signup && refCode ? refCode : "", inv: signup && invCode ? invCode : "", locale, website: trap, redirect: false, redirectTo: callbackUrl });
       if (res?.error) throw new Error(res.error);
       window.location.assign("/sign-in?sent=1");
     } catch {
@@ -63,6 +63,11 @@ export function SignInForm({ googleEnabled, callbackUrl, initialMode, refCode, i
       {signup && inviter && (
         <p className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-sm" data-testid="invited-by">
           {t("invitedBy", { name: inviter })}
+        </p>
+      )}
+      {signup && platformInviter && (
+        <p className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-sm" data-testid="invited-to-platform">
+          {t("invitedToPlatform", { name: platformInviter })}
         </p>
       )}
 
@@ -110,6 +115,7 @@ export function SignInForm({ googleEnabled, callbackUrl, initialMode, refCode, i
               ),
             })}
             {signup && inviter && ` ${t("shareWithInviter", { name: inviter })}`}
+            {signup && platformInviter && ` ${t("shareProgress", { name: platformInviter })}`}
           </span>
         </label>
         <Button type="submit" disabled={busy || !agree || (signup && !firstName.trim())} data-testid="signup-submit">

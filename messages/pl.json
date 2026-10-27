@@ -62,7 +62,9 @@
     "lastName": "Nazwisko (opcjonalnie)",
     "disposable": "Podaj stały adres e-mail: tymczasowe skrzynki nie są akceptowane.",
     "invitedBy": "{name} zaprasza Cię do MeetOwl.",
-    "shareWithInviter": "{name} zobaczy Twoje imię i e-mail jako nowy kontakt."
+    "shareWithInviter": "{name} zobaczy Twoje imię i e-mail jako nowy kontakt.",
+    "invitedToPlatform": "{name} zaprasza Cię do MeetOwl: własna przestrzeń, baza klientów, CRM, raporty i projekty.",
+    "shareProgress": "{name} zobaczy, że się zarejestrowałeś i jak daleko doszedłeś, ale nie Twoich klientów ani projektów."
   },
   "onboarding": {
     "title": "Utwórz przestrzeń roboczą",
@@ -112,11 +114,20 @@
     "noContacts": "Brak telefonu i Telegrama"
   },
   "invite": {
-    "title": "Zaproszono Cię do {workspace}",
+    "title": "Zaproś ludzi na platformę",
     "role": "Rola: {role}",
     "accept": "Przyjmij zaproszenie",
     "signInFirst": "Zaloguj się adresem {email}, aby przyjąć zaproszenie.",
-    "invalid": "Zaproszenie jest nieprawidłowe lub wygasło."
+    "invalid": "Zaproszenie jest nieprawidłowe lub wygasło.",
+    "hint": "Wyślij ten link osobom, które będą pracować w MeetOwl samodzielnie: każda dostaje własną przestrzeń, bazę klientów, CRM, raporty i projekty.",
+    "copy": "Kopiuj",
+    "copied": "Skopiowano",
+    "points": "punktów",
+    "pointsHint": "Jeden punkt bonusowy za każdą osobę, która zarejestruje się przez Twój link",
+    "privacy": "Widzisz, że ktoś dołączył i jak daleko doszedł. Jego klientów i projektów nigdy nie widzisz.",
+    "stepJoined": "zarejestrowany",
+    "stepWorkspace": "przestrzeń",
+    "stepPeople": "dodał ludzi"
   },
   "roles": {
     "OWNER": "Właściciel",
@@ -910,7 +921,8 @@
       "cold_contact": "Kontakt stygnie",
       "stale_deal": "Szansa stygnie",
       "billing": "Płatności i zmiany planu",
-      "client_activity": "Klient komentuje, przesyła plik lub odpowiada"
+      "client_activity": "Klient komentuje, przesyła plik lub odpowiada",
+      "invite_joined": "Ktoś rejestruje się przez mój link do platformy"
     }
   },
   "time": {
@@ -1471,7 +1483,8 @@
     "newWorkspace": "Nowa przestrzeń",
     "userMenu": "Menu konta",
     "menu": "Menu",
-    "close": "Zamknij"
+    "close": "Zamknij",
+    "admin": "Administracja platformy"
   },
   "oauth": {
     "title": "Połącz {app} z MeetOwl",
@@ -1761,5 +1774,44 @@
     "copy": "Kopiuj",
     "copied": "Skopiowano",
     "joined": "Zarejestrowali się przez Twój link: {n}"
+  },
+  "admin": {
+    "title": "Administracja platformy",
+    "subtitle": "Wszyscy, którzy mają konto: jak się zarejestrowali, co posiadają, kto ich zaprosił. Ich klienci i projekty nie są tu widoczne.",
+    "search": "Szukaj po imieniu lub e-mailu",
+    "user": "Użytkownik",
+    "registered": "Rejestracja",
+    "invitedBy": "Zaprosił",
+    "workspaces": "Przestrzenie",
+    "invitedN": "Zaprosił osób",
+    "points": "Punkty",
+    "owner": "właściciel",
+    "suspended": "zablokowany",
+    "none": "Nikogo nie znaleziono.",
+    "total": "Kont: {n}",
+    "loading": "Ładowanie…",
+    "close": "Zamknij",
+    "terms": "Zgoda na warunki",
+    "name": "Imię",
+    "phone": "Telefon",
+    "language": "Język i strefa czasowa",
+    "access": "Przestrzenie i dostępy",
+    "noWorkspaces": "Nie należy do żadnej przestrzeni.",
+    "members": "Członków: {n}",
+    "people": "Ludzi: {n}",
+    "plan": "Plan",
+    "bonus": "Punkty bonusowe",
+    "note": "Notatka (opcjonalnie)",
+    "change": "Zmień",
+    "reasonInvite": "zaprosił osobę",
+    "reasonAdjust": "zmienione ręcznie",
+    "invitedList": "Zaproszeni ({n})",
+    "history": "Co zrobiono z tym kontem",
+    "suspend": "Zablokuj konto",
+    "restore": "Pozwól ponownie się logować",
+    "suspendConfirm": "Zablokować {name}? Zostanie od razu wylogowany i nie zaloguje się, dopóki nie przywrócisz dostępu.",
+    "suspendNote": "Blokuje logowanie i kończy otwarte sesje. Nic nie jest usuwane.",
+    "suspendedNote": "Zablokowany od {date}.",
+    "error": "Coś poszło nie tak"
   }
 }

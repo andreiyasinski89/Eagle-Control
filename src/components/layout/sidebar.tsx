@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { Check, ChevronsUpDown, LogOut, Menu, Plus, Settings, User, X } from "lucide-react";
+import { Check, ChevronsUpDown, LogOut, Menu, Plus, Settings, ShieldCheck, User, X } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { DropdownContent, DropdownItem, DropdownLabel, DropdownMenu, DropdownSeparator, DropdownTrigger } from "@/components/ui/dropdown";
@@ -14,7 +14,7 @@ export interface ShellProps {
   slug: string;
   showCrm: boolean;
   workspaces: { slug: string; name: string }[];
-  user: { name: string | null; email: string };
+  user: { name: string | null; email: string; isSuperAdmin?: boolean };
 }
 
 function Avatar({ label, className }: { label: string; className?: string }) {
@@ -95,6 +95,14 @@ function UserMenu({ user }: Pick<ShellProps, "user">) {
             {t("account")}
           </Link>
         </DropdownItem>
+        {user.isSuperAdmin && (
+          <DropdownItem asChild>
+            <Link href="/admin" data-testid="admin-link">
+              <ShieldCheck className="size-4" />
+              {t("admin")}
+            </Link>
+          </DropdownItem>
+        )}
         <DropdownSeparator />
         <DropdownItem onSelect={() => void signOut({ redirectTo: "/" })} data-testid="sign-out">
           <LogOut className="size-4" />

@@ -169,6 +169,16 @@ model User {
    * When this person first signed in after agreeing to the terms and privacy policy.
    */
   termsAcceptedAt     DateTime?
+  /// The person's link for inviting other people to use the platform (/i/<code>), made the first time it is asked for.
+  inviteCode          String?           @unique
+  /// Who invited this person to the platform, and when they came.
+  referredById        String?
+  referredAt          DateTime?
+  /// Set by the platform owner: the account cannot sign in until it is cleared.
+  suspendedAt         DateTime?
+  referredBy          User?             @relation("PlatformInvites", fields: [referredById], references: [id], onDelete: SetNull)
+  invited             User[]            @relation("PlatformInvites")
+  bonusPoints         BonusPoint[]      @relation("BonusOwner")
 
   accounts          Account[]
   sessions          Session[]
@@ -1341,6 +1351,8 @@ model SignupIntent {
   locale    String?
   /// The invitation link they came through, if any.
   refCode   String?
+  /// The platform invitation link they came through, if any.
+  inviteCode String?
   createdAt DateTime @default(now())
 
   @@index([createdAt])
@@ -1373,6 +1385,38 @@ model ReferralJoin {
   user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([linkId, userId])
+}
+
+/// Bonus points: +1 for each person who joins the platform through someone's link, and adjustments by the platform owner.
+/// The balance is the sum; what the points can be spent on is not decided yet.
+model BonusPoint {
+  id        String   @id @default(cuid())
+  userId    String
+  points    Int
+  /// "invite" for a joined person, "adjustment" for the owner's change.
+  reason    String
+  /// The person who joined (for "invite"), or a note (for "adjustment").
+  refUserId String?
+  note      String?
+  createdAt DateTime @default(now())
+
+  user User @relation("BonusOwner", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, reason, refUserId])
+  @@index([userId])
+}
+
+/// What the platform owner did to other people's accounts and workspaces.
+model AdminLog {
+  id           String   @id @default(cuid())
+  actorId      String
+  action       String
+  targetUserId String?
+  data         Json     @default("{}")
+  at           DateTime @default(now())
+
+  @@index([at])
+  @@index([targetUserId])
 }
 
 /// One request for a sign-in e-mail. Only salted hashes, so the abuse limits work without keeping addresses.

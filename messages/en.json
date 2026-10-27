@@ -62,7 +62,9 @@
     "lastName": "Last name (optional)",
     "disposable": "Use your permanent e-mail address: temporary mailboxes are not accepted.",
     "invitedBy": "{name} invited you to MeetOwl.",
-    "shareWithInviter": "{name} will see your name and e-mail as a new contact."
+    "shareWithInviter": "{name} will see your name and e-mail as a new contact.",
+    "invitedToPlatform": "{name} invites you to MeetOwl: your own workspace, client base, CRM, reports and projects.",
+    "shareProgress": "{name} will see that you registered and how far you have got, but not your clients or projects."
   },
   "onboarding": {
     "title": "Create your workspace",
@@ -112,11 +114,20 @@
     "noContacts": "No phone or Telegram yet"
   },
   "invite": {
-    "title": "You are invited to {workspace}",
+    "title": "Invite people to the platform",
     "role": "Role: {role}",
     "accept": "Accept invitation",
     "signInFirst": "Sign in with {email} to accept.",
-    "invalid": "This invitation is invalid or has expired."
+    "invalid": "This invitation is invalid or has expired.",
+    "hint": "Send this link to people who will work in MeetOwl on their own: each gets their own workspace, client base, CRM, reports and projects.",
+    "copy": "Copy",
+    "copied": "Copied",
+    "points": "points",
+    "pointsHint": "One bonus point for each person who joins through your link",
+    "privacy": "You see that they joined and how far they have got. You never see their clients or projects.",
+    "stepJoined": "joined",
+    "stepWorkspace": "workspace",
+    "stepPeople": "people added"
   },
   "roles": {
     "OWNER": "Owner",
@@ -910,7 +921,8 @@
       "cold_contact": "A contact goes cold",
       "stale_deal": "A deal goes cold",
       "billing": "Billing and plan changes",
-      "client_activity": "A client comments, uploads or answers"
+      "client_activity": "A client comments, uploads or answers",
+      "invite_joined": "Someone joins through my platform link"
     }
   },
   "time": {
@@ -1471,7 +1483,8 @@
     "newWorkspace": "New workspace",
     "userMenu": "Account menu",
     "menu": "Menu",
-    "close": "Close"
+    "close": "Close",
+    "admin": "Platform admin"
   },
   "oauth": {
     "title": "Connect {app} to MeetOwl",
@@ -1761,5 +1774,44 @@
     "copy": "Copy",
     "copied": "Copied",
     "joined": "Joined through your link: {n}"
+  },
+  "admin": {
+    "title": "Platform admin",
+    "subtitle": "Everyone who has an account: how they registered, what they own, who invited them. Their clients and projects are not shown.",
+    "search": "Search by name or e-mail",
+    "user": "User",
+    "registered": "Registered",
+    "invitedBy": "Invited by",
+    "workspaces": "Workspaces",
+    "invitedN": "Invited",
+    "points": "Points",
+    "owner": "owner",
+    "suspended": "suspended",
+    "none": "Nobody found.",
+    "total": "{n} accounts",
+    "loading": "Loading…",
+    "close": "Close",
+    "terms": "Agreed to the terms",
+    "name": "Name",
+    "phone": "Phone",
+    "language": "Language and time zone",
+    "access": "Workspaces and access",
+    "noWorkspaces": "Not in any workspace.",
+    "members": "{n} members",
+    "people": "{n} people",
+    "plan": "Plan",
+    "bonus": "Bonus points",
+    "note": "Note (optional)",
+    "change": "Change",
+    "reasonInvite": "invited a person",
+    "reasonAdjust": "changed by hand",
+    "invitedList": "Invited ({n})",
+    "history": "What was done to this account",
+    "suspend": "Block the account",
+    "restore": "Let the account sign in again",
+    "suspendConfirm": "Block {name}? They are signed out at once and cannot sign in until you let them back.",
+    "suspendNote": "Blocks signing in and ends open sessions. Nothing is deleted.",
+    "suspendedNote": "Blocked since {date}.",
+    "error": "Something went wrong"
   }
 }

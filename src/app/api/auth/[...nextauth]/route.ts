@@ -26,9 +26,9 @@ export async function POST(req: NextRequest): Promise<Response> {
     if (email && isDisposableEmail(email)) return NextResponse.json({ error: { code: "disposable_email", message: "Use your permanent e-mail address: temporary mailboxes are not accepted." } }, { status: 400 });
     if (email && !(await allowSignIn(clientIp(req.headers), email)).ok) return NextResponse.json({ error: { code: "rate_limited", message: "Too many sign-in e-mails today. Try again tomorrow." } }, { status: 429, headers: { "retry-after": "3600" } });
     // Creating an account: what was typed (name, language, the sponsor's link) waits for the first sign-in.
-    if (email && (form?.get("mode") === "signup" || form?.get("ref"))) {
+    if (email && (form?.get("mode") === "signup" || form?.get("ref") || form?.get("inv"))) {
       const { saveSignupIntent } = await import("@/server/services/signup");
-      await saveSignupIntent({ email, firstName: String(form?.get("firstName") ?? ""), lastName: String(form?.get("lastName") ?? ""), locale: String(form?.get("locale") ?? ""), refCode: String(form?.get("ref") ?? "") }).catch(() => undefined);
+      await saveSignupIntent({ email, firstName: String(form?.get("firstName") ?? ""), lastName: String(form?.get("lastName") ?? ""), locale: String(form?.get("locale") ?? ""), refCode: String(form?.get("ref") ?? ""), inviteCode: String(form?.get("inv") ?? "") }).catch(() => undefined);
     } else if (email && form?.get("locale")) {
       const { saveSignupIntent } = await import("@/server/services/signup");
       await saveSignupIntent({ email, locale: String(form?.get("locale") ?? "") }).catch(() => undefined);

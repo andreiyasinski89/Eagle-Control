@@ -25,12 +25,14 @@ export interface IntentInput {
   lastName?: string | null;
   locale?: string | null;
   refCode?: string | null;
+  /** The platform invitation link they came through (/i/<code>). */
+  inviteCode?: string | null;
 }
 
 /** Remembers the name, language and invitation code of someone about to create an account, until their first sign-in makes it. */
 export async function saveSignupIntent(input: IntentInput, now = new Date()): Promise<void> {
   const email = normalize(input.email);
-  const data = { firstName: cleanName(input.firstName), lastName: cleanName(input.lastName), locale: isSignupLocale(input.locale) ? input.locale : null, refCode: isRefCode(input.refCode) ? input.refCode : null };
+  const data = { firstName: cleanName(input.firstName), lastName: cleanName(input.lastName), locale: isSignupLocale(input.locale) ? input.locale : null, refCode: isRefCode(input.refCode) ? input.refCode : null, inviteCode: isRefCode(input.inviteCode) ? input.inviteCode : null };
   await db.signupIntent.deleteMany({ where: { createdAt: { lt: new Date(now.getTime() - 2 * DAY) } } });
   await db.signupIntent.upsert({ where: { email }, create: { email, ...data, createdAt: now }, update: { ...data, createdAt: now } });
 }
@@ -53,6 +55,13 @@ export async function applySignupIntent(user: { id: string; email: string }, now
   if (now.getTime() - intent.createdAt.getTime() > DAY) return;
   const name = displayName(intent.firstName, intent.lastName);
   await db.user.update({ where: { id: user.id }, data: { ...(intent.firstName ? { firstName: intent.firstName } : {}), ...(intent.lastName ? { lastName: intent.lastName } : {}), ...(name ? { name } : {}), ...(intent.locale ? { locale: intent.locale } : {}) } });
+  if (intent.inviteCode) {
+    try {
+      await joinByInvite({ id: user.id, email, firstName: intent.firstName, lastName: intent.lastName }, intent.inviteCode);
+    } catch (e) {
+      console.error("platform invite failed", e instanceof Error ? e.message : e);
+    }
+  }
   if (intent.refCode) {
     try {
       await joinByReferral({ id: user.id, email, firstName: intent.firstName, lastName: intent.lastName }, intent.refCode);
@@ -138,6 +147,80 @@ export async function joinByReferral(person: NewPerson, code: string): Promise<{
     payload: { contactId: result.contactId },
   }).catch(() => undefined);
   return { contactId: result.contactId };
+}
+
+// ── inviting people to use the platform ────────────────────────────────────
+
+/** The person's own link for inviting others to the platform, made the first time it is asked for. */
+async function ensureInviteCode(userId: string): Promise<string> {
+  const cur = await db.user.findUnique({ where: { id: userId }, select: { inviteCode: true } });
+  if (cur?.inviteCode) return cur.inviteCode;
+  for (let i = 0; i < 5; i++) {
+    try {
+      return (await db.user.update({ where: { id: userId }, data: { inviteCode: newCode() }, select: { inviteCode: true } })).inviteCode as string;
+    } catch {
+      const again = await db.user.findUnique({ where: { id: userId }, select: { inviteCode: true } });
+      if (again?.inviteCode) return again.inviteCode;
+    }
+  }
+  throw new ApiError(500, "link_failed", "The link could not be made");
+}
+
+/** How far an invited person has got, in steps only: made a workspace, added people. Never what is in them. */
+export interface InvitedPerson {
+  id: string;
+  name: string;
+  joinedAt: Date;
+  steps: { workspace: boolean; people: boolean };
+}
+
+export async function getInvites(userId: string) {
+  const code = await ensureInviteCode(userId);
+  const [people, points] = await Promise.all([
+    db.user.findMany({ where: { referredById: userId, deletedAt: null }, orderBy: { referredAt: "desc" }, select: { id: true, name: true, firstName: true, email: true, referredAt: true, createdAt: true } }),
+    db.bonusPoint.aggregate({ where: { userId }, _sum: { points: true } }),
+  ]);
+  const ids = people.map((p) => p.id);
+  const [owners, contacts] = ids.length
+    ? await Promise.all([
+        db.membership.findMany({ where: { userId: { in: ids }, role: "OWNER" }, select: { userId: true } }),
+        db.node.groupBy({ by: ["createdById"], where: { createdById: { in: ids }, type: "CONTACT" }, _count: { _all: true } }),
+      ])
+    : [[], []];
+  const hasWs = new Set(owners.map((o) => o.userId));
+  const hasPeople = new Set(contacts.map((c) => c.createdById));
+  const invited: InvitedPerson[] = people.map((p) => ({ id: p.id, name: p.name?.trim() || p.email.split("@")[0] || "", joinedAt: p.referredAt ?? p.createdAt, steps: { workspace: hasWs.has(p.id), people: hasPeople.has(p.id) } }));
+  return { code, url: `${env().APP_URL}/i/${code}`, points: points._sum.points ?? 0, invited };
+}
+
+/** Who a platform invitation code belongs to, for the sentence on the sign-up page. Nothing else about them. */
+export async function inviteInfo(code: string | null | undefined): Promise<{ inviter: string } | null> {
+  if (!isRefCode(code)) return null;
+  const u = await db.user.findUnique({ where: { inviteCode: code }, select: { name: true, email: true, deletedAt: true, suspendedAt: true } });
+  if (!u || u.deletedAt || u.suspendedAt) return null;
+  return { inviter: u.name?.trim() || u.email.split("@")[0] || "" };
+}
+
+/**
+ * A person has created an account through someone's platform link: they are marked as invited by them (once, never by themselves),
+ * the inviter gets one bonus point and a notification. The new person stays a separate user with their own workspace;
+ * nothing of theirs is shared with the inviter.
+ */
+export async function joinByInvite(person: NewPerson, code: string): Promise<{ inviterId: string } | null> {
+  const inviter = await db.user.findUnique({ where: { inviteCode: code }, select: { id: true, deletedAt: true, suspendedAt: true } });
+  if (!inviter || inviter.deletedAt || inviter.suspendedAt || inviter.id === person.id) return null;
+  const me = await db.user.findUnique({ where: { id: person.id }, select: { referredById: true } });
+  if (!me || me.referredById) return null;
+  await db.$transaction([
+    db.user.update({ where: { id: person.id }, data: { referredById: inviter.id, referredAt: new Date() } }),
+    db.bonusPoint.create({ data: { userId: inviter.id, points: 1, reason: "invite", refUserId: person.id } }),
+  ]);
+  const ws = await db.membership.findFirst({ where: { userId: inviter.id, role: { not: "CLIENT" } }, orderBy: { createdAt: "asc" }, select: { workspaceId: true } });
+  if (ws) {
+    const first = person.firstName?.trim() || person.email.split("@")[0] || person.email;
+    await notify({ userId: inviter.id, workspaceId: ws.workspaceId, kind: "invite_joined", title: `${[first, person.lastName?.trim()].filter(Boolean).join(" ")} joined MeetOwl through your link`, body: "+1 bonus point", url: "/account", dedupeKey: `invite:${person.id}` }).catch(() => undefined);
+  }
+  return { inviterId: inviter.id };
 }
 
 // ── making the first workspace ─────────────────────────────────────────────

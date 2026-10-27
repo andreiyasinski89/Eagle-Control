@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Link } from "@/i18n/navigation";
 import { api, ApiFailure } from "@/features/mindmap/api";
 import { SkeletonRows } from "@/components/ui/skeleton";
+import { InviteCard } from "./InviteCard";
 import { ProfileSection, type ProfileValues } from "./ProfileSection";
 import { TimeZoneSection } from "./TimeZoneSection";
 
@@ -91,6 +92,8 @@ export function AccountPanel({ email, avatar, profile }: { email: string; avatar
     <div className="mx-auto flex max-w-2xl flex-col gap-4 p-6">
       <h1 className="text-xl font-semibold">{t("title")}</h1>
       <ProfileSection email={email} avatar={avatar} initial={profile} />
+
+      <InviteCard />
       {done && <p role="status" className="text-sm">{done}</p>}
 
       <TimeZoneSection />

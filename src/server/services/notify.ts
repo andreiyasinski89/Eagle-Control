@@ -5,7 +5,7 @@ import { env } from "@/lib/env";
 import type { Tx } from "./nodes/access";
 import { publishNotification } from "@/server/realtime";
 
-export const NOTIFY_KINDS = ["mention", "assigned", "lead", "deal_won", "project_red", "reminder", "sprint_ended", "due_today", "cold_contact", "stale_deal", "billing", "client_activity"] as const;
+export const NOTIFY_KINDS = ["mention", "assigned", "lead", "deal_won", "project_red", "reminder", "sprint_ended", "due_today", "cold_contact", "stale_deal", "billing", "client_activity", "invite_joined"] as const;
 export type NotifyKind = (typeof NOTIFY_KINDS)[number];
 export type Channel = "app" | "email" | "slack" | "telegram";
 
@@ -23,6 +23,7 @@ export const DEFAULT_CHANNELS: Record<NotifyKind, Channel[]> = {
   stale_deal: ["app"],
   billing: ["app", "email"],
   client_activity: ["app", "email"],
+  invite_joined: ["app"],
 };
 
 export interface Notice {

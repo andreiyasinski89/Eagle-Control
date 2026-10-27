@@ -2,13 +2,13 @@ import { getTranslations } from "next-intl/server";
 import { env } from "@/lib/env";
 import { Button } from "@/components/ui/button";
 import { isRefCode } from "@/modules/auth/signup";
-import { referralInfo } from "@/server/services/signup";
+import { inviteInfo, referralInfo } from "@/server/services/signup";
 import { SignInForm } from "./sign-in-form";
 
 export default async function SignInPage({
   searchParams,
 }: {
-  searchParams: Promise<{ sent?: string; callbackUrl?: string; tab?: string; ref?: string }>;
+  searchParams: Promise<{ sent?: string; callbackUrl?: string; tab?: string; ref?: string; inv?: string }>;
 }) {
   const [t, sp] = await Promise.all([getTranslations("auth"), searchParams]);
   const googleEnabled = Boolean(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET);
@@ -21,6 +21,10 @@ export default async function SignInPage({
   const refCode = isRefCode(sp.ref) ? sp.ref : null;
   const inviter = refCode ? ((await referralInfo(refCode).catch(() => null))?.inviter ?? null) : null;
   const validRef = inviter ? refCode : null;
+  // A platform invitation (/i/<code>): the person comes to use MeetOwl themselves.
+  const invCode = isRefCode(sp.inv) ? sp.inv : null;
+  const platformInviter = invCode ? ((await inviteInfo(invCode).catch(() => null))?.inviter ?? null) : null;
+  const validInv = platformInviter ? invCode : null;
   return (
     <main className="grid min-h-screen lg:grid-cols-[1.05fr_1fr]">
       <aside
@@ -55,7 +59,7 @@ export default async function SignInPage({
             </>
           ) : (
             <>
-              {mailEnabled && <SignInForm googleEnabled={googleEnabled} callbackUrl={callbackUrl} initialMode={sp.tab === "signup" || validRef ? "signup" : "signin"} refCode={validRef} inviter={inviter} />}
+              {mailEnabled && <SignInForm googleEnabled={googleEnabled} callbackUrl={callbackUrl} initialMode={sp.tab === "signup" || validRef || validInv ? "signup" : "signin"} refCode={validRef} inviter={inviter} invCode={validInv} platformInviter={platformInviter} />}
               {demo && (
                 <form method="post" action="/api/demo/login" className="flex flex-col gap-2" data-testid="demo-login">
                   <Button type="submit" variant={mailEnabled ? "outline" : "primary"}>
