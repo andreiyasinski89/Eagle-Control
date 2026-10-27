@@ -332,3 +332,7 @@
 - **Your account** opens with a profile card: first name, last name, phone and Telegram (a @name or a t.me link), with a round avatar of your initials, checks as you type, and a Save button that wakes only when something changed. The display name shown everywhere is made from the first and last name. Names already in use are split at the first space (migration `0023_profile_fields`).
 - **Settings → Members** shows every member as the same card: avatar, name, e-mail, a tap-to-call phone and a Telegram link (teammates see them; guests and clients do not), and below it role, CRM access and hourly rate under the same captions, with the actions on the right.
 - Your own partner card, when made, takes the name, e-mail, phone and Telegram from the profile.
+
+## 0.31.1 — Change the stage in the Contacts table
+
+- In **CRM → Contacts** the **Stage** pill is a choice list: pick another stage right in the row, the row changes at once and the change is saved (auto-plans and the history work as when the stage is changed in the card or on the board). Without the right to edit the pill stays plain.

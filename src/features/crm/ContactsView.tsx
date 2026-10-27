@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { FormField, Modal, selectClass } from "@/components/ui/modal";
 import { api, ApiFailure } from "@/features/mindmap/api";
 import { cn } from "@/lib/utils";
+import { STAGES, type Stage } from "@/modules/crm/people";
 import { ContactDrawer, messengerLinks } from "./ContactDrawer";
 import { DataTable, Pager, type Column } from "./DataTable";
 import { DuplicatesDialog } from "./DuplicatesDialog";
@@ -166,6 +167,22 @@ export function ContactsView({ workspaceId, slug, canWrite, canExport, canMerge,
     },
   });
 
+  // The stage is changed right in the table: the pill is a choice list, and the row shows the new stage at once.
+  const setStage = useMutation({
+    mutationFn: ({ id, stage }: { id: string; stage: Stage }) => api.patch(`/api/v1/contacts/${id}`, { stage }),
+    onMutate: ({ id, stage }) => {
+      const was = qc.getQueriesData<Paged<ContactListItem>>({ queryKey: ["contacts", workspaceId] });
+      for (const [k, v] of was) if (v) qc.setQueryData<Paged<ContactListItem>>(k, { ...v, items: v.items.map((i) => (i.id === id ? { ...i, stage } : i)) });
+      return { was };
+    },
+    onError: (_e, _v, ctx) => {
+      for (const [k, v] of ctx?.was ?? []) qc.setQueryData(k, v);
+    },
+    onSettled: () => {
+      for (const k of ["contacts", "people", "contact", "partners", "activities"]) void qc.invalidateQueries({ queryKey: [k] });
+    },
+  });
+
   const columns: Column<ContactListItem>[] = [
     {
       key: "name",
@@ -178,7 +195,32 @@ export function ContactsView({ workspaceId, slug, canWrite, canExport, canMerge,
         </div>
       ),
     },
-    { key: "stage", header: t("field.stage"), render: (c) => (c.stage ? <span className="whitespace-nowrap rounded-full bg-muted px-2 py-0.5 text-xs">{t(`funnelStage.${c.stage}`)}</span> : "—") },
+    {
+      key: "stage",
+      header: t("field.stage"),
+      render: (c) =>
+        !c.stage ? (
+          "—"
+        ) : canWrite ? (
+          <select
+            value={c.stage}
+            aria-label={`${t("field.stage")}: ${c.name}`}
+            data-testid="stage-select"
+            className="cursor-pointer appearance-none whitespace-nowrap rounded-full border border-transparent bg-muted py-0.5 pl-2.5 pr-6 text-xs hover:border-primary focus-visible:outline-2 focus-visible:outline-primary"
+            style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none' stroke='%238b8b9a' stroke-width='1.6'%3E%3Cpath d='M1 1l4 4 4-4'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center" }}
+            onClick={(e) => e.stopPropagation()}
+            onChange={(e) => setStage.mutate({ id: c.id, stage: e.target.value as Stage })}
+          >
+            {STAGES.map((s) => (
+              <option key={s} value={s}>
+                {t(`funnelStage.${s}`)}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <span className="whitespace-nowrap rounded-full bg-muted px-2 py-0.5 text-xs">{t(`funnelStage.${c.stage}`)}</span>
+        ),
+    },
     { key: "company", header: t("company"), render: (c) => c.companyName ?? "—" },
     { key: "email", header: t("field.email"), render: (c) => c.emails[0] ?? "—" },
     { key: "phone", header: t("field.phone"), render: (c) => c.phones[0] ?? "—" },
