@@ -571,7 +571,9 @@
     },
     "fileHint": "Excel (.xlsx) lub CSV, do 5 MB. Z Excela czytany jest pierwszy arkusz, a pierwszy wypełniony wiersz to nagłówek.",
     "noteColumns": "Pozostałe kolumny",
-    "noteColumnsHint": "Zaznacz kolumny, które mają trafić do notatki kontaktu jako „Kolumna: wartość”."
+    "noteColumnsHint": "Zaznacz kolumny, które mają trafić do notatki kontaktu jako „Kolumna: wartość”.",
+    "importing": "Importowanie…",
+    "importTimeout": "Serwer działał zbyt długo i się zatrzymał. Nic nie zaimportowano. Spróbuj ponownie; jeśli to się powtarza, podziel plik na mniejsze części."
   },
   "myday": {
     "title": "Mój dzień",

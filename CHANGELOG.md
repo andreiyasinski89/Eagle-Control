@@ -138,3 +138,10 @@
 - Someone who never picked a zone while their device is not on UTC gets a one-time notice offering to use the device's zone.
 - Nothing stored changes: events stay UTC, so colleagues in different zones see the same meeting at their own hour, and the MCP tools and the public API still speak UTC.
 - Tests: `timezone.test.ts` (offsets, daylight saving, half-hour zones, midnight crossings, item placement, the form) and `profile-timezone.test.ts` (saving and refusing zones).
+## 0.11.1 — Big imports no longer stall
+
+- **Fix:** importing a few hundred contacts (an Excel file of ~320 people) seemed to do nothing on the hosted version. Creating each person took about four database calls inside one transaction, so ~1300 round trips to a remote database; the host stopped the request, and the answer (an empty timeout page) was shown as nothing at all.
+- The import now writes new people and companies in batches (nodes, contacts, notes, audit entries; companies are looked up once and the missing ones created together): about 25 calls for 325 contacts with 120 companies instead of ~1300. Updates of existing records still go one by one.
+- The import routes ask for the longest function time the plan allows (60 s).
+- The wizard shows *Importing…* while it works, and a timeout or any empty server answer is now reported ("Nothing was imported. Try again…") instead of being silent.
+- Tests: `import-bulk.test.ts` pins the number of database calls for 325 contacts, 120 companies and 250 company rows, and checks that everything the one-by-one path wrote is still written.

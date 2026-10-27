@@ -69,7 +69,8 @@ export function ImportWizard({ open, onClose, workspaceId, entity }: { open: boo
     if (entity === "contacts" && notes) fd.set("noteColumns", JSON.stringify(notes));
     return fd;
   };
-  const fail = (e: unknown) => setError(e instanceof ApiFailure ? (e.code === "plan_limit" ? t("planLimit") : e.message) : t("error"));
+  // A timeout comes back as a page of HTML with no message at all: say what happened instead of showing nothing.
+  const fail = (e: unknown) => setError(e instanceof ApiFailure ? (e.code === "plan_limit" ? t("planLimit") : e.status === 502 || e.status === 503 || e.status === 504 ? t("importTimeout") : e.message || t("error")) : t("error"));
 
   async function runPreview(f: File, m: Record<string, string> | null, pol = policy, enc = encoding, notes = noteCols) {
     setBusy(true);
@@ -305,7 +306,7 @@ export function ImportWizard({ open, onClose, workspaceId, entity }: { open: boo
               {tc("cancel")}
             </Button>
             <Button disabled={!preview || busy || preview.summary.created + preview.summary.updated === 0} onClick={commit}>
-              {t("runImport")}
+              {busy ? t("importing") : t("runImport")}
             </Button>
           </div>
         </div>

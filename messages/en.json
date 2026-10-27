@@ -571,7 +571,9 @@
     },
     "fileHint": "Excel (.xlsx) or CSV, up to 5 MB. For Excel the first sheet is read and the first filled row is the header.",
     "noteColumns": "Other columns",
-    "noteColumnsHint": "Tick the columns to keep in the contact's note, as “Column: value”."
+    "noteColumnsHint": "Tick the columns to keep in the contact's note, as “Column: value”.",
+    "importing": "Importing…",
+    "importTimeout": "The server took too long and stopped. Nothing was imported. Try again; if it keeps happening, split the file into smaller parts."
   },
   "myday": {
     "title": "My day",

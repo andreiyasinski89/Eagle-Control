@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import type { Prisma } from "@prisma/client";
 import { db } from "@/server/db";
@@ -102,6 +103,63 @@ export async function createContactIn(
   }
   await logActivity(tx, { workspaceId, nodeId: node.id, actorId: userId, action: "contact.created", diff: { name: node.title } });
   return { id: node.id };
+}
+
+export interface BulkContact {
+  firstName: string;
+  lastName: string | null;
+  position: string | null;
+  emails: string[];
+  phones: string[];
+  messengers: Record<string, string>;
+  companyId?: string;
+  /** Becomes a NOTE activity on the contact. */
+  note?: string | null;
+}
+
+const BULK_CHUNK = 500;
+
+/**
+ * Creates many contacts with a handful of statements instead of several per person (an import of a few hundred people
+ * otherwise spends minutes waiting on a remote database). Same rows as `createContactIn`: node, contact, optional note, audit entry.
+ * Ids are made here, so each row can be linked to the others without reading anything back.
+ */
+export async function createContactsBulk(tx: Tx, userId: string, workspaceId: string, rows: readonly BulkContact[]): Promise<string[]> {
+  if (rows.length === 0) return [];
+  const companyIds = [...new Set(rows.map((r) => r.companyId).filter((c): c is string => !!c))];
+  if (companyIds.length) {
+    const found = await tx.node.count({ where: { id: { in: companyIds }, workspaceId, type: "COMPANY", archivedAt: null } });
+    if (found !== companyIds.length) throw invalid("invalid_company", "Company not found in this workspace");
+  }
+  const ids = rows.map(() => randomUUID());
+  const base = Date.now();
+  const now = new Date();
+  for (let i = 0; i < rows.length; i += BULK_CHUNK) {
+    const part = rows.slice(i, i + BULK_CHUNK);
+    const nodeIds = ids.slice(i, i + BULK_CHUNK);
+    const title = (r: BulkContact) => fullName(r.firstName, r.lastName);
+    await tx.node.createMany({ data: part.map((r, k) => ({ id: nodeIds[k] as string, workspaceId, type: "CONTACT" as const, title: title(r), parentId: r.companyId ?? null, rootId: r.companyId ?? null, createdById: userId, position: base + i + k, data: {} })) });
+    await tx.contact.createMany({
+      data: part.map((r, k) => ({
+        nodeId: nodeIds[k] as string,
+        workspaceId,
+        firstName: r.firstName,
+        lastName: r.lastName?.trim() || null,
+        position: r.position?.trim() || null,
+        emails: cleanEmails(r.emails),
+        phones: r.phones.map((p) => p.trim()).filter(Boolean),
+        phonesNorm: phoneKeys(r.phones),
+        messengers: Object.fromEntries(Object.entries(r.messengers).filter(([, v]) => !!v)) as Prisma.InputJsonValue,
+        companyId: r.companyId ?? null,
+        ownerId: userId,
+        consentGiven: false,
+      })),
+    });
+    const notes = part.flatMap((r, k) => (r.note ? [{ workspaceId, type: "NOTE" as const, subject: "Imported note", body: r.note, ownerId: userId, contactId: nodeIds[k] as string, companyId: r.companyId ?? null, completedAt: now }] : []));
+    if (notes.length) await tx.crmActivity.createMany({ data: notes });
+    await tx.activityLog.createMany({ data: part.map((r, k) => ({ workspaceId, nodeId: nodeIds[k] as string, actorId: userId, action: "contact.created", diff: { name: title(r) } as Prisma.InputJsonValue })) });
+  }
+  return ids;
 }
 
 export async function createContact(userId: string, workspaceId: string, input: z.infer<typeof createContactSchema>) {

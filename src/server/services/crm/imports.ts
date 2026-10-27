@@ -25,8 +25,8 @@ import {
 import { companyKeys, contactKeys } from "@/modules/crm/dedupe";
 import { normalizeCompanyName, normalizeDomain } from "@/modules/crm/normalize";
 import { loadWorkspaceMember, logActivity, type Tx } from "@/server/services/nodes/access";
-import { createCompanyIn } from "./companies";
-import { assertContactCapacity, cleanEmails, contactWhere, createContactIn, updateContactIn, type listContactsSchema } from "./contacts";
+import { createCompaniesBulk, type CompanyFields } from "./companies";
+import { assertContactCapacity, cleanEmails, contactWhere, createContactsBulk, updateContactIn, type BulkContact, type listContactsSchema } from "./contacts";
 import { invalid, toNum } from "./common";
 
 export const importOptionsSchema = z.object({
@@ -118,16 +118,42 @@ export async function previewImport(userId: string, workspaceId: string, bytes: 
   };
 }
 
-async function companyFor(tx: Tx, userId: string, workspaceId: string, name: string, website: string | null, cache: Map<string, string>): Promise<string> {
-  const keyName = normalizeCompanyName(name) ?? name.toLowerCase();
-  const domain = normalizeDomain(website);
-  const hit = cache.get(`n:${keyName}`) ?? (domain ? cache.get(`d:${domain}`) : undefined);
-  if (hit) return hit;
-  const found = await tx.company.findFirst({ where: { workspaceId, node: { archivedAt: null }, OR: [{ legalName: { equals: name, mode: "insensitive" } }, ...(domain ? [{ domain }] : [])] }, select: { nodeId: true } });
-  const id = found?.nodeId ?? (await createCompanyIn(tx, userId, workspaceId, { legalName: name, website, source: "import" })).id;
-  cache.set(`n:${keyName}`, id);
-  if (domain) cache.set(`d:${domain}`, id);
-  return id;
+const nameKey = (name: string) => normalizeCompanyName(name) ?? name.toLowerCase();
+
+/**
+ * Finds or creates, in a few statements, every company the rows name: by name (ignoring "LLC" and case) or by website domain.
+ * Returns a lookup for one row. Reading the workspace's companies once and creating the missing ones together is what keeps a
+ * big import from waiting on the database once per person.
+ */
+async function resolveCompanies(tx: Tx, userId: string, workspaceId: string, recs: readonly { company: string | null; website: string | null }[]) {
+  const cache = new Map<string, string>();
+  const wanted = new Map<string, { name: string; website: string | null }>();
+  for (const r of recs) if (r.company && !wanted.has(nameKey(r.company))) wanted.set(nameKey(r.company), { name: r.company, website: r.website });
+  if (wanted.size > 0) {
+    for (const c of await tx.company.findMany({ where: { workspaceId, node: { archivedAt: null } }, select: { nodeId: true, legalName: true, domain: true } })) {
+      if (!cache.has(`n:${nameKey(c.legalName)}`)) cache.set(`n:${nameKey(c.legalName)}`, c.nodeId);
+      if (c.domain && !cache.has(`d:${c.domain}`)) cache.set(`d:${c.domain}`, c.nodeId);
+    }
+    const missing: { name: string; website: string | null }[] = [];
+    const planned = new Set<string>();
+    for (const w of wanted.values()) {
+      const domain = normalizeDomain(w.website);
+      if (cache.has(`n:${nameKey(w.name)}`) || (domain && (cache.has(`d:${domain}`) || planned.has(domain)))) continue;
+      missing.push(w);
+      if (domain) planned.add(domain);
+    }
+    const ids = await createCompaniesBulk(tx, userId, workspaceId, missing.map((w) => ({ legalName: w.name, website: w.website, source: "import" })));
+    missing.forEach((w, i) => {
+      cache.set(`n:${nameKey(w.name)}`, ids[i] as string);
+      const domain = normalizeDomain(w.website);
+      if (domain && !cache.has(`d:${domain}`)) cache.set(`d:${domain}`, ids[i] as string);
+    });
+  }
+  return (r: { company: string | null; website: string | null }): string | undefined => {
+    if (!r.company) return undefined;
+    const domain = normalizeDomain(r.website);
+    return cache.get(`n:${nameKey(r.company)}`) ?? (domain ? cache.get(`d:${domain}`) : undefined);
+  };
 }
 
 /** Applies the import in one transaction: either every valid row lands or none does. */
@@ -138,18 +164,20 @@ export async function commitImport(userId: string, workspaceId: string, bytes: U
       const p = await prepare(tx, workspaceId, bytes, opts);
       const summary = summarize(p.actions);
       if (opts.entity === "contacts") await assertContactCapacity(tx, workspaceId, summary.created);
-      const companyCache = new Map<string, string>();
+      const toCreateContacts: BulkContact[] = [];
+      const toCreateCompanies: CompanyFields[] = [];
+      const companyOf = opts.entity === "contacts" ? await resolveCompanies(tx, userId, workspaceId, p.actions.flatMap((action, i) => (action.kind === "create" || action.kind === "update") && p.contacts?.[i]?.ok ? [(p.contacts[i] as { ok: true; record: ContactRecord }).record] : [])) : () => undefined;
 
+      // New people and companies are collected and written together at the end; only updates of existing records go one by one.
       for (const [i, action] of p.actions.entries()) {
         if (action.kind !== "create" && action.kind !== "update") continue;
         if (opts.entity === "contacts") {
           const r = p.contacts?.[i];
           if (!r?.ok) continue;
           const rec = r.record;
-          const companyId = rec.company ? await companyFor(tx, userId, workspaceId, rec.company, rec.website, companyCache) : undefined;
+          const companyId = companyOf(rec);
           if (action.kind === "create") {
-            const { id } = await createContactIn(tx, userId, workspaceId, { firstName: rec.firstName, lastName: rec.lastName, position: rec.position, emails: rec.email, phones: rec.phone, messengers: rec.messengers, companyId, source: rec.source ?? "import" });
-            if (rec.notes) await tx.crmActivity.create({ data: { workspaceId, type: "NOTE", subject: "Imported note", body: rec.notes, ownerId: userId, contactId: id, companyId: companyId ?? null, completedAt: new Date() } });
+            toCreateContacts.push({ firstName: rec.firstName, lastName: rec.lastName, position: rec.position, emails: rec.email, phones: rec.phone, messengers: rec.messengers, companyId, note: rec.notes });
           } else {
             const cur = await tx.contact.findUniqueOrThrow({ where: { nodeId: action.existingId } });
             await updateContactIn(tx, userId, action.existingId, {
@@ -167,7 +195,7 @@ export async function commitImport(userId: string, workspaceId: string, bytes: U
           if (!r?.ok) continue;
           const rec = r.record;
           if (action.kind === "create") {
-            await createCompanyIn(tx, userId, workspaceId, { legalName: rec.legalName, website: rec.website, industry: rec.industry, size: rec.size, country: rec.country, city: rec.city, address: rec.address, taxId: rec.taxId, source: rec.source ?? "import" });
+            toCreateCompanies.push({ legalName: rec.legalName, website: rec.website, industry: rec.industry, size: rec.size, country: rec.country, city: rec.city, address: rec.address, taxId: rec.taxId, source: rec.source ?? "import" });
           } else {
             const data: Prisma.CompanyUncheckedUpdateInput = {};
             for (const k of ["industry", "size", "country", "city", "address", "taxId", "source"] as const) if (rec[k]) data[k] = rec[k];
@@ -179,6 +207,8 @@ export async function commitImport(userId: string, workspaceId: string, bytes: U
           }
         }
       }
+      await createContactsBulk(tx, userId, workspaceId, toCreateContacts);
+      await createCompaniesBulk(tx, userId, workspaceId, toCreateCompanies);
       await logActivity(tx, { workspaceId, nodeId: null, actorId: userId, action: "import.completed", diff: { entity: opts.entity, created: summary.created, updated: summary.updated, skipped: summary.skipped, errors: summary.errors.length } });
       return { ...summary, errorCount: summary.errors.length, errors: summary.errors.slice(0, 200) };
     },

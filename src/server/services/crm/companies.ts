@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import type { Health, LifecycleStage, Prisma } from "@prisma/client";
 import { db } from "@/server/db";
@@ -64,6 +65,35 @@ export async function createCompanyIn(tx: Tx, userId: string, workspaceId: strin
   });
   await logActivity(tx, { workspaceId, nodeId: node.id, actorId: userId, action: "company.created", diff: { legalName: input.legalName } });
   return { id: node.id };
+}
+
+/** Many companies with a handful of statements; the same rows as `createCompanyIn` (node, company, audit entry). Returns the new ids in input order. */
+export async function createCompaniesBulk(tx: Tx, userId: string, workspaceId: string, rows: readonly CompanyFields[]): Promise<string[]> {
+  if (rows.length === 0) return [];
+  const ids = rows.map(() => randomUUID());
+  const base = Date.now();
+  await tx.node.createMany({ data: rows.map((r, k) => ({ id: ids[k] as string, workspaceId, type: "COMPANY" as const, title: r.legalName, createdById: userId, position: base + k, data: {} })) });
+  await tx.company.createMany({
+    data: rows.map((r, k) => ({
+      nodeId: ids[k] as string,
+      workspaceId,
+      legalName: r.legalName,
+      website: blank(r.website) ?? null,
+      domain: normalizeDomain(r.website),
+      industry: blank(r.industry) ?? null,
+      size: blank(r.size) ?? null,
+      country: blank(r.country) ?? null,
+      city: blank(r.city) ?? null,
+      address: blank(r.address) ?? null,
+      taxId: blank(r.taxId) ?? null,
+      source: blank(r.source) ?? null,
+      ownerId: userId,
+      lifecycleStage: r.lifecycleStage ?? "LEAD",
+      customFields: {} as Prisma.InputJsonValue,
+    })),
+  });
+  await tx.activityLog.createMany({ data: rows.map((r, k) => ({ workspaceId, nodeId: ids[k] as string, actorId: userId, action: "company.created", diff: { legalName: r.legalName } as Prisma.InputJsonValue })) });
+  return ids;
 }
 
 export async function createCompany(userId: string, workspaceId: string, input: z.infer<typeof createCompanySchema>) {
