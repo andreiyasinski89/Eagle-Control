@@ -1587,7 +1587,9 @@
     "tzLabel": "Twoja strefa czasowa",
     "tzUseBrowser": "Użyj strefy tego urządzenia: {zone}",
     "tzNow": "U Ciebie jest teraz {time} ({offset}).",
-    "tzSaved": "Zapisano. Kalendarz używa teraz tej strefy."
+    "tzSaved": "Zapisano. Kalendarz używa teraz tej strefy.",
+    "deleteWaitEmail": "Przycisk włączy się, gdy wpiszesz swój adres ({email}) w polu powyżej, dokładnie tak samo. Potem na e-mail przyjdzie kod.",
+    "deleteWaitHandOver": "Najpierw przekaż przestrzenie, których jesteś właścicielem (wymienione powyżej); wtedy przycisk się włączy."
   },
   "legal": {
     "back": "Wróć do logowania",
@@ -1962,7 +1964,13 @@
     "recomputed": "Plany przeliczone: zmieniło się {n} z {total} przestrzeni.",
     "setupLink": "Połączenie usług",
     "role": "Rola",
-    "crmLevel": "Dostęp do CRM"
+    "crmLevel": "Dostęp do CRM",
+    "erase": "Usuń konto",
+    "eraseTitle": "Usunąć to konto na zawsze?",
+    "eraseHint": "Logowanie, sesje i dane osobowe znikają, a e-mail zostaje zwolniony: osoba może zarejestrować się ponownie, np. przez link zaproszenia. Praca wykonana z innymi zostaje pod nazwą „Deleted user”. Nie można tego cofnąć.",
+    "eraseType": "Wpisz e-mail tego konta",
+    "eraseConfirm": "Usuń na zawsze",
+    "cancel": "Anuluj"
   },
   "sharing": {
     "title": "Pokazuj moją aktywność sponsorowi",

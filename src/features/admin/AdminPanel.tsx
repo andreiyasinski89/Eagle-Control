@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Ban, CheckCircle2, Gift, Search, ShieldCheck, X } from "lucide-react";
+import { Ban, CheckCircle2, Gift, Search, ShieldCheck, Trash2, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -78,6 +78,13 @@ export function AdminPanel() {
   const fail = (e: unknown) => setError(e instanceof ApiFailure ? e.message : t("error"));
   const suspend = useMutation({ mutationFn: (v: { id: string; suspended: boolean }) => api.post(`/api/v1/admin/users/${v.id}/suspend`, { suspended: v.suspended }), onSuccess: () => (setError(null), refresh()), onError: fail });
   const role = useMutation({ mutationFn: (v: { id: string; userId: string; role?: string; crmLevel?: string }) => api.patch(`/api/v1/admin/workspaces/${v.id}/members/${v.userId}`, { role: v.role, crmLevel: v.crmLevel }), onSuccess: () => (setError(null), refresh()), onError: fail });
+  const [eraseText, setEraseText] = useState("");
+  const [erasing, setErasing] = useState(false);
+  const erase = useMutation({
+    mutationFn: (v: { id: string; confirmEmail: string }) => api.post(`/api/v1/admin/users/${v.id}/erase`, { confirmEmail: v.confirmEmail }),
+    onSuccess: () => (setError(null), setErasing(false), setEraseText(""), setOpen(null), refresh()),
+    onError: fail,
+  });
   const plan = useMutation({ mutationFn: (v: { id: string; plan: Plan }) => api.patch(`/api/v1/admin/workspaces/${v.id}`, { plan: v.plan }), onSuccess: () => (setError(null), refresh()), onError: fail });
   const recompute = useMutation({ mutationFn: () => api.post<{ checked: number; changed: number }>("/api/v1/admin/plans/recompute"), onSuccess: (r) => (setError(null), setRecomputed(t("recomputed", { n: r.changed, total: r.checked })), refresh()), onError: fail });
   const [recomputed, setRecomputed] = useState<string | null>(null);
@@ -359,6 +366,27 @@ export function AdminPanel() {
                       </Button>
                     )}
                     <p className="mt-1.5 text-xs text-muted-foreground">{d.suspendedAt ? t("suspendedNote", { date: day(d.suspendedAt) }) : t("suspendNote")}</p>
+
+                    {!erasing ? (
+                      <Button type="button" variant="outline" className="mt-4 text-[var(--health-red)]" onClick={() => setErasing(true)} data-testid="admin-erase">
+                        <Trash2 className="size-4" aria-hidden />
+                        {t("erase")}
+                      </Button>
+                    ) : (
+                      <div className="mt-4 flex flex-col gap-2 rounded-xl border border-[var(--health-red)]/50 p-3" data-testid="admin-erase-box">
+                        <p className="text-sm font-medium">{t("eraseTitle")}</p>
+                        <p className="text-xs text-muted-foreground">{t("eraseHint")}</p>
+                        <Input value={eraseText} onChange={(e) => setEraseText(e.target.value)} placeholder={d.email} aria-label={t("eraseType")} data-testid="admin-erase-email" />
+                        <div className="flex gap-2">
+                          <Button type="button" variant="danger" disabled={erase.isPending || eraseText.trim().toLowerCase() !== d.email.toLowerCase()} onClick={() => erase.mutate({ id: d.id, confirmEmail: eraseText })} data-testid="admin-erase-confirm">
+                            {t("eraseConfirm")}
+                          </Button>
+                          <Button type="button" variant="ghost" onClick={() => (setErasing(false), setEraseText(""))}>
+                            {t("cancel")}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </>

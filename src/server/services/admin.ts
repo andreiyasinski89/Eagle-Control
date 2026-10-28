@@ -4,6 +4,7 @@ import { env } from "@/lib/env";
 import { CRM_LEVELS, crmLevel, levelFields } from "@/modules/crm/access";
 import { db } from "@/server/db";
 import { ApiError, forbidden, notFound } from "@/server/http/errors";
+import { deletionStatus, eraseAccount } from "./account";
 import { recomputePlans, syncPlan } from "./entitlements";
 import { paidMode } from "./paid-plans";
 
@@ -134,6 +135,27 @@ export async function setWorkspacePlan(actorId: string, workspaceId: string, pla
   await syncPlan(workspaceId);
   await log(actorId, "workspace.plan", null, { workspaceId, name: w.name, from: w.plan, to: plan });
   return { plan };
+}
+
+export const eraseUserSchema = z.object({ confirmEmail: z.string().trim().toLowerCase().email() });
+
+/**
+ * Deletes an account for good, on the platform owner's word (no code by e-mail: that protects a person from a stolen browser, and this is the
+ * owner's own decision). The e-mail of the account has to be typed. What goes is the same as when a person deletes themselves: their sign-in,
+ * sessions, notes, notifications, memberships; the address is freed, so the person can register again, for example through an invitation link.
+ * An account that is the only owner of a workspace with a team is refused until the workspace is handed over.
+ */
+export async function eraseUserByAdmin(actorId: string, userId: string, input: z.infer<typeof eraseUserSchema>) {
+  await requireSuperAdmin(actorId);
+  const u = await db.user.findUnique({ where: { id: userId }, select: { id: true, email: true, deletedAt: true } });
+  if (!u || u.deletedAt) throw notFound("user");
+  if (isSuperAdminEmail(u.email) || u.id === actorId) throw forbidden();
+  if (input.confirmEmail.trim().toLowerCase() !== u.email.toLowerCase()) throw new ApiError(422, "email_mismatch", "Type the e-mail address of the account exactly to confirm");
+  const status = await deletionStatus(userId);
+  if (status.blockers.length > 0) throw new ApiError(409, "ownership_required", "This person owns a workspace that has a team: hand it over first", { blockers: status.blockers });
+  await log(actorId, "user.deleted", userId, { email: u.email, workspacesDeleted: status.willDelete.length });
+  await db.user.update({ where: { id: userId }, data: { deletionOptions: { alsoRemoveComments: false } } });
+  return eraseAccount(userId);
 }
 
 export const memberRoleSchema = z

@@ -1587,7 +1587,9 @@
     "tzLabel": "Your time zone",
     "tzUseBrowser": "Use this device's zone: {zone}",
     "tzNow": "It is {time} for you now ({offset}).",
-    "tzSaved": "Saved. The calendar now uses this zone."
+    "tzSaved": "Saved. The calendar now uses this zone.",
+    "deleteWaitEmail": "The button turns on when you type your address ({email}) in the field above, exactly. Then a code comes to your e-mail.",
+    "deleteWaitHandOver": "First hand over the workspaces you own (listed above); then the button turns on."
   },
   "legal": {
     "back": "Back to sign in",
@@ -1962,7 +1964,13 @@
     "recomputed": "Plans recalculated: {n} of {total} workspaces changed.",
     "setupLink": "Connect services",
     "role": "Role",
-    "crmLevel": "CRM access"
+    "crmLevel": "CRM access",
+    "erase": "Delete account",
+    "eraseTitle": "Delete this account for good?",
+    "eraseHint": "Sign-in, sessions and personal data go, and the e-mail is freed: the person can register again, for example through an invitation link. Work done with others stays under \"Deleted user\". This cannot be undone.",
+    "eraseType": "Type the e-mail address of the account",
+    "eraseConfirm": "Delete for good",
+    "cancel": "Cancel"
   },
   "sharing": {
     "title": "Show my activity to my sponsor",

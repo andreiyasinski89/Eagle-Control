@@ -172,9 +172,18 @@ export function AccountPanel({ email, avatar, profile }: { email: string; avatar
               <Input type="email" value={confirmEmail} onChange={(e) => setConfirmEmail(e.target.value)} placeholder={email} className="max-w-sm" />
             </label>
             {!del.sentTo ? (
-              <Button size="sm" variant="danger" className="w-fit" disabled={!status.canRequest || confirmEmail.trim().toLowerCase() !== email.toLowerCase() || del.send.isPending} onClick={() => del.send.mutate()}>
-                {t("sendCode")}
-              </Button>
+              <div className="flex flex-col gap-1.5">
+                <Button size="sm" variant="danger" className="w-fit" disabled={!status.canRequest || confirmEmail.trim().toLowerCase() !== email.toLowerCase() || del.send.isPending} onClick={() => del.send.mutate()} data-testid="delete-send-code">
+                  {t("sendCode")}
+                </Button>
+                {/* The button waits for the address to be typed; say so, or it looks broken. */}
+                {status.canRequest && confirmEmail.trim().toLowerCase() !== email.toLowerCase() && (
+                  <p className="text-xs text-muted-foreground" data-testid="delete-hint">
+                    {t("deleteWaitEmail", { email })}
+                  </p>
+                )}
+                {!status.canRequest && <p className="text-xs text-muted-foreground">{t("deleteWaitHandOver")}</p>}
+              </div>
             ) : (
               <form className="flex flex-wrap items-end gap-2" onSubmit={(e) => { e.preventDefault(); request.mutate(); }}>
                 <label className="flex flex-col gap-1 text-xs text-muted-foreground">

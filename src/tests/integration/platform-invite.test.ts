@@ -12,11 +12,11 @@ vi.mock("@/server/db", () => ({
   },
 }));
 vi.mock("@/server/storage", () => ({ deleteObject: vi.fn(), presignUpload: vi.fn(), presignDownload: vi.fn() }));
-vi.mock("@/server/mail", () => ({ sendMail: vi.fn() }));
+vi.mock("@/server/mail", () => ({ sendMail: vi.fn(async () => undefined) }));
 
 import { createWorkspace } from "@/server/services/workspace";
 import { createContact } from "@/server/services/crm/contacts";
-import { adjustBonus, getUserDetail, isSuperAdminEmail, listUsers, requireSuperAdmin, setMemberRole, setSuspended, setWorkspacePlan } from "@/server/services/admin";
+import { adjustBonus, eraseUserByAdmin, getUserDetail, isSuperAdminEmail, listUsers, requireSuperAdmin, setMemberRole, setSuspended, setWorkspacePlan } from "@/server/services/admin";
 import { applySignupIntent, getInvites, inviteInfo, joinByInvite, saveSignupIntent } from "@/server/services/signup";
 
 let close: () => Promise<void>;
@@ -168,5 +168,27 @@ describe("the platform owner", () => {
     const log = await raw.adminLog.findMany({ where: { action: "member.role" } });
     expect(log).toHaveLength(2);
     expect(log[0]?.data).toMatchObject({ from: { role: "CLIENT" }, to: { role: "MEMBER" } });
+  });
+
+  it("deletes an account for good on the owner's word: the address is freed, the person can register again, and it is written down", async () => {
+    const cleo = (await user("cleo@x.io", "Cleo")).id;
+    await raw.membership.create({ data: { userId: cleo, workspaceId: ws.id, role: "CLIENT", crmAccess: false } });
+    await expect(eraseUserByAdmin(anna, cleo, { confirmEmail: "cleo@x.io" })).rejects.toMatchObject({ status: 404 }); // only the platform owner
+    await expect(eraseUserByAdmin(boss, cleo, { confirmEmail: "other@x.io" })).rejects.toMatchObject({ code: "email_mismatch" });
+    await expect(eraseUserByAdmin(boss, boss, { confirmEmail: "boss@example.com" })).rejects.toMatchObject({ status: 403 }); // not the owner of the platform itself
+    expect(await eraseUserByAdmin(boss, cleo, { confirmEmail: " Cleo@X.io " })).toEqual({ result: "erased" });
+    const gone = await raw.user.findUniqueOrThrow({ where: { id: cleo } });
+    expect(gone.deletedAt).not.toBeNull();
+    expect(gone.email).not.toBe("cleo@x.io");
+    expect(await raw.membership.count({ where: { userId: cleo } })).toBe(0);
+    // the address is free again: a new account can be made with it
+    const again = await user("cleo@x.io", "Cleo again");
+    expect(again.id).not.toBe(cleo);
+    expect(await raw.adminLog.count({ where: { action: "user.deleted", targetUserId: cleo } })).toBe(1);
+  });
+
+  it("will not delete the only owner of a workspace that has a team: it must be handed over first", async () => {
+    await expect(eraseUserByAdmin(boss, anna, { confirmEmail: "anna@x.io" })).rejects.toMatchObject({ status: 409, code: "ownership_required" });
+    expect((await raw.user.findUniqueOrThrow({ where: { id: anna } })).deletedAt).toBeNull();
   });
 });
