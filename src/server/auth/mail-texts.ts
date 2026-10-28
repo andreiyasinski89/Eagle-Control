@@ -7,6 +7,7 @@ export function signInMail(locale: SignupLocale, link: string): { subject: strin
   const t = {
     en: { subject: "Sign in to MeetOwl", lead: "Click to sign in to MeetOwl", button: "Sign in", note: "The link works once and expires in 15 minutes. If you did not ask for it, ignore this e-mail: nobody can sign in without it." },
     ru: { subject: "Вход в MeetOwl", lead: "Нажмите, чтобы войти в MeetOwl", button: "Войти", note: "Ссылка работает один раз и действует 15 минут. Если вы её не запрашивали, просто проигнорируйте письмо: без неё войти нельзя." },
+    uk: { subject: "Вхід до MeetOwl", lead: "Натисніть, щоб увійти до MeetOwl", button: "Увійти", note: "Посилання працює один раз і діє 15 хвилин. Якщо ви його не запитували, просто проігноруйте лист: без нього увійти неможливо." },
     pl: { subject: "Logowanie do MeetOwl", lead: "Kliknij, aby zalogować się do MeetOwl", button: "Zaloguj się", note: "Link działa jeden raz i wygasa po 15 minutach. Jeśli o niego nie prosiłeś, zignoruj tę wiadomość: bez niego nikt się nie zaloguje." },
   }[locale];
   return {
@@ -34,6 +35,14 @@ export function welcomeMail(locale: SignupLocale, name: string | null, workspace
       steps: ["Запишите мечту и цель: по ним считается пройденное расстояние.", "Добавьте людей, которых знаете: вставьте список имён, остальное заполнять не нужно.", "Назначьте каждому следующий шаг: день, звонок, сообщение."],
       button: "Открыть «Старт»",
       outro: "В «Базе знаний» есть короткий гайд по каждому шагу.",
+    },
+    uk: {
+      subject: "Ласкаво просимо до MeetOwl",
+      hi: name ? `Вітаємо, ${name}!` : "Вітаємо!",
+      intro: `Ваш простір «${workspace}» готовий. Три кроки, щоб почати:`,
+      steps: ["Запишіть мрію і ціль: за ними рахується пройдена відстань.", "Додайте людей, яких знаєте: вставте список імен, решту заповнювати не потрібно.", "Призначте кожному наступний крок: день, дзвінок, повідомлення."],
+      button: "Відкрити «Старт»",
+      outro: "У «Базі знань» є короткий гайд до кожного кроку.",
     },
     pl: {
       subject: "Witaj w MeetOwl",

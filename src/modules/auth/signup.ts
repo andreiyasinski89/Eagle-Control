@@ -47,5 +47,5 @@ export function cleanName(v: string | null | undefined): string | null {
   return s || null;
 }
 
-export type SignupLocale = "en" | "ru" | "pl";
-export const isSignupLocale = (v: unknown): v is SignupLocale => v === "en" || v === "ru" || v === "pl";
+export type SignupLocale = "en" | "ru" | "pl" | "uk";
+export const isSignupLocale = (v: unknown): v is SignupLocale => v === "en" || v === "ru" || v === "pl" || v === "uk";

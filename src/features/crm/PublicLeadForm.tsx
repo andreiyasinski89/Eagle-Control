@@ -15,6 +15,7 @@ interface Config {
 const TEXT = {
   en: { error: "Something went wrong. Please try again.", limit: "Too many attempts. Please wait a minute.", invalid: "Please check your details and try again.", sending: "Sending…" },
   ru: { error: "Что-то пошло не так. Попробуйте ещё раз.", limit: "Слишком много попыток. Подождите минуту.", invalid: "Проверьте введённые данные и повторите.", sending: "Отправка…" },
+  uk: { error: "Щось пішло не так. Спробуйте ще раз.", limit: "Забагато спроб. Зачекайте хвилину.", invalid: "Перевірте введені дані та повторіть.", sending: "Надсилання…" },
   pl: { error: "Coś poszło nie tak. Spróbuj ponownie.", limit: "Zbyt wiele prób. Odczekaj minutę.", invalid: "Sprawdź dane i spróbuj ponownie.", sending: "Wysyłanie…" },
 } as const;
 

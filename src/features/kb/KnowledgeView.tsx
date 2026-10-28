@@ -20,6 +20,8 @@ export function KnowledgeView({ slug }: { slug: string }) {
   const pathname = usePathname();
   const params = useSearchParams();
   const lang = langFor(locale);
+  // The PDF guide and the slides exist in Russian and English only; Ukrainian readers get the English files for now.
+  const fileLang = lang === "ru" ? "ru" : "en";
   const all = useMemo(() => articlesFor(lang), [lang]);
   const [q, setQ] = useState("");
   const selected = params.get("a");
@@ -81,11 +83,11 @@ export function KnowledgeView({ slug }: { slug: string }) {
           <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
         <div className="flex flex-wrap gap-2" data-testid="kb-downloads">
-          <a href={`/guide/MeetOwl-guide-${lang}.pdf`} download className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-card px-3 text-sm hover:border-primary hover:text-primary" data-testid="kb-download-pdf">
+          <a href={`/guide/MeetOwl-guide-${fileLang}.pdf`} download className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-card px-3 text-sm hover:border-primary hover:text-primary" data-testid="kb-download-pdf">
             <Download className="size-4" aria-hidden />
             {t("downloadPdf")}
           </a>
-          <a href={`/guide/MeetOwl-presentation-${lang}.pptx`} download className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-card px-3 text-sm hover:border-primary hover:text-primary" data-testid="kb-download-slides">
+          <a href={`/guide/MeetOwl-presentation-${fileLang}.pptx`} download className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-card px-3 text-sm hover:border-primary hover:text-primary" data-testid="kb-download-slides">
             <Download className="size-4" aria-hidden />
             {t("downloadSlides")}
           </a>

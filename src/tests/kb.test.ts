@@ -27,7 +27,7 @@ describe("the Markdown subset", () => {
 });
 
 describe("the articles", () => {
-  const langs = ["ru", "en"] as const;
+  const langs = ["ru", "en", "uk"] as const;
   it("every article exists in Russian and in English, with a title, a summary and a text", () => {
     for (const l of langs) {
       const list = articlesFor(l);
@@ -64,9 +64,11 @@ describe("the articles", () => {
   });
   it("Polish and any other language read the English articles", () => {
     expect(langFor("ru")).toBe("ru");
+    expect(langFor("uk")).toBe("uk");
     expect(langFor("pl")).toBe("en");
     expect(langFor("en")).toBe("en");
     expect(articleFor("funnel", "ru")?.title).toBe("Воронка и стадии");
+    expect(articleFor("funnel", "uk")?.title).toBe("Воронка і стадії");
     expect(articleFor("nope", "en")).toBeNull();
   });
   it("each step of getting started has an article to learn it from", () => {

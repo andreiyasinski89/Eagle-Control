@@ -1,8 +1,9 @@
 import { EN } from "./content-en";
 import { parseMarkdown, plainText, type Block } from "./markdown";
 import { RU } from "./content-ru";
+import { UK } from "./content-uk";
 
-export type Lang = "ru" | "en";
+export type Lang = "ru" | "en" | "uk";
 export type Category = "start" | "people" | "tools" | "rhythm";
 
 export interface ArticleText {
@@ -43,10 +44,10 @@ export const ARTICLES: ArticleMeta[] = [
 
 export const CATEGORIES: Category[] = ["start", "people", "tools", "rhythm"];
 
-const TEXTS: Record<Lang, Record<string, ArticleText>> = { ru: RU, en: EN };
+const TEXTS: Record<Lang, Record<string, ArticleText>> = { ru: RU, en: EN, uk: UK };
 
-/** Russian has its own articles; every other language reads the English ones until it is translated. */
-export const langFor = (locale: string): Lang => (locale === "ru" ? "ru" : "en");
+/** Russian and Ukrainian have their own articles; every other language reads the English ones until it is translated. */
+export const langFor = (locale: string): Lang => (locale === "ru" ? "ru" : locale === "uk" ? "uk" : "en");
 
 export interface Article extends ArticleMeta, ArticleText {
   blocks: Block[];

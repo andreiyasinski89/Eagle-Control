@@ -37,12 +37,13 @@ describe("names", () => {
 
 describe("the e-mails", () => {
   it("the sign-in e-mail speaks the language of the page and carries the link", () => {
-    for (const l of ["en", "ru", "pl"] as const) {
+    for (const l of ["en", "ru", "pl", "uk"] as const) {
       const m = signInMail(l, "https://x.io/sign-in/confirm?next=a%26b");
       expect(m.text).toContain("https://x.io/sign-in/confirm");
       expect(m.html).toContain("https://x.io/sign-in/confirm?next=a%26b");
     }
     expect(signInMail("ru", "https://x.io/").subject).toBe("Вход в MeetOwl");
+    expect(signInMail("uk", "https://x.io/").subject).toBe("Вхід до MeetOwl");
     expect(signInMail("en", "https://x.io/").subject).toBe("Sign in to MeetOwl");
   });
   it("the welcome e-mail has three steps, the start link, and shows no markup typed in a name", () => {

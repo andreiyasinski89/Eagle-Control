@@ -12,10 +12,11 @@ describe("ready-made scripts", () => {
     expect(sets.some((x) => x.stage === null)).toBe(true);
   });
 
-  it("the three languages have the same stages in the same order", () => {
+  it("the languages have the same stages in the same order", () => {
     const shape = (l: StarterLocale) => STARTER_SCRIPTS[l].map((x) => x.stage);
     expect(shape("en")).toEqual(shape("ru"));
     expect(shape("pl")).toEqual(shape("ru"));
+    expect(shape("uk")).toEqual(shape("ru"));
   });
 
   it.each(LOCALES)("%s: titles are unique and every text fits the limits and uses only known placeholders", (l) => {
@@ -34,6 +35,7 @@ describe("ready-made scripts", () => {
   it("picks the language, English for anything unknown", () => {
     expect(starterLocale("ru")).toBe("ru");
     expect(starterLocale("pl")).toBe("pl");
+    expect(starterLocale("uk")).toBe("uk");
     expect(starterLocale("de")).toBe("en");
     expect(starterLocale(null)).toBe("en");
   });

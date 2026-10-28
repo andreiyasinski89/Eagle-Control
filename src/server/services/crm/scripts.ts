@@ -54,7 +54,7 @@ export async function deleteScript(userId: string, id: string) {
   });
 }
 
-export const starterScriptsSchema = z.object({ locale: z.enum(["ru", "en", "pl"]).optional() });
+export const starterScriptsSchema = z.object({ locale: z.enum(["ru", "en", "pl", "uk"]).optional() });
 
 /**
  * The ready-made scripts for every stage of the funnel, in the person's language, added to the workspace. Safe to press again: a script whose

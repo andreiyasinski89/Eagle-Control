@@ -17,5 +17,5 @@ export default async function HostedForm({ params, searchParams }: { params: Pro
   const c = form.config;
   // Owner, stage and workspace never leave the server.
   const config = { title: c.title, submitLabel: c.submitLabel, successMessage: c.successMessage, consentText: c.consentText, redirectUrl: c.redirectUrl, fields: c.fields };
-  return <PublicLeadForm formKey={key} config={config} sent={sent === "1"} lang={lang === "ru" || lang === "pl" ? lang : "en"} />;
+  return <PublicLeadForm formKey={key} config={config} sent={sent === "1"} lang={lang === "ru" || lang === "pl" || lang === "uk" ? lang : "en"} />;
 }
