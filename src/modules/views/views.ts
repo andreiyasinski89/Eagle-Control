@@ -130,6 +130,10 @@ export interface Bar {
   w: number;
   start: string;
   end: string;
+  /** The axis starts later than this task did: the bar is cut at the left edge. */
+  cut?: boolean;
+  /** The whole task is before the axis starts (overdue): it is drawn as a one-day bar at the very beginning. */
+  late?: boolean;
 }
 
 export interface TimelineModel {
@@ -143,10 +147,12 @@ export interface TimelineModel {
 
 /**
  * Lays scheduled items out on a day axis. An item with one date is a one-day bar; one with both spans them
- * (a start after the due date is read as a one-day bar on the due date). The axis gets a week of air on each side.
+ * (a start after the due date is read as a one-day bar on the due date). The axis gets a week of air on each side, unless `from` is
+ * given: then the axis starts on that day (today) and the past is not drawn: a task that began earlier is cut at the left edge, and one
+ * that ended earlier is a one-day bar at the start, marked late.
  */
-export function buildTimeline(items: readonly Pick<WorkItem, "id" | "startDate" | "dueDate">[], today: string, pxPerDay: number): TimelineModel {
-  const scheduled: { id: string; start: string; end: string }[] = [];
+export function buildTimeline(items: readonly Pick<WorkItem, "id" | "startDate" | "dueDate">[], today: string, pxPerDay: number, opts: { from?: string } = {}): TimelineModel {
+  const scheduled: { id: string; start: string; end: string; cut?: boolean; late?: boolean }[] = [];
   const unscheduled: string[] = [];
   for (const i of items) {
     const s = i.startDate ? dayOf(i.startDate) : null;
@@ -157,11 +163,14 @@ export function buildTimeline(items: readonly Pick<WorkItem, "id" | "startDate" 
     }
     const end = e ?? (s as string);
     const start = s && s <= end ? s : end;
-    scheduled.push({ id: i.id, start, end });
+    const from = opts.from;
+    if (from && end < from) scheduled.push({ id: i.id, start: from, end: from, late: true });
+    else if (from && start < from) scheduled.push({ id: i.id, start: from, end, cut: true });
+    else scheduled.push({ id: i.id, start, end });
   }
   const lo = scheduled.reduce((m, x) => (x.start < m ? x.start : m), scheduled[0]?.start ?? today);
   const hi = scheduled.reduce((m, x) => (x.end > m ? x.end : m), scheduled[0]?.end ?? today);
-  const rangeStart = addDays(lo < today ? lo : today, -7);
+  const rangeStart = opts.from ?? addDays(lo < today ? lo : today, -7);
   const rangeEnd = addDays(hi > today ? hi : today, 7);
   const origin = parseDay(rangeStart).getTime();
   const index = (d: string) => Math.round((parseDay(d).getTime() - origin) / DAY);
@@ -174,6 +183,8 @@ export function buildTimeline(items: readonly Pick<WorkItem, "id" | "startDate" 
     w: (index(x.end) - index(x.start) + 1) * pxPerDay,
     start: x.start,
     end: x.end,
+    ...(x.cut ? { cut: true } : {}),
+    ...(x.late ? { late: true } : {}),
   }));
   return { rangeStart, days, bars, unscheduled, todayX: index(today) * pxPerDay + pxPerDay / 2 };
 }

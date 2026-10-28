@@ -77,7 +77,9 @@ export function TimelineView() {
     [items, hideDone],
   );
   const today = isoDay(new Date());
-  const scheduled = useMemo(() => ordered.filter((i) => i.startDate || i.dueDate), [ordered]);
+  // The past is not drawn: the axis starts today. What ended before today and is finished is simply gone from the chart; what ended before today
+  // and is not finished is overdue and stays, at the very beginning, marked red.
+  const scheduled = useMemo(() => ordered.filter((i) => (i.startDate || i.dueDate) && !(isDone(i.status) && isoDay(new Date(i.dueDate ?? i.startDate ?? today)) < today)), [ordered, today]);
 
   // The width the chart may use, kept up to date as the window changes (the box exists only while there is something to draw).
   const empty = scheduled.length === 0;
@@ -91,10 +93,10 @@ export function TimelineView() {
     return () => ro.disconnect();
   }, [empty]);
 
-  const days = useMemo(() => buildTimeline(scheduled, today, 1).days, [scheduled, today]);
+  const days = useMemo(() => buildTimeline(scheduled, today, 1, { from: today }).days, [scheduled, today]);
   const fitPx = clamp(boxW > LABEL_W ? (boxW - LABEL_W - 2) / days : 14);
   const px = zoom === "fit" ? fitPx : zoom === "custom" ? custom : ZOOMS[zoom];
-  const model = useMemo(() => buildTimeline(scheduled, today, px), [scheduled, today, px]);
+  const model = useMemo(() => buildTimeline(scheduled, today, px, { from: today }), [scheduled, today, px]);
   const byId = useMemo(() => new Map(items.map((i) => [i.id, i])), [items]);
   const zoomBy = (f: number) => {
     setCustom(clamp(px * f));
@@ -270,7 +272,7 @@ export function TimelineView() {
               {model.todayX !== null && (
                 <>
                   <span data-testid="today-line" className="absolute inset-y-0 w-0.5 bg-primary" style={{ left: model.todayX }} />
-                  <span className="absolute -top-px rounded-b bg-primary px-1.5 text-[10px] font-medium leading-4 text-primary-foreground" style={{ left: model.todayX, transform: "translateX(-50%)" }}>
+                  <span className="absolute -top-px rounded-b bg-primary px-1.5 text-[10px] font-medium leading-4 text-primary-foreground" style={model.todayX < 28 ? { left: 0 } : { left: model.todayX, transform: "translateX(-50%)" }}>
                     {t("todayLabel")}
                   </span>
                 </>
@@ -315,14 +317,19 @@ export function TimelineView() {
                         if (e.key === "Enter") select(b.id);
                         if (canWrite && (e.key === "ArrowLeft" || e.key === "ArrowRight")) void updateNode(b.id, shiftDates(item.startDate, item.dueDate, e.key === "ArrowLeft" ? -1 : 1));
                       }}
-                      className={cn("relative shrink-0 select-none overflow-hidden rounded-md px-1.5 text-xs leading-5 text-white shadow-sm", canWrite ? "cursor-grab touch-none" : "cursor-pointer", selectedId === b.id && "ring-2 ring-primary ring-offset-1", finished && "opacity-50")}
+                      className={cn("relative shrink-0 select-none overflow-hidden px-1.5", b.cut ? "rounded-l-none rounded-r-md" : "rounded-md", b.late && "ring-1 ring-[var(--health-red)]", "text-xs leading-5 text-white shadow-sm", canWrite ? "cursor-grab touch-none" : "cursor-pointer", selectedId === b.id && "ring-2 ring-primary ring-offset-1", finished && "opacity-50")}
                       style={{ width: Math.max(b.w - 2, 8), height: BAR_HEIGHT, background: `var(--health-${item.health.toLowerCase()})` }}
                     >
                       <span className="absolute inset-y-0 left-0 bg-black/25" style={{ width: `${item.progress}%` }} />
                       <span className="relative truncate">{wide ? item.title : ""}</span>
                     </div>
                     {/* A short bar has no room for its name: it is written beside it. */}
-                    {!wide && <span className={cn("pointer-events-none ml-2 whitespace-nowrap text-xs", finished ? "text-muted-foreground line-through" : "text-foreground/80")}>{item.title}</span>}
+                    {!wide && (
+                      <span className={cn("pointer-events-none ml-2 whitespace-nowrap text-xs", finished ? "text-muted-foreground line-through" : "text-foreground/80")}>
+                        {item.title}
+                        {b.late && <span className="ml-1.5 text-[var(--health-red)]">{t("overdueSince", { date: new Date(`${(item.dueDate ?? item.startDate ?? today).slice(0, 10)}T00:00:00Z`).toLocaleDateString(locale, { day: "numeric", month: "short", timeZone: "UTC" }) })}</span>}
+                      </span>
+                    )}
                   </div>
                 );
               })}

@@ -87,6 +87,26 @@ describe("timeline", () => {
     expect(t.todayX).toBe(9 * px + px / 2);
     expect(t.days).toBe(22); // 19 Oct … 9 Nov inclusive
   });
+  it("can start on today and leave the past out: a task from before is cut at the left edge, an overdue one is a one-day bar at the start", () => {
+    const t = buildTimeline(
+      [
+        item("began", { startDate: "2026-10-24T00:00:00.000Z", dueDate: "2026-10-30T00:00:00.000Z" }),
+        item("late", { startDate: "2026-10-20T00:00:00.000Z", dueDate: "2026-10-22T00:00:00.000Z" }),
+        item("next", { dueDate: "2026-11-02T00:00:00.000Z" }),
+      ],
+      "2026-10-28",
+      px,
+      { from: "2026-10-28" },
+    );
+    expect(t.rangeStart).toBe("2026-10-28");
+    expect(t.todayX).toBe(px / 2); // today is the first day
+    const [began, late, next] = t.bars;
+    expect(began).toMatchObject({ start: "2026-10-28", end: "2026-10-30", x: 0, w: 30, cut: true });
+    expect(late).toMatchObject({ start: "2026-10-28", end: "2026-10-28", x: 0, w: 10, late: true });
+    expect(next).toMatchObject({ x: 50, w: 10 });
+    expect(next?.cut).toBeUndefined();
+    expect(t.days).toBe(13); // 28 Oct … 9 Nov (a week of air after the last task)
+  });
   it("reads a start after the due date as a one-day bar and copes with nothing scheduled", () => {
     const t = buildTimeline([item("a", { startDate: "2026-11-05T00:00:00.000Z", dueDate: "2026-11-01T00:00:00.000Z" })], "2026-10-28", px);
     expect(t.bars[0]).toMatchObject({ start: "2026-11-01", end: "2026-11-01", w: 10 });

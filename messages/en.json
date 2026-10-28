@@ -1218,7 +1218,8 @@
     "zoomOut": "Zoom out",
     "hideDone": "Hide finished",
     "todayLabel": "Today",
-    "allDoneHidden": "All the tasks with dates are finished and hidden ({n}). Press “Hide finished” to see them."
+    "allDoneHidden": "All the tasks with dates are finished and hidden ({n}). Press “Hide finished” to see them.",
+    "overdueSince": "overdue since {date}"
   },
   "reports": {
     "title": "Reports",
