@@ -4,7 +4,8 @@ import { db } from "@/server/db";
 
 const DAY = 86_400_000;
 /** Sign-in e-mails one address of the caller may ask for per day, and one mailbox may receive per day. */
-export const PER_IP_DAILY = 20;
+// A presentation or a team meeting brings many people from one network: the limit per address has to leave room for them.
+export const PER_IP_DAILY = 100;
 export const PER_MAILBOX_DAILY = 10;
 
 export type SignInVerdict = { ok: true } | { ok: false; reason: "ip" | "mailbox" | "global" };

@@ -64,8 +64,8 @@ export default async function SignInPage({
           ) : (
             <>
               {sp.error && (
-                <p role="alert" className="rounded-xl border border-border bg-card p-4 text-sm">
-                  {t("linkError")}
+                <p role="alert" className="rounded-xl border border-border bg-card p-4 text-sm" data-error={sp.error}>
+                  {sp.error === "Verification" ? t("linkError") : sp.error === "AccessDenied" ? t("accessDenied") : t("signInFailed", { code: sp.error })}
                 </p>
               )}
               {mailEnabled && <SignInForm googleEnabled={googleEnabled} callbackUrl={callbackUrl} initialMode={sp.tab === "signup" || validRef || validInv ? "signup" : "signin"} refCode={validRef} inviter={inviter} invCode={validInv} platformInviter={platformInviter} />}

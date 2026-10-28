@@ -3,7 +3,7 @@ import type { PrismaClient } from "@prisma/client";
 import { createTestDb } from "./pg";
 
 vi.hoisted(() => {
-  Object.assign(process.env, { DATABASE_URL: "postgresql://x", AUTH_SECRET: "x", PRO_OWNER_EMAILS: " Boss@Example.com , other@example.com ", MAIL_DAILY_LIMIT: "40" });
+  Object.assign(process.env, { DATABASE_URL: "postgresql://x", AUTH_SECRET: "x", PRO_OWNER_EMAILS: " Boss@Example.com , other@example.com ", MAIL_DAILY_LIMIT: "150" });
 });
 const holder = vi.hoisted(() => ({ db: null as unknown as PrismaClient }));
 vi.mock("@/server/db", () => ({
@@ -109,7 +109,7 @@ describe("daily limits on sign-in e-mails", () => {
   it("stops everything at the installation's daily total, to keep the sending account safe", async () => {
     const total = await holder.db.signInAttempt.count({ where: { at: { gt: new Date(T0.getTime() - 24 * HOUR) } } });
     let blocked: unknown = null;
-    for (let i = 0; i < 40 && !blocked; i++) {
+    for (let i = 0; i < 120 && !blocked; i++) {
       const v = await allowSignIn(`6.6.${i}.1`, `g${i}@x.io`, T0);
       if (!v.ok) blocked = v;
     }

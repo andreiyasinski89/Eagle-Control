@@ -28,6 +28,11 @@ export function SignInForm({ googleEnabled, callbackUrl, initialMode, refCode, i
   const [error, setError] = useState<string | null>(null);
   const signup = mode === "signup";
 
+  const fail = (message: string) => {
+    setError(message);
+    setBusy(false);
+  };
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!agree) return;
@@ -36,12 +41,18 @@ export function SignInForm({ googleEnabled, callbackUrl, initialMode, refCode, i
     setError(null);
     try {
       // `terms` is checked again on the server: the link is not sent without it. So are the temporary mailboxes.
-      const res = await signIn("email", { email, terms: "1", mode, firstName, lastName, ref: signup && refCode ? refCode : "", inv: signup && invCode ? invCode : "", locale, website: trap, redirect: false, redirectTo: callbackUrl });
-      if (res?.error) throw new Error(res.error);
+      // The same request Auth.js's own helper makes, made here so that the reason it was refused (too many e-mails, a throw-away mailbox...) is read and told.
+      const csrf = (await (await fetch("/api/auth/csrf")).json()) as { csrfToken: string };
+      const body = new URLSearchParams({ csrfToken: csrf.csrfToken, email, terms: "1", mode, firstName, lastName, ref: signup && refCode ? refCode : "", inv: signup && invCode ? invCode : "", locale, website: trap, callbackUrl });
+      const res = await fetch("/api/auth/signin/email", { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded", "X-Auth-Return-Redirect": "1" }, body });
+      const data = (await res.json().catch(() => null)) as { url?: string; error?: { code?: string } } | null;
+      const code = data?.error?.code;
+      if (code === "rate_limited") return fail(t("rateLimited"));
+      if (code === "disposable_email") return fail(t("disposable"));
+      if (code || !res.ok || (data?.url ?? "").includes("error=")) return fail(t("sendFailed"));
       window.location.assign("/sign-in?sent=1");
     } catch {
-      setError(t("sendFailed"));
-      setBusy(false);
+      fail(t("sendFailed"));
     }
   }
 
