@@ -13,14 +13,15 @@ function job(name: JobName, opts: { cron?: string; retries?: 0 | 1 | 2 | 3 | 4 |
 }
 
 export const functions = [
-  job("notify/deliver", { cron: "* * * * *" }), // drain the outbox every minute, and on demand
+  // Every 5 minutes, not every minute: two per-minute schedules alone would use ~86,000 runs a month, more than the free Inngest plan (~50,000) holds.
+  job("notify/deliver", { cron: "*/5 * * * *" }), // drain the outbox, and on demand
   job("health/refresh", { cron: "0 2 * * *" }), // nightly: health depends on "today"
   job("reminders/dispatch", { cron: "*/5 * * * *" }),
   job("maintenance/run", { cron: "30 3 * * *" }),
   job("billing/expire", { cron: "15 4 * * *" }),
   job("account/erase", { cron: "20 * * * *" }),
   job("demo/reset", { cron: "0 3 * * *" }),
-  job("webhooks/deliver", { cron: "* * * * *" }),
+  job("webhooks/deliver", { cron: "*/5 * * * *" }),
   job("api/purge", { cron: "45 3 * * *" }),
   job("calendar/push"),
   job("calendar/poll", { cron: "*/10 * * * *" }), // fallback for missed Google notifications, and channel renewal
