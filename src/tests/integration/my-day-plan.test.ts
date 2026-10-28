@@ -84,17 +84,29 @@ describe("My day: plan against fact", () => {
     await act("TASK", "Old follow-up open", "2026-11-01T10:00:00.000Z", false);
     const oldDone = await act("TASK", "Old follow-up finished today", "2026-11-01T10:00:00.000Z", false);
     await raw.crmActivity.update({ where: { id: oldDone.id }, data: { completedAt: new Date("2026-11-03T11:00:00.000Z") } });
+    // people of the plan of the day: one due today, one late, one reached today (their step was closed), one lost and one of someone else's
+    const other = (await raw.user.create({ data: { email: "p@x.io", name: "Other" } })).id;
+    const person = async (firstName: string, data: Record<string, unknown>, ownerId = owner) => {
+      const c = await createContact(owner, ws.id, { firstName, lastName: "P", emails: [], phones: [], messengers: {}, allowDuplicate: false, consentGiven: false });
+      await raw.contact.update({ where: { nodeId: c.id }, data: { ownerId, ...data } });
+      return c.id;
+    };
+    await person("DueToday", { nextStepAt: new Date("2026-11-03T00:00:00.000Z"), nextStep: "Call back" });
+    await person("Late", { nextStepAt: new Date("2026-11-01T00:00:00.000Z") });
+    await person("Reached", { lastContactedAt: new Date("2026-11-03T08:00:00.000Z") });
+    await person("Lost", { nextStepAt: new Date("2026-11-03T00:00:00.000Z"), stage: "DECLINED" });
+    await person("Theirs", { nextStepAt: new Date("2026-11-03T00:00:00.000Z") }, other);
     // time tracked today
     await raw.timeEntry.create({ data: { nodeId: epicId, workspaceId: ws.id, userId: owner, minutes: 95, date: new Date("2026-11-03T00:00:00.000Z") } });
 
     const { plan } = await getMyDay(owner, ws.id, NOW);
     expect(plan.tasks).toEqual({ planned: 3, done: 1 });
     expect(plan.meetings).toEqual({ planned: 2, done: 1 }); // Stand-up held, Review still to come
-    expect(plan.followUps).toEqual({ planned: 4, done: 2 }); // every CRM item of today: two calls and two follow-ups
-    expect(plan.backlogOpen).toBe(2); // "Late, open" and "Old follow-up open"
+    expect(plan.followUps).toEqual({ planned: 6, done: 3 }); // every CRM item of today: two calls, two follow-ups, the person due today and the one reached today
+    expect(plan.backlogOpen).toBe(3); // "Late, open", "Old follow-up open" and the late person
     expect(plan.backlogCleared).toBe(2); // "Late, finished today" and "Old follow-up finished today"
-    expect(plan).toMatchObject({ planned: 9, done: 4, efficiency: 44, trackedMinutes: 95 });
-    expect(plan.productivity).toBe(Math.round(((4 + 2) / (9 + 2 + 2)) * 100)); // 46
+    expect(plan).toMatchObject({ planned: 11, done: 5, efficiency: 45, trackedMinutes: 95 });
+    expect(plan.productivity).toBe(Math.round(((5 + 2) / (11 + 3 + 2)) * 100)); // 44
   });
 
   it("lists, for the drill-down, exactly the items the numbers are about", async () => {
@@ -105,6 +117,8 @@ describe("My day: plan against fact", () => {
     expect(d.scheduled.map((s) => s.subject)).toEqual(["Call open"]);
     expect(d.scheduled[0]).toMatchObject({ contactId: expect.any(String), companyId: null }); // so the row can link to the contact
     expect(d.crmTasks.map((s) => s.subject).sort()).toEqual(["Follow-up open", "Old follow-up open"]);
+    expect(d.contactsDue.map((c) => [c.name, c.overdue])).toEqual([["Late P", true], ["DueToday P", false]]); // late first; the lost and someone else's are not there
+    expect(d.contactsDone.map((c) => c.name)).toEqual(["Reached P"]);
     // the CRM plan of the day: all four items due today, in time order, each saying whether it is done
     expect(d.crmDay.map((s) => [s.subject, s.done])).toEqual([["Call done", true], ["Follow-up done", true], ["Call open", false], ["Follow-up open", false]]);
   });

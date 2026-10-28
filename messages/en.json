@@ -904,7 +904,12 @@
       "meetings": "No meetings or calls today.",
       "attention": "Nothing needs your attention."
     },
-    "crmDayHint": "Calls, meetings, e-mails, messages and tasks planned for today"
+    "crmDayHint": "Calls, meetings, e-mails, messages and tasks planned for today",
+    "contactsDue": "People to reach today",
+    "contactsDueHint": "Next step due today or late",
+    "openDayPlan": "Plan of the day",
+    "contactStep": "Contact",
+    "stepDone": "Step done"
   },
   "notifications": {
     "title": "Notifications",

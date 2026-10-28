@@ -3,7 +3,8 @@ import { dayScore } from "@/modules/crm/day-score";
 import { isValidTimeZone, todayIn, zonedToUtc } from "@/modules/views/tz";
 import { can } from "@/server/policies";
 import { loadWorkspaceMember } from "@/server/services/nodes/access";
-import { NO_TOUCH_DAYS } from "./common";
+import { fullName, NO_TOUCH_DAYS } from "./common";
+import { contactScope, withScope } from "./scope";
 import { toCard } from "./deals";
 
 const DAY = 86_400_000;
@@ -101,12 +102,23 @@ export async function getMyDay(userId: string, workspaceId: string, now = new Da
     return { ...counts, trackedMinutes: tracked._sum.minutes ?? 0, ...dayScore(counts) };
   };
 
-  const empty = { crmTasks: [], scheduled: [], crmDay: [], dealsNeedingNextStep: [], attention: { staleDeals: [], coldContacts: [] } };
+  const empty = { crmTasks: [], scheduled: [], crmDay: [], contactsDue: [], contactsDone: [], dealsNeedingNextStep: [], attention: { staleDeals: [], coldContacts: [] } };
   if (!crm) {
     return { date: todayPrefix, timeZone, tasks: { overdue: tasks.filter((t) => t.dueDate && t.dueDate < start), today: tasks.filter((t) => t.dueDate && t.dueDate >= start) }, events, reminders, crm: false as const, ...empty, plan: finishPlan({ planned: 0, done: 0 }, 0, 0, { planned: 0, done: 0 }), counts: { total: tasks.length + events.length + reminders.length } };
   }
 
   const actInclude = { contact: { select: { firstName: true, lastName: true } }, company: { select: { legalName: true } }, deal: { select: { node: { select: { title: true } } } } } as const;
+  // People whose next step is due today or late (the "plan of the day" list), and people reached today (their step was closed, so they left that list).
+  const scope = await contactScope(db, membership);
+  const mine = { workspaceId, ownerId: userId, node: { archivedAt: null } } as const;
+  const [dueRows, reachedRows] = await Promise.all([
+    db.contact.findMany({
+      where: withScope({ ...mine, nextStepAt: { lt: dayTo }, stage: { notIn: ["DECLINED", "NO_REPLY"] } }, scope),
+      orderBy: [{ nextStepAt: { sort: "asc", nulls: "last" } }, { firstName: "asc" }],
+      take: 200,
+    }),
+    db.contact.findMany({ where: withScope({ ...mine, lastContactedAt: { gte: dayFrom, lt: dayTo } }, scope), orderBy: { firstName: "asc" }, take: 200 }),
+  ]);
   const [crmTasks, scheduled, needNext, openDeals, dayActivities, clearedFollowUps] = await Promise.all([
     db.crmActivity.findMany({ where: { workspaceId, ownerId: userId, type: "TASK", completedAt: null, dueAt: { lt: dayTo } }, orderBy: { dueAt: "asc" }, take: 100, include: actInclude }),
     db.crmActivity.findMany({ where: { workspaceId, ownerId: userId, type: { not: "TASK" }, completedAt: null, dueAt: { gte: dayFrom, lt: dayTo } }, orderBy: { dueAt: "asc" }, take: 50, include: actInclude }),
@@ -139,6 +151,23 @@ export async function getMyDay(userId: string, workspaceId: string, now = new Da
     dealTitle: a.deal?.node.title ?? null,
   });
 
+  const person = (c: (typeof dueRows)[number], done: boolean) => ({
+    id: c.nodeId,
+    name: fullName(c.firstName, c.lastName),
+    stage: c.stage,
+    temperature: c.temperature,
+    nextStep: c.nextStep,
+    nextStepAt: c.nextStepAt,
+    overdue: !!c.nextStepAt && c.nextStepAt.toISOString().slice(0, 10) < localDay,
+    done,
+  });
+  const contactsDue = dueRows.map((c) => person(c, false));
+  // A call or meeting logged today already counts as that item; only the remaining reached people count here, so nobody is counted twice.
+  const actContacts = new Set(dayActivities.map((a) => a.contactId).filter((x): x is string => !!x));
+  const dueIds = new Set(dueRows.map((c) => c.nodeId));
+  const contactsDone = reachedRows.filter((c) => !dueIds.has(c.nodeId) && !actContacts.has(c.nodeId)).map((c) => person(c, true));
+  const dueToday = contactsDue.filter((c) => !c.overdue).length;
+
   const cards = openDeals.map((d) => toCard(d, now));
   const coldBefore = new Date(now.getTime() - NO_TOUCH_DAYS * DAY);
   const contactIds = [...new Set(cards.map((c) => c.contactId).filter((x): x is string => !!x))];
@@ -149,8 +178,8 @@ export async function getMyDay(userId: string, workspaceId: string, now = new Da
   // Everything the person planned in the CRM for today (calls, meetings, e-mails, messages, tasks) is one plan against fact;
   // the meetings pair is only the calendar events, so nothing is counted twice.
   const plan = finishPlan(
-    { planned: dayActivities.length, done: dayActivities.filter((a) => a.completedAt).length },
-    crmTasks.filter((a) => a.dueAt && a.dueAt < dayFrom).length,
+    { planned: dayActivities.length + dueToday + contactsDone.length, done: dayActivities.filter((a) => a.completedAt).length + contactsDone.length },
+    crmTasks.filter((a) => a.dueAt && a.dueAt < dayFrom).length + (contactsDue.length - dueToday),
     clearedFollowUps,
     { planned: 0, done: 0 },
   );
@@ -166,12 +195,14 @@ export async function getMyDay(userId: string, workspaceId: string, now = new Da
     crmTasks: crmTasks.map(act),
     scheduled: scheduled.map(act),
     crmDay: dayActivities.map(act),
+    contactsDue,
+    contactsDone,
     dealsNeedingNextStep: needNext.map((d) => toCard(d, now)),
     attention: {
       staleDeals: cards.filter((c) => c.health === "RED").slice(0, 20),
       coldContacts: cold.map((c) => ({ id: c.nodeId, name: [c.firstName, c.lastName].filter(Boolean).join(" "), companyName: c.company?.legalName ?? null, lastContactedAt: c.lastContactedAt })),
     },
   };
-  const total = tasks.length + events.length + reminders.length + result.crmTasks.length + result.scheduled.length + result.dealsNeedingNextStep.length + result.attention.staleDeals.length + result.attention.coldContacts.length;
+  const total = tasks.length + events.length + reminders.length + result.crmTasks.length + result.scheduled.length + contactsDue.length + result.dealsNeedingNextStep.length + result.attention.staleDeals.length + result.attention.coldContacts.length;
   return { ...result, counts: { total } };
 }
