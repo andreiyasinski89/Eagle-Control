@@ -44,9 +44,9 @@ export async function getOnboarding(userId: string, workspaceId: string, now = n
     db.note.count({ where: { workspaceId, userId } }),
   ]);
 
-  let c = { people: 0, peopleMoved: 0, nextSteps: 0, scripts: 0, rules: 0, weekGoals: false, stepsClosed: 0, groups: 0, partners: 0, clientsWon: 0, partnersWon: 0 };
+  let c = { invited: 0, people: 0, peopleMoved: 0, nextSteps: 0, scripts: 0, rules: 0, weekGoals: false, stepsClosed: 0, groups: 0, partners: 0, clientsWon: 0, partnersWon: 0 };
   if (crm) {
-    const [people, peopleMoved, nextSteps, scripts, rules, goals, stepsClosed, groups, partners, clientsWon, partnersWon] = await Promise.all([
+    const [people, peopleMoved, nextSteps, scripts, rules, goals, stepsClosed, groups, partners, clientsWon, partnersWon, joined, platformInvited] = await Promise.all([
       db.contact.count({ where: withScope({ workspaceId, ...live }, scope) }),
       db.contact.count({ where: withScope({ workspaceId, ...live, stage: { not: "NEW" } }, scope) }),
       db.contact.count({ where: withScope({ workspaceId, ...live, nextStep: { not: null } }, scope) }),
@@ -58,11 +58,13 @@ export async function getOnboarding(userId: string, workspaceId: string, now = n
       db.contact.count({ where: withScope({ workspaceId, ...live, stage: "PARTNER" }, scope) }),
       db.contact.count({ where: withScope({ workspaceId, ...live, ownerId: userId, stage: "CLIENT" }, scope) }),
       db.contact.count({ where: withScope({ workspaceId, ...live, ownerId: userId, stage: "PARTNER" }, scope) }),
+      db.referralJoin.count({ where: { link: { userId, workspaceId } } }),
+      db.user.count({ where: { referredById: userId } }),
     ]);
-    c = { people, peopleMoved, nextSteps, scripts, rules, weekGoals: Object.values(cleanGoals(goals?.goals)).some((v) => v > 0), stepsClosed, groups, partners, clientsWon, partnersWon };
+    c = { invited: joined + platformInvited, people, peopleMoved, nextSteps, scripts, rules, weekGoals: Object.values(cleanGoals(goals?.goals)).some((v) => v > 0), stepsClosed, groups, partners, clientsWon, partnersWon };
   }
 
-  const facts: Facts = { timezoneSet: me !== null && me.timezone !== "UTC", tasksCreated, timeEntries, notes, hasDream: !!goal?.dream.trim(), people: c.people, peopleMoved: c.peopleMoved, nextSteps: c.nextSteps, scripts: c.scripts, rules: c.rules, weekGoals: c.weekGoals, stepsClosed: c.stepsClosed, groups: c.groups, partners: c.partners };
+  const facts: Facts = { timezoneSet: me !== null && me.timezone !== "UTC", tasksCreated, timeEntries, notes, hasDream: !!goal?.dream.trim(), people: c.people, peopleMoved: c.peopleMoved, nextSteps: c.nextSteps, scripts: c.scripts, rules: c.rules, weekGoals: c.weekGoals, stepsClosed: c.stepsClosed, groups: c.groups, partners: c.partners, invited: c.invited };
   const evaluation = evaluate(facts, state?.skipped ?? [], { crm });
   const goalDto = { dream: goal?.dream ?? "", why: goal?.why ?? "", targetDate: day(goal?.targetDate ?? null), targetClients: goal?.targetClients ?? null, targetPartners: goal?.targetPartners ?? null };
   return { crm, today, hidden: state?.hidden ?? false, ...evaluation, goal: goalDto, distance: dreamDistance(goalDto, { clients: c.clientsWon, partners: c.partnersWon }, today) };

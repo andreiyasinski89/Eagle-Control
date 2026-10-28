@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { dreamDistance, evaluate, STEPS, type Facts } from "@/modules/onboarding/steps";
 
-const none: Facts = { timezoneSet: false, tasksCreated: 0, timeEntries: 0, notes: 0, hasDream: false, people: 0, peopleMoved: 0, nextSteps: 0, scripts: 0, rules: 0, weekGoals: false, stepsClosed: 0, groups: 0, partners: 0 };
+const none: Facts = { timezoneSet: false, tasksCreated: 0, timeEntries: 0, notes: 0, hasDream: false, people: 0, peopleMoved: 0, nextSteps: 0, scripts: 0, rules: 0, weekGoals: false, stepsClosed: 0, groups: 0, partners: 0, invited: 0 };
 
 describe("the onboarding steps", () => {
   it("starts with the platform in a short block, then the work with people", () => {
@@ -42,8 +42,8 @@ describe("the onboarding steps", () => {
 
   it("optional steps never count against the person", () => {
     const e = evaluate(none, [], { crm: true });
-    expect(e.steps.filter((s) => s.optional).map((s) => s.id)).toEqual(["groups", "partners"]);
-    const all = evaluate({ timezoneSet: true, tasksCreated: 1, timeEntries: 1, notes: 1, hasDream: true, people: 30, peopleMoved: 5, nextSteps: 5, scripts: 1, rules: 1, weekGoals: true, stepsClosed: 3, groups: 0, partners: 0 }, [], { crm: true });
+    expect(e.steps.filter((s) => s.optional).map((s) => s.id)).toEqual(["groups", "partners", "invite"]);
+    const all = evaluate({ timezoneSet: true, tasksCreated: 1, timeEntries: 1, notes: 1, hasDream: true, people: 30, peopleMoved: 5, nextSteps: 5, scripts: 1, rules: 1, weekGoals: true, stepsClosed: 3, groups: 0, partners: 0, invited: 0 }, [], { crm: true });
     expect(all).toMatchObject({ percent: 100, next: null });
   });
 

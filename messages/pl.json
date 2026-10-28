@@ -1761,7 +1761,7 @@
       },
       "list": {
         "title": "Lista 100",
-        "text": "Wypisz wszystkich, których znasz, bez filtrowania: sortowanie potem. Na start wystarczy 25 nazwisk, cel to 100."
+        "text": "Wypisz wszystkich, których znasz, bez filtrowania: sortowanie potem. Na start wystarczy 25 imion, cel to 100. Naciśnij „Dodaj listę” i wklej imiona."
       },
       "funnel": {
         "title": "Prowadź ludzi przez lejek",
@@ -1769,11 +1769,11 @@
       },
       "nextSteps": {
         "title": "Następny krok dla każdego",
-        "text": "Dla co najmniej 5 osób wpisz, co robić dalej i kiedy. Wtedy pojawią się w planie dnia we właściwym dniu."
+        "text": "Dla co najmniej 5 osób wpisz, co robić dalej i kiedy. Wtedy pojawią się w „Moim dniu” i w planie dnia we właściwym dniu."
       },
       "scripts": {
         "title": "Skrypty i autoplany",
-        "text": "Napisz pierwszy gotowy tekst i włącz autoplan dla etapu, aby następny krok wypełniał się sam."
+        "text": "Naciśnij „Dodaj gotowe skrypty” (18 tekstów na każdy etap), przepisz je po swojemu i włącz autoplan dla etapu, aby następny krok wypełniał się sam."
       },
       "weekGoals": {
         "title": "Cele tygodnia",
@@ -1781,7 +1781,7 @@
       },
       "firstDay": {
         "title": "Pierwszy dzień według planu",
-        "text": "Zamknij 3 kroki z listy „Do zrobienia dziś”. Tak zaczyna się codzienny rytm."
+        "text": "Otwórz „Mój dzień”, zamknij 3 kroki z „Do zrobienia dziś” i naciśnij „Gotowe”. Tak zaczyna się codzienny rytm."
       },
       "groups": {
         "title": "Grupy",
@@ -1789,7 +1789,11 @@
       },
       "partners": {
         "title": "Partnerzy i zespół",
-        "text": "Przenieś pierwszą osobę na etap Partner i wskaż jej sponsora: drzewo zespołu i mapa sieci zbudują się same."
+        "text": "Przenieś pierwszą osobę na etap Partner i wskaż jej sponsora (możesz wybrać „Ja (moje konto)”): drzewo zespołu i mapa sieci zbudują się same."
+      },
+      "invite": {
+        "title": "Zaproś pierwszą osobę",
+        "text": "Podziel się swoim linkiem: osoba, która zostawi kontakt, stanie się kartą w Twoim CRM, a ta, która dołączy do MeetOwl, dostanie własną przestrzeń i przyniesie Ci punkt bonusowy."
       }
     },
     "howTo": "Jak to zrobić"

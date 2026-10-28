@@ -1761,7 +1761,7 @@
       },
       "list": {
         "title": "The list of 100",
-        "text": "Write down everyone you know, without filtering: sorting comes later. 25 names are enough to start; the goal is 100."
+        "text": "Write down everyone you know, without filtering: sorting comes later. 25 names are enough to start; the goal is 100. Press “Add a list” and paste the names."
       },
       "funnel": {
         "title": "Move people through the funnel",
@@ -1769,11 +1769,11 @@
       },
       "nextSteps": {
         "title": "A next step for everyone",
-        "text": "Give at least 5 people a next step and a date. They then appear in your plan of the day on their day."
+        "text": "Give at least 5 people a next step and a date. They then appear in My day and in your plan of the day on their day."
       },
       "scripts": {
         "title": "Scripts and auto-plans",
-        "text": "Write your first ready text and turn on an auto-plan for a stage, so the next step fills itself in."
+        "text": "Press “Add ready-made scripts” (18 texts for every stage), rewrite them to your voice and turn on an auto-plan for a stage, so the next step fills itself in."
       },
       "weekGoals": {
         "title": "The week's targets",
@@ -1781,7 +1781,7 @@
       },
       "firstDay": {
         "title": "Your first day by the plan",
-        "text": "Close 3 steps from “To do today”. This is how the daily rhythm begins."
+        "text": "Open My day, close 3 steps from “To do today” and press “Done”. This is how the daily rhythm begins."
       },
       "groups": {
         "title": "Groups",
@@ -1789,7 +1789,11 @@
       },
       "partners": {
         "title": "Partners and the team",
-        "text": "Move the first person to the Partner stage and name their sponsor: the team tree and the network map build themselves."
+        "text": "Move the first person to the Partner stage and name their sponsor (you can pick “Me (my account)”): the team tree and the network map build themselves."
+      },
+      "invite": {
+        "title": "Invite your first person",
+        "text": "Share your link: a person who leaves their contacts becomes a card in your CRM, and a person who joins MeetOwl gets their own workspace and brings you a bonus point."
       }
     },
     "howTo": "How to do it"

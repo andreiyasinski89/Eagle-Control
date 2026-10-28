@@ -42,7 +42,7 @@ describe("the articles", () => {
   });
   it("every link in every article points at something that exists", () => {
     const slugs = new Set(ARTICLES.map((a) => a.slug));
-    const pages = ["/", "/start", "/settings", "/crm/people", "/crm/day", "/crm/scripts", "/crm/team", "/crm/network", "/time", "/notes"];
+    const pages = ["/", "/start", "/settings", "/crm/people", "/crm/day", "/crm/scripts", "/crm/team", "/crm/team-activity", "/crm/network", "/time", "/notes"];
     for (const l of langs) {
       for (const a of articlesFor(l)) {
         for (const b of a.blocks) {

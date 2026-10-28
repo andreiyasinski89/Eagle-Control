@@ -16,10 +16,12 @@ export interface Facts {
   stepsClosed: number;
   groups: number;
   partners: number;
+  /** People who came through the person's invitation links. */
+  invited: number;
 }
 
 export type Block = "platform" | "business";
-export type StepId = "profile" | "firstTask" | "timer" | "notes" | "dream" | "list" | "funnel" | "nextSteps" | "scripts" | "weekGoals" | "firstDay" | "groups" | "partners";
+export type StepId = "profile" | "firstTask" | "timer" | "notes" | "dream" | "list" | "funnel" | "nextSteps" | "scripts" | "weekGoals" | "firstDay" | "groups" | "partners" | "invite";
 
 export interface StepDef {
   id: StepId;
@@ -56,6 +58,7 @@ export const STEPS: StepDef[] = [
   { id: "firstDay", block: "business", article: "daily-rhythm", path: "/crm/day", crm: true, done: (f) => f.stepsClosed >= 3, progress: (f) => capped(f.stepsClosed, 3) },
   { id: "groups", block: "business", article: "groups", optional: true, path: "/crm/people", crm: true, done: (f) => f.groups >= 1 },
   { id: "partners", block: "business", article: "partners", optional: true, path: "/crm/team", crm: true, done: (f) => f.partners >= 1 },
+  { id: "invite", block: "business", article: "invite-links", optional: true, path: "/crm/team", crm: true, done: (f) => f.invited >= 1 },
 ];
 
 export type StepStatus = "done" | "skipped" | "todo";
