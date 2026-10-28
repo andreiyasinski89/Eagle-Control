@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/ui/modal";
@@ -36,8 +35,6 @@ const dayOf = (iso: string | null) => (iso ? iso.slice(0, 10) : "");
 export function FunnelFields({ value, disabled, workspaceId, onChange }: { value: FunnelValues; disabled: boolean; workspaceId: string; onChange: (patch: Record<string, unknown>) => void }) {
   const t = useTranslations("crm");
   const groups = useGroups(workspaceId);
-  const [influence, setInfluence] = useState(value.influence === null ? "" : String(value.influence));
-  useEffect(() => setInfluence(value.influence === null ? "" : String(value.influence)), [value.influence]);
 
   return (
     <div className="flex flex-col gap-3 text-sm" data-testid="funnel-fields">
@@ -100,10 +97,9 @@ export function FunnelFields({ value, disabled, workspaceId, onChange }: { value
         <FormField label={t("field.country")}>
           <Input disabled={disabled} defaultValue={value.country ?? ""} key={`c${value.country}`} maxLength={80} onBlur={(e) => e.target.value !== (value.country ?? "") && onChange({ country: e.target.value.trim() || null })} />
         </FormField>
-        <FormField label={t("field.influence")}>
-          <Input type="number" min={0} max={100} disabled={disabled} value={influence} onChange={(e) => setInfluence(e.target.value)} onBlur={() => (influence === "" ? value.influence !== null && onChange({ influence: null }) : Number(influence) !== value.influence && onChange({ influence: Math.max(0, Math.min(100, Math.round(Number(influence)))) }))} />
-        </FormField>
-        <div className="flex flex-col gap-1 text-sm">
+      </div>
+
+      <div className="flex flex-col gap-1 text-sm">
           <span className="font-medium">{t("field.typeTag")}</span>
           <div className="flex flex-wrap gap-1" role="radiogroup" aria-label={t("field.typeTag")} data-testid="priority-field">
             {PRIORITIES.map((x) => (
@@ -113,7 +109,6 @@ export function FunnelFields({ value, disabled, workspaceId, onChange }: { value
             ))}
             {value.typeTag && !(PRIORITIES as readonly string[]).includes(value.typeTag) && <span className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">{value.typeTag}</span>}
           </div>
-        </div>
       </div>
 
       <FormField label={t("groupField")}>

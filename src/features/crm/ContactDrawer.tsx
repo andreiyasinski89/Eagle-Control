@@ -130,8 +130,18 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
   };
   const patch = useMutation({
     mutationFn: (body: Record<string, unknown>) => api.patch(`/api/v1/contacts/${contactId}`, body),
+    // The press shows at once (warmth, priority, stage...) and is put back if the save fails; the server's answer then confirms it.
+    onMutate: async (body) => {
+      await qc.cancelQueries({ queryKey: ["contact", contactId] });
+      const prev = qc.getQueryData<ContactDetail>(["contact", contactId]);
+      if (prev) qc.setQueryData<ContactDetail>(["contact", contactId], { ...prev, ...body });
+      return { prev };
+    },
     onSuccess: () => (setError(null), refresh()),
-    onError: (e) => setError(e instanceof ApiFailure ? e.message : t("error")),
+    onError: (e, _body, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["contact", contactId], ctx.prev);
+      setError(e instanceof ApiFailure ? e.message : t("error"));
+    },
   });
   const finish = useMutation({ mutationFn: (id: string) => api.patch(`/api/v1/activities/${id}`, { completed: true }), onSuccess: refresh });
   const unplan = useMutation({ mutationFn: (id: string) => api.del(`/api/v1/activities/${id}`), onSuccess: refresh });
@@ -212,6 +222,10 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
         </div>
       )}
 
+      <Section title={t("partnerSection")}>
+        <PartnerFields workspaceId={workspaceId} meId={meId} contactId={contactId} stage={c.stage} sponsorId={c.sponsorId} heldById={c.heldById} linkedUserId={c.linkedUserId} transfers={c.transfers} disabled={dis} onPatch={(body) => patch.mutate(body)} />
+      </Section>
+
       <Section title={t("funnel")}>
         <FunnelFields
           disabled={dis}
@@ -223,10 +237,6 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
 
       <Section title={t("scriptsSection")}>
         <ScriptPicker workspaceId={workspaceId} meId={meId} stage={c.stage} fullName={c.name} />
-      </Section>
-
-      <Section title={t("partnerSection")}>
-        <PartnerFields workspaceId={workspaceId} meId={meId} contactId={contactId} stage={c.stage} sponsorId={c.sponsorId} heldById={c.heldById} linkedUserId={c.linkedUserId} transfers={c.transfers} disabled={dis} onPatch={(body) => patch.mutate(body)} />
       </Section>
 
       {(upcoming.length > 0 || canWrite) && (
