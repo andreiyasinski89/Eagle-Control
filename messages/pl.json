@@ -922,7 +922,8 @@
     "contactsDueHint": "Następny krok na dziś lub spóźniony",
     "openDayPlan": "Plan dnia",
     "contactStep": "Kontakt",
-    "stepDone": "Krok wykonany"
+    "stepDone": "Krok wykonany",
+    "showingOnly": "Pokazano tylko: {what}."
   },
   "notifications": {
     "title": "Powiadomienia",

@@ -164,18 +164,19 @@ export function GroupedBars({ labels, series, label }: { labels: string[]; serie
 export function HBars({ rows, color = SERIES[0], format = (n: number) => String(n) }: { rows: { label: string; value: number; note?: string }[]; color?: string; format?: (n: number) => string }) {
   const max = Math.max(1, ...rows.map((r) => r.value));
   return (
-    <ul className="flex flex-col gap-1.5" role="list">
+    <ul className="flex flex-col gap-3" role="list">
       {rows.map((r) => (
-        <li key={r.label} className="grid grid-cols-[7rem_1fr_auto] items-center gap-2 text-sm">
-          <span className="truncate text-muted-foreground" title={r.label}>
-            {r.label}
-          </span>
-          <span className="h-5 rounded bg-muted">
+        <li key={r.label} className="text-sm">
+          {/* The name is written out in full (it wraps), with the number at the end of its line and the bar under it. */}
+          <div className="flex items-baseline justify-between gap-3">
+            <span className="min-w-0 break-words text-foreground/80">{r.label}</span>
+            <span className="shrink-0 tabular-nums">
+              {format(r.value)}
+              {r.note && <span className="ml-1 text-xs text-muted-foreground">{r.note}</span>}
+            </span>
+          </div>
+          <span className="mt-1 block h-2 rounded bg-muted">
             <span className="block h-full rounded" style={{ width: `${(r.value / max) * 100}%`, background: color }} />
-          </span>
-          <span className="min-w-16 text-right tabular-nums">
-            {format(r.value)}
-            {r.note && <span className="ml-1 text-xs text-muted-foreground">{r.note}</span>}
           </span>
         </li>
       ))}

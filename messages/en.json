@@ -922,7 +922,8 @@
     "contactsDueHint": "Next step due today or late",
     "openDayPlan": "Plan of the day",
     "contactStep": "Contact",
-    "stepDone": "Step done"
+    "stepDone": "Step done",
+    "showingOnly": "Showing only: {what}."
   },
   "notifications": {
     "title": "Notifications",

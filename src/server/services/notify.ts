@@ -4,6 +4,7 @@ import { sendMail } from "@/server/mail";
 import { env } from "@/lib/env";
 import type { Tx } from "./nodes/access";
 import { publishNotification } from "@/server/realtime";
+import { noticeHref } from "@/lib/notice-href";
 
 export const NOTIFY_KINDS = ["mention", "assigned", "lead", "deal_won", "project_red", "reminder", "sprint_ended", "due_today", "cold_contact", "stale_deal", "billing", "client_activity", "invite_joined"] as const;
 export type NotifyKind = (typeof NOTIFY_KINDS)[number];
@@ -119,7 +120,7 @@ export async function deliverPending(limit = 100, now = new Date()): Promise<{ s
       const adapter = adapters.get(ch);
       if (!adapter) continue; // channel not available in this deployment: drop it
       try {
-        const ok = await adapter.deliver(n.user, { title: p.title ?? n.kind, body: p.body ?? null, url: p.url ? (p.url.startsWith("/portal/") ? p.url : `/w/${n.workspace.slug}${p.url}`) : `/w/${n.workspace.slug}`, kind: n.kind, workspaceId: n.workspaceId });
+        const ok = await adapter.deliver(n.user, { title: p.title ?? n.kind, body: p.body ?? null, url: p.url ? noticeHref(n.workspace.slug, p.url) : `/w/${n.workspace.slug}`, kind: n.kind, workspaceId: n.workspaceId });
         if (ok) sent++;
       } catch (e) {
         failed++;

@@ -922,7 +922,8 @@
     "contactsDueHint": "Следующий шаг сегодня или просрочен",
     "openDayPlan": "План дня",
     "contactStep": "Контакт",
-    "stepDone": "Шаг выполнен"
+    "stepDone": "Шаг выполнен",
+    "showingOnly": "Показано только: {what}."
   },
   "notifications": {
     "title": "Уведомления",

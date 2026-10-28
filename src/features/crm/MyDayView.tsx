@@ -173,8 +173,12 @@ function PlanCard({ title, pair, href, planned, done }: { title: string; pair: P
 }
 
 /** The people whose next step is due: a number first, then, folded out, each one by name with a link and a way to close the step. */
-function ContactsDueBlock({ title, hint, items, base, locale, stage, onDone, busy, openLabel }: { title: string; hint: string; items: ContactDue[]; base: string; locale: string; stage: (s: string) => string; onDone: (id: string) => void; busy: boolean; openLabel: string }) {
+function ContactsDueBlock({ title, hint, items, base, locale, stage, onDone, busy, openLabel, expand }: { expand: boolean; title: string; hint: string; items: ContactDue[]; base: string; locale: string; stage: (s: string) => string; onDone: (id: string) => void; busy: boolean; openLabel: string }) {
   const [open, setOpen] = useState(false);
+  // Pressing the tasks number is asking to see the tasks: the people are part of them, so the list opens.
+  useEffect(() => {
+    if (expand) setOpen(true);
+  }, [expand]);
   if (items.length === 0) return null;
   const late = items.filter((c) => c.overdue).length;
   return (
@@ -303,7 +307,11 @@ export function MyDayView({ workspaceId, slug, workspaceName, userName }: { work
     },
   });
   const base = `/w/${slug}`;
-  const press = (f: Focus) => setFocus((cur) => (cur === f ? null : f));
+  const press = (f: Focus) => {
+    setFocus((cur) => (cur === f ? null : f));
+    // The lists are below the numbers: take the eye there, or it looks as if nothing happened.
+    setTimeout(() => document.getElementById("myday-lists")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  };
   const shows = (f: Focus) => focus === null || focus === f;
   const time = (iso: string) => new Date(iso).toLocaleTimeString(locale, { timeStyle: "short", timeZone: tz });
 
@@ -386,9 +394,12 @@ export function MyDayView({ workspaceId, slug, workspaceName, userName }: { work
         </div>
       )}
       {data && focus && (
-        <button type="button" onClick={() => setFocus(null)} className="-mt-2 w-fit text-xs text-primary hover:underline" data-testid="myday-show-all">
-          {t("showAll")}
-        </button>
+        <p className="-mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          {t("showingOnly", { what: t(focus === "tasks" ? "statTasks" : focus === "meetings" ? "statMeetings" : "statAttention") })}
+          <button type="button" onClick={() => setFocus(null)} className="text-primary hover:underline" data-testid="myday-show-all">
+            {t("showAll")}
+          </button>
+        </p>
       )}
       {data && focus && (focus === "tasks" ? data.tasks.overdue.length + data.tasks.today.length + data.crmTasks.length + data.contactsDue.length : focus === "meetings" ? data.events.length + data.scheduled.length : data.dealsNeedingNextStep.length + data.attention.staleDeals.length + data.attention.coldContacts.length) === 0 && (
         <p className="rounded-2xl border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground" data-testid="myday-focus-empty">
@@ -407,6 +418,7 @@ export function MyDayView({ workspaceId, slug, workspaceName, userName }: { work
           </Button>
         </div>
       )}
+      <div id="myday-lists" className="-mb-3 scroll-mt-20" aria-hidden />
       {data && (
         <>
           {shows("tasks") && (
@@ -417,7 +429,7 @@ export function MyDayView({ workspaceId, slug, workspaceName, userName }: { work
               <Block id="crm-tasks" title={t("crmTasks")} icon={CheckSquare} tone="red" count={data.crmTasks.length} href={`${base}/crm/activities`} linkLabel={t("openActivities")}>
                 <ul className="flex flex-col gap-2">{data.crmTasks.map(crmRow)}</ul>
               </Block>
-              <ContactsDueBlock title={t("contactsDue")} hint={t("contactsDueHint")} items={data.contactsDue} base={base} locale={locale} stage={(st) => tc(`funnelStage.${st as "NEW"}`)} onDone={(id) => stepDone.mutate(id)} busy={stepDone.isPending} openLabel={t("openDayPlan")} />
+              <ContactsDueBlock title={t("contactsDue")} hint={t("contactsDueHint")} items={data.contactsDue} base={base} locale={locale} stage={(st) => tc(`funnelStage.${st as "NEW"}`)} onDone={(id) => stepDone.mutate(id)} busy={stepDone.isPending} openLabel={t("openDayPlan")} expand={focus === "tasks"} />
               <Block id="today" title={t("today")} icon={CheckSquare} count={data.tasks.today.length} href={`${base}/tasks?tab=today`} linkLabel={t("openTodo")}>
                 <ul className="flex flex-col gap-1.5">{data.tasks.today.map(taskRow)}</ul>
               </Block>

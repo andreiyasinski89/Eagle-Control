@@ -5,6 +5,7 @@ import { Bell } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
+import { noticeHref } from "@/lib/notice-href";
 import { hub } from "@/features/realtime/hub";
 
 interface Item {
@@ -111,7 +112,7 @@ export function NotificationBell({ workspaceId, slug }: { workspaceId: string; s
               return (
                 <li key={n.id} className="border-b border-border last:border-0">
                   {n.payload.url ? (
-                    <Link href={`/w/${slug}${n.payload.url}`} onClick={() => (setOpen(false), void markOne(n.id))} className="flex gap-2 px-3 py-2 hover:bg-muted">
+                    <Link href={noticeHref(slug, n.payload.url)} onClick={() => (setOpen(false), void markOne(n.id))} className="flex gap-2 px-3 py-2 hover:bg-muted">
                       {inner}
                     </Link>
                   ) : (
