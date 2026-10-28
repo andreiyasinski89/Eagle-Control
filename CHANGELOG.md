@@ -371,3 +371,12 @@
 - A subscription can be started during the trial; ending a subscription keeps Pro while a trial, bonus or gift still runs.
 - **New Free limits:** 300 people, 3 members, 3 projects, 1 pipeline (were 500 and 5). Pro is unlimited.
 - The billing page shows where Pro comes from and keeps the Upgrade button during a trial.
+
+## 0.36.0 — Block A: meetings from the CRM count in the plan of the day
+
+- **Fix:** a meeting done or planned in the CRM now shows in "Meetings and calls" of My day. Before, that number counted only calendar events of projects, and the CRM side was fixed at 0, so a meeting marked done stayed at "planned 0, held 0".
+- **A meeting logged afterwards counts for the day it happened.** A call or meeting written down as done, without a date of its own (or planned for another day and marked done today), used to fall out of every number. It is now counted on the day it was completed. Tasks finished today that were due earlier still count as cleared backlog, as before.
+- Meetings (`MEETING`) count with the meetings and only there; calls, e-mails and messages stay with the follow-ups, so nothing is counted twice and the "3 presentations a day" figure is not inflated by calls. Efficiency and productivity use the corrected numbers.
+- The "CRM contacts and activities" card of My day no longer lists meetings (they are in the meetings number).
+- Tests: a new integration file covers a done and a planned CRM meeting, a meeting without a date, one done on another day, a project event, calls and messages, and the efficiency and productivity after the fix (it fails on the old code).
+

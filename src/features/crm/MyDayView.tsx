@@ -500,7 +500,7 @@ export function MyDayView({ workspaceId, slug, workspaceName, userName }: { work
           <div className="grid gap-3 sm:grid-cols-2">
             <PlanCard title={t("planTasks")} pair={plan.tasks} href={`${base}/tasks?tab=today`} planned={t("planned")} done={t("finished")} />
             <PlanCard title={t("planMeetings")} pair={plan.meetings} href={`${base}/calendar?day=${data?.date}`} planned={t("planned")} done={t("held")} />
-            {data?.crm && <CrmDayCard title={t("planFollowUps")} hint={t("crmDayHint")} items={[...data.crmDay, ...contactItems]} planned={t("planned")} done={t("finished")} base={base} tz={tz} locale={locale} onDone={(x) => (x.type === "CONTACT" ? stepDone.mutate(x.contactId as string) : done.mutate(x.id))} busy={done.isPending || stepDone.isPending} />}
+            {data?.crm && <CrmDayCard title={t("planFollowUps")} hint={t("crmDayHint")} items={[...data.crmDay.filter((a) => a.type !== "MEETING"), ...contactItems]} planned={t("planned")} done={t("finished")} base={base} tz={tz} locale={locale} onDone={(x) => (x.type === "CONTACT" ? stepDone.mutate(x.contactId as string) : done.mutate(x.id))} busy={done.isPending || stepDone.isPending} />}
           </div>
           {plan.planned === 0 && plan.backlogOpen === 0 && plan.backlogCleared === 0 ? (
             <p className="rounded-2xl border border-dashed border-border bg-card p-4 text-sm text-muted-foreground" data-testid="plan-fact-empty">

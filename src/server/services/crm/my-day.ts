@@ -139,7 +139,14 @@ export async function getMyDay(userId: string, workspaceId: string, now = new Da
       include: { node: { select: { title: true, position: true, createdAt: true } }, stage: true, company: { select: { legalName: true } }, primaryContact: { select: { firstName: true, lastName: true } } },
       take: 300,
     }),
-    db.crmActivity.findMany({ where: { workspaceId, ownerId: userId, type: { not: "NOTE" }, dueAt: { gte: dayFrom, lt: dayTo } }, orderBy: { dueAt: "asc" }, take: 100, include: actInclude }),
+    // What belongs to today: planned for today, or logged as done today (a call or meeting written down afterwards has no date of its own).
+    // A task finished today that was due earlier is counted as cleared backlog below, not here.
+    db.crmActivity.findMany({
+      where: { workspaceId, ownerId: userId, type: { not: "NOTE" }, OR: [{ dueAt: { gte: dayFrom, lt: dayTo } }, { type: { not: "TASK" }, completedAt: { gte: dayFrom, lt: dayTo } }] },
+      orderBy: [{ dueAt: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }],
+      take: 100,
+      include: actInclude,
+    }),
     db.crmActivity.count({ where: { workspaceId, ownerId: userId, type: "TASK", completedAt: { gte: dayFrom, lt: dayTo }, dueAt: { lt: dayFrom } } }),
   ]);
   const act = (a: (typeof crmTasks)[number]) => ({
@@ -182,13 +189,16 @@ export async function getMyDay(userId: string, workspaceId: string, now = new Da
     ? await db.contact.findMany({ where: { nodeId: { in: contactIds }, node: { archivedAt: null }, OR: [{ lastContactedAt: null }, { lastContactedAt: { lt: coldBefore } }] }, select: { nodeId: true, firstName: true, lastName: true, lastContactedAt: true, company: { select: { legalName: true } } }, take: 50 })
     : [];
 
-  // Everything the person planned in the CRM for today (calls, meetings, e-mails, messages, tasks) is one plan against fact;
-  // the meetings pair is only the calendar events, so nothing is counted twice.
+  // Everything the person planned in the CRM for today is one plan against fact. Meetings are the number people steer by (presentations a day),
+  // so a CRM meeting counts with the meetings, next to the calendar events, and only there; calls, e-mails, messages and tasks are the follow-ups.
+  // A CRM meeting is held when it is marked done; a calendar event is held once it has ended.
+  const meetingActs = dayActivities.filter((a) => a.type === "MEETING");
+  const otherActs = dayActivities.filter((a) => a.type !== "MEETING");
   const plan = finishPlan(
-    { planned: dayActivities.length + dueToday + contactsDone.length, done: dayActivities.filter((a) => a.completedAt).length + contactsDone.length },
+    { planned: otherActs.length + dueToday + contactsDone.length, done: otherActs.filter((a) => a.completedAt).length + contactsDone.length },
     crmTasks.filter((a) => a.dueAt && a.dueAt < dayFrom).length + (contactsDue.length - dueToday),
     clearedFollowUps,
-    { planned: 0, done: 0 },
+    { planned: meetingActs.length, done: meetingActs.filter((a) => a.completedAt).length },
   );
 
   const result = {

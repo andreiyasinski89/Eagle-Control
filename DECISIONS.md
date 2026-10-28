@@ -196,3 +196,7 @@
 | 192 | Paid plans are off by default; when off every workspace has Pro in force and nothing can be bought | The platform is being tested by the owner's own people for free; the paid system can sit in production, finished, without anyone feeling it. |
 | 193 | A preview mode puts only the listed owners' workspaces under the paid rules | The whole paying journey (trial, limits, locks, Stripe test mode) can be tried on real accounts before launch, with nobody else affected. |
 | 194 | Switching the mode changes the cached plan only when the plans are recalculated (a button in the admin, and daily) | One visible step at launch, and a rollback that is the same step; data is never touched. |
+| 195 | A CRM meeting counts in the meetings number of the day plan, next to calendar events; calls, e-mails and messages stay in the follow-ups | The number people steer by is presentations and meetings; keeping calls out stops it from being inflated, and each thing is counted once. |
+| 196 | A CRM item belongs to a day if it is planned for that day or was completed on it; tasks finished late stay "cleared backlog" | What is written down afterwards, with no date, is still work done that day; a task is already counted once as backlog. |
+| 197 | A CRM meeting and a calendar event are not merged into one when they are about the same meeting | There is no link between them, so a safe match is impossible; a link can be added later if people ask for it. |
+
