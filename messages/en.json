@@ -231,7 +231,12 @@
       "agile-sprint-map": "Agile Sprint Map",
       "product-roadmap": "Product Roadmap",
       "agency-client-project": "Agency Client Project"
-    }
+    },
+    "edit": "Edit project",
+    "editTitle": "Edit the project",
+    "noDescription": "No description yet",
+    "descriptionHint": "Say what the project is for. It is shown on the project card.",
+    "editFailed": "Could not save. Please try again."
   },
   "drawer": {
     "title": "Node details",

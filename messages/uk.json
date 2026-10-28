@@ -231,7 +231,12 @@
       "agile-sprint-map": "Agile Sprint Map",
       "product-roadmap": "Product Roadmap",
       "agency-client-project": "Проєкт для клієнта агентства"
-    }
+    },
+    "edit": "Змінити проєкт",
+    "editTitle": "Змінити проєкт",
+    "noDescription": "Опис не заповнено",
+    "descriptionHint": "Напишіть, для чого цей проєкт. Він показується на картці проєкту.",
+    "editFailed": "Не вдалося зберегти. Спробуйте ще раз."
   },
   "drawer": {
     "title": "Властивості вузла",

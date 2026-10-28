@@ -4,6 +4,7 @@ import { auth } from "@/server/auth";
 import { db } from "@/server/db";
 import { can } from "@/server/policies";
 import { listProjects } from "@/server/services/nodes/queries";
+import { EditProjectButton } from "./edit-project-dialog";
 import { NewProjectDialog } from "./new-project-dialog";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +17,8 @@ export default async function ProjectsPage({ params }: { params: Promise<{ slug:
   const membership = await db.membership.findUniqueOrThrow({ where: { userId_workspaceId: { userId, workspaceId: workspace.id } } });
   const projects = await listProjects(userId, workspace.id);
 
+  const canEdit = can(membership, "project:create");
+
   return (
     <section className="max-w-4xl p-6">
       <div className="mb-4 flex items-center justify-between">
@@ -27,14 +30,18 @@ export default async function ProjectsPage({ params }: { params: Promise<{ slug:
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2 sm:auto-rows-fr">
           {projects.map((p) => (
-            <li key={p.id} className="flex">
+            <li key={p.id} className="relative flex">
               <Link
                 href={`/w/${slug}/projects/p/${p.id}`}
                 className="flex w-full flex-col rounded-lg border border-border bg-card p-4 hover:border-primary"
                 style={{ borderLeft: `5px solid var(--health-${p.health.toLowerCase()})` }}
               >
-                <div className="font-medium">{p.title}</div>
-                {p.description && <div className="mt-1 line-clamp-2 text-sm text-muted-foreground">{p.description}</div>}
+                <div className={canEdit ? "pr-8 font-medium" : "font-medium"}>{p.title}</div>
+                {p.description ? (
+                  <div className="mt-1 line-clamp-2 text-sm text-muted-foreground">{p.description}</div>
+                ) : (
+                  canEdit && <div className="mt-1 text-sm italic text-muted-foreground/70">{t("noDescription")}</div>
+                )}
                 <div className="mt-auto flex items-center gap-2 pt-3 text-xs text-muted-foreground">
                   <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
                     <div className="h-full" style={{ width: `${p.progress}%`, background: `var(--health-${p.health.toLowerCase()})` }} />
@@ -43,6 +50,7 @@ export default async function ProjectsPage({ params }: { params: Promise<{ slug:
                   <span>{tm(`health.${p.health}`)}</span>
                 </div>
               </Link>
+              {canEdit && <EditProjectButton id={p.id} title={p.title} description={p.description ?? null} />}
             </li>
           ))}
         </ul>

@@ -231,7 +231,12 @@
       "agile-sprint-map": "Agile Sprint Map",
       "product-roadmap": "Product Roadmap",
       "agency-client-project": "Проект для клиента агентства"
-    }
+    },
+    "edit": "Изменить проект",
+    "editTitle": "Изменить проект",
+    "noDescription": "Описание не заполнено",
+    "descriptionHint": "Напишите, для чего этот проект. Оно показывается на карточке проекта.",
+    "editFailed": "Не удалось сохранить. Попробуйте ещё раз."
   },
   "drawer": {
     "title": "Свойства узла",

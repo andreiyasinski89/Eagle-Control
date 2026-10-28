@@ -231,7 +231,12 @@
       "agile-sprint-map": "Agile Sprint Map",
       "product-roadmap": "Product Roadmap",
       "agency-client-project": "Projekt klienta agencji"
-    }
+    },
+    "edit": "Edytuj projekt",
+    "editTitle": "Edytuj projekt",
+    "noDescription": "Brak opisu",
+    "descriptionHint": "Napisz, do czego służy projekt. Opis widać na karcie projektu.",
+    "editFailed": "Nie udało się zapisać. Spróbuj ponownie."
   },
   "drawer": {
     "title": "Szczegóły węzła",
