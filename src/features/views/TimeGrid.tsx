@@ -118,7 +118,7 @@ export function TimeGrid({ days, items, today, timeZone = "UTC", onMove, onSlot,
               data-day={d}
               {...drop(d)}
               onClick={onSlot ? (e) => !(e.target as HTMLElement).closest("[data-testid=calendar-item]") && onSlot(d) : undefined}
-              className={cn("flex flex-col gap-1 border-l border-border p-1", folded ? "min-h-7 items-center justify-center" : "max-h-40 min-h-9 overflow-y-auto", onSlot && "cursor-pointer", over === d && "bg-primary/10")}
+              className={cn("flex flex-col gap-1 border-l border-border p-1", folded ? "min-h-7 items-center justify-center" : "min-h-9", onSlot && "cursor-pointer", over === d && "bg-primary/10")}
             >
               {folded
                 ? (() => {
