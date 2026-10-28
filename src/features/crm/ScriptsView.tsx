@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Pencil, Plus } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { Pencil, Plus, Sparkles } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FormField, Modal, selectClass, textareaClass } from "@/components/ui/modal";
@@ -24,7 +24,19 @@ interface Rule {
 export function ScriptsView({ workspaceId, canWrite }: { workspaceId: string; canWrite: boolean }) {
   const t = useTranslations("crm");
   const scripts = useScripts(workspaceId);
+  const locale = useLocale();
+  const qc = useQueryClient();
   const [editing, setEditing] = useState<ScriptDto | "new" | null>(null);
+  const [starterNote, setStarterNote] = useState<string | null>(null);
+  // Ready-made texts for every stage, in the language of the screen; pressing again adds only what is missing.
+  const starter = useMutation({
+    mutationFn: () => api.post<{ added: number; skipped: number }>(`/api/v1/workspaces/${workspaceId}/scripts/starter`, { locale }),
+    onSuccess: (r) => {
+      setStarterNote(r.added > 0 ? t("starterAdded", { n: r.added }) : t("starterNothing"));
+      void qc.invalidateQueries({ queryKey: ["scripts", workspaceId] });
+    },
+    onError: () => setStarterNote(t("starterFailed")),
+  });
   const groups: (Stage | "any")[] = [...STAGES, "any"];
   const of = (g: Stage | "any") => (scripts.data ?? []).filter((s) => (g === "any" ? s.stage === null : s.stage === g));
 
@@ -34,13 +46,24 @@ export function ScriptsView({ workspaceId, canWrite }: { workspaceId: string; ca
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-xl font-semibold">{t("scriptsTitle")}</h1>
           {canWrite && (
-            <Button size="sm" className="ml-auto" onClick={() => setEditing("new")} data-testid="new-script">
-              <Plus className="size-4" />
-              {t("newScript")}
-            </Button>
+            <div className="ml-auto flex flex-wrap items-center gap-2">
+              <Button size="sm" variant="outline" disabled={starter.isPending} onClick={() => starter.mutate()} data-testid="add-starter-scripts">
+                <Sparkles className="size-4" />
+                {t("starterAdd")}
+              </Button>
+              <Button size="sm" onClick={() => setEditing("new")} data-testid="new-script">
+                <Plus className="size-4" />
+                {t("newScript")}
+              </Button>
+            </div>
           )}
         </div>
         <p className="max-w-2xl text-sm text-muted-foreground">{t("scriptsHint")}</p>
+        {starterNote && (
+          <p role="status" className="max-w-2xl rounded-lg border border-border bg-card p-3 text-sm" data-testid="starter-note">
+            {starterNote}
+          </p>
+        )}
         {scripts.data && scripts.data.length === 0 && <p className="rounded-xl border border-dashed border-border p-6 text-sm text-muted-foreground">{t("scriptsEmpty")}</p>}
         {groups.map((g) =>
           of(g).length === 0 ? null : (

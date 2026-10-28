@@ -2,6 +2,7 @@ import { z } from "zod";
 import { db } from "@/server/db";
 import { notFound } from "@/server/http/errors";
 import { STAGES } from "@/modules/crm/people";
+import { STARTER_SCRIPTS, starterLocale } from "@/modules/crm/starter-scripts";
 import { loadWorkspaceMember, logActivity, type Tx } from "@/server/services/nodes/access";
 import { invalid } from "./common";
 
@@ -50,5 +51,27 @@ export async function deleteScript(userId: string, id: string) {
     await tx.script.delete({ where: { id } });
     await logActivity(tx, { workspaceId: s.workspaceId, nodeId: null, actorId: userId, action: "script.deleted", diff: { title: s.title } });
     return { deleted: true };
+  });
+}
+
+export const starterScriptsSchema = z.object({ locale: z.enum(["ru", "en", "pl"]).optional() });
+
+/**
+ * The ready-made scripts for every stage of the funnel, in the person's language, added to the workspace. Safe to press again: a script whose
+ * title is already there (they may have rewritten it, or deleted its twin) is not added a second time. Returns how many were added and skipped.
+ */
+export async function addStarterScripts(userId: string, workspaceId: string, locale?: string | null) {
+  return db.$transaction(async (tx) => {
+    await loadWorkspaceMember(tx, userId, workspaceId, "crm:write");
+    const wanted = STARTER_SCRIPTS[starterLocale(locale)];
+    const have = await tx.script.findMany({ where: { workspaceId }, select: { title: true } });
+    const titles = new Set(have.map((s) => s.title.trim().toLowerCase()));
+    const fresh = wanted.filter((s) => !titles.has(s.title.trim().toLowerCase()));
+    if (have.length + fresh.length > SCRIPT_LIMIT) throw invalid("script_limit", `A workspace holds up to ${SCRIPT_LIMIT} scripts`);
+    if (fresh.length) {
+      await tx.script.createMany({ data: fresh.map((s, i) => ({ workspaceId, title: s.title, stage: s.stage, body: s.body, position: have.length + i, createdById: userId })) });
+      await logActivity(tx, { workspaceId, nodeId: null, actorId: userId, action: "script.starter_added", diff: { added: fresh.length } });
+    }
+    return { added: fresh.length, skipped: wanted.length - fresh.length };
   });
 }

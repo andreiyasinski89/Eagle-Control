@@ -13,7 +13,7 @@ vi.mock("@/server/storage", () => ({ deleteObject: vi.fn(), presignUpload: vi.fn
 import { createWorkspace } from "@/server/services/workspace";
 import { createContact, getContact, updateContact } from "@/server/services/crm/contacts";
 import { transferContacts } from "@/server/services/crm/partners";
-import { createScript, deleteScript, listScripts, updateScript } from "@/server/services/crm/scripts";
+import { addStarterScripts, createScript, deleteScript, listScripts, updateScript } from "@/server/services/crm/scripts";
 import { listRules, saveRules, saveRulesSchema } from "@/server/services/crm/stage-rules";
 import { completeStep, getWeek, saveGoals } from "@/server/services/crm/tracker";
 
@@ -50,6 +50,23 @@ describe("scripts", () => {
     expect(await updateScript(owner, a.id, { stage: "WARMING", body: "Hello {name}" })).toMatchObject({ stage: "WARMING", body: "Hello {name}" });
     await deleteScript(owner, a.id);
     expect((await listScripts(owner, ws.id)).items).toHaveLength(1);
+  });
+  it("adds the ready-made set for every stage once, in the asked language, and only what is missing the next time", async () => {
+    const before = (await listScripts(owner, ws.id)).items.length;
+    const first = await addStarterScripts(owner, ws.id, "ru");
+    expect(first.added).toBeGreaterThan(9);
+    expect(first.skipped).toBe(0);
+    const items = (await listScripts(owner, ws.id)).items;
+    expect(items).toHaveLength(before + first.added);
+    expect(items.some((s) => s.stage === "NO_REPLY" && /[а-я]/i.test(s.body))).toBe(true);
+    // pressed again, or changed by hand: nothing is duplicated, and a deleted one comes back
+    expect(await addStarterScripts(owner, ws.id, "ru")).toEqual({ added: 0, skipped: first.added });
+    const gone = items.find((s) => s.stage === "DECLINED")!;
+    await deleteScript(owner, gone.id);
+    expect(await addStarterScripts(owner, ws.id, "ru")).toMatchObject({ added: 1 });
+    // another language is another set
+    expect((await addStarterScripts(owner, ws.id, "en")).added).toBeGreaterThan(9);
+    await expect(addStarterScripts(outsider, ws.id, "ru")).rejects.toBeTruthy();
   });
   it("is closed to strangers", async () => {
     await expect(listScripts(outsider, ws.id)).rejects.toBeTruthy();

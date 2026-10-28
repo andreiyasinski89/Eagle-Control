@@ -805,7 +805,7 @@
     "teamWeekHint": "Co się wydarzyło z osobami, z którymi pracuje każdy partner: przejścia na etap w ciągu tygodnia.",
     "scriptsTitle": "Skrypty",
     "scriptsHint": "Gotowy tekst na każdy moment: pierwsza wiadomość, zaproszenie, ponowny kontakt. Wpisz '{name}' dla imienia, '{full_name}' dla pełnego imienia i nazwiska oraz '{my_name}' dla Twojego; tekst kopiuje się z podstawionymi imionami.",
-    "scriptsEmpty": "Na razie brak skryptów. Dodaj tekst, który wysyłasz najczęściej.",
+    "scriptsEmpty": "Brak skryptów. Naciśnij „Dodaj gotowe skrypty”, aby dostać zestaw na każdy etap, albo napisz własne.",
     "scriptsSection": "Skrypty",
     "scriptsNoneForStage": "Dla tego etapu nie ma jeszcze skryptu.",
     "newScript": "Nowy skrypt",
@@ -867,7 +867,11 @@
       "DISTRUST_PRODUCT": "Wątpi w produkt lub firmę",
       "FAMILY_AGAINST": "Rodzina lub bliscy są przeciw",
       "OTHER": "Inne"
-    }
+    },
+    "starterAdd": "Dodaj gotowe skrypty",
+    "starterAdded": "{n, plural, one {Dodano # skrypt} few {Dodano # skrypty} many {Dodano # skryptów} other {Dodano # skryptu}}: na każdy etap lejka. Otwórz dowolny, żeby go przepisać po swojemu. W nawiasach kwadratowych jest to, co trzeba wpisać ręcznie.",
+    "starterNothing": "Wszystkie gotowe skrypty już tu są, nie ma co dodawać.",
+    "starterFailed": "Nie udało się dodać skryptów. Spróbuj za chwilę."
   },
   "myday": {
     "title": "Mój dzień",
