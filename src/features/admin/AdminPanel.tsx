@@ -8,6 +8,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api, ApiFailure } from "@/features/mindmap/api";
+import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 type Plan = "FREE" | "PRO" | "ENTERPRISE";
@@ -98,6 +99,9 @@ export function AdminPanel() {
           <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
           <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
+        <Link href="/admin/setup" className="inline-flex h-9 items-center rounded-md border border-border bg-card px-3 text-sm hover:border-primary hover:text-primary" data-testid="admin-setup-link">
+          {t("setupLink")}
+        </Link>
         <div className="relative">
           <Search className="pointer-events-none absolute left-2.5 top-2.5 size-4 text-muted-foreground" aria-hidden />
           <Input className="w-64 pl-8" placeholder={t("search")} aria-label={t("search")} value={q} onChange={(e) => (setQ(e.target.value), setPage(1))} data-testid="admin-search" />

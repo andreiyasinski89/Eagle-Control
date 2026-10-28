@@ -1308,7 +1308,7 @@
     "error": "Coś poszło nie tak",
     "paywallTitle": "Integracje są częścią planu Pro",
     "paywallText": "Dwukierunkowy Kalendarz Google, powiadomienia w Slacku i bot w Telegramie.",
-    "notConfigured": "Nie skonfigurowano jeszcze na tym serwerze. Administrator musi dodać klucze dostawcy.",
+    "notConfigured": "Wkrótce: przygotowujemy to połączenie.",
     "connect": "Połącz",
     "reconnect": "Połącz ponownie",
     "disconnect": "Rozłącz",
@@ -1320,7 +1320,10 @@
       "title": "Kalendarz Google",
       "hint": "Wydarzenia utworzone tutaj trafiają do Twojego Kalendarza Google, na życzenie z linkiem Meet. Zmiany i usunięcia w Google wracają tutaj.",
       "sync": "Synchronizuj teraz",
-      "polling": "Zmiany są sprawdzane co kilka minut."
+      "polling": "Zmiany są sprawdzane co kilka minut.",
+      "p1": "Spotkania utworzone tutaj pojawiają się w Twoim Kalendarzu Google",
+      "p2": "Link do Meet na życzenie",
+      "p3": "Zmiany i usunięcia w Google wracają tutaj"
     },
     "slack": {
       "title": "Slack",
@@ -1333,7 +1336,10 @@
         "deal_won": "Wygrana szansa",
         "project_red": "Projekt robi się czerwony",
         "sprint_ended": "Koniec sprintu"
-      }
+      },
+      "p1": "Nowe leady i wygrane szanse na kanale",
+      "p2": "Ostrzeżenie, gdy projekt robi się czerwony",
+      "p3": "Sam wybierasz, co trafia na który kanał"
     },
     "telegram": {
       "title": "Telegram",
@@ -1348,7 +1354,34 @@
       "botNotConnected": "Bot nie jest jeszcze połączony z tą instalacją i nie odbiera wiadomości.",
       "connectBot": "Połącz bota",
       "askAdmin": "Poproś właściciela lub administratora o połączenie bota.",
-      "lastError": "Telegram zgłasza błąd dostarczania: {error}"
+      "lastError": "Telegram zgłasza błąd dostarczania: {error}",
+      "p1": "Powiadomienia w Telegramie: nowy lead, przypomnienie, wzmianka",
+      "p2": "Polecenia z czatu: /today, /task, /done, /lead",
+      "p3": "Powiązanie raz: otwórz bota i naciśnij Start"
+    },
+    "intro": "Połączenie zajmuje około minuty: naciśnij „Połącz” i zezwól na dostęp. Bez kodów i ustawień.",
+    "needsSetup": "Jesteś właścicielem platformy: tę usługę trzeba raz zarejestrować. To kilka minut, a potem wszyscy łączą jednym przyciskiem.",
+    "openSetup": "Skonfiguruj platformę",
+    "comingSoon": "Wkrótce: przygotowujemy to połączenie.",
+    "soon": "Wkrótce",
+    "copy": "Kopiuj",
+    "copied": "Skopiowano",
+    "claude": {
+      "title": "Claude",
+      "hint": "Poproś Claude w zwykłym czacie: zrobi to w MeetOwl za Ciebie.",
+      "ready": "Można łączyć",
+      "p1": "„Pokaż mój dzień”, „dodaj spotkanie z Anną w czwartek o 15:00”",
+      "p2": "Claude widzi i zmienia tylko to, na co Ty masz dostęp",
+      "p3": "Możesz odłączyć w każdej chwili",
+      "s1": "W Claude otwórz Settings → Connectors → Add custom connector.",
+      "s2": "Nazwij MeetOwl i wklej adres poniżej.",
+      "s3": "Naciśnij Connect, zaloguj się do MeetOwl i naciśnij „Zezwól”.",
+      "urlLabel": "Adres dla Claude"
+    },
+    "whatsapp": {
+      "title": "WhatsApp",
+      "hint": "Napisz do osoby w WhatsApp jednym kliknięciem.",
+      "soon": "Wkrótce: przycisk „Napisz w WhatsApp” w karcie osoby, który otwiera czat z gotowym tekstem Twojego skryptu. Bez ustawień."
     }
   },
   "billing": {
@@ -1919,11 +1952,105 @@
     "modeHint_preview": "Płatne zasady obowiązują tylko w przestrzeniach osób z PAID_PLANS_PREVIEW_EMAILS; reszta ma wszystko.",
     "modeHint_on": "Płatne zasady obowiązują wszystkich: limity Free, blokady Pro, okres próbny i płatności.",
     "recompute": "Przelicz plany",
-    "recomputed": "Plany przeliczone: zmieniło się {n} z {total} przestrzeni."
+    "recomputed": "Plany przeliczone: zmieniło się {n} z {total} przestrzeni.",
+    "setupLink": "Połączenie usług"
   },
   "sharing": {
     "title": "Pokazuj moją aktywność sponsorowi",
     "hint": "{name} Cię zaprosił(a). Jeśli się zgodzisz, zobaczy podsumowanie Twojej aktywności: liczby (dodane osoby, kontakty, prezentacje, rozmowy i spotkania, zadania) i datę ostatniego działania. Nigdy nazwisk Twoich klientów, wiadomości ani notatek.",
     "toggle": "Pozwól {name} widzieć podsumowanie mojej aktywności"
+  },
+  "setup": {
+    "title": "Połączenie platformy",
+    "intro": "Raz rejestrujesz MeetOwl w Google, Slack i Telegramie i wklejasz klucze do Vercel. Potem każdy łączy wszystko jednym przyciskiem, bez kodu.",
+    "progress": "Gotowe: {n} z {total}",
+    "vercelNote": "Ustawienia dodaje się w Vercel: projekt → Settings → Environment Variables, potem Redeploy.",
+    "httpsWarn": "Adres platformy to {url}, a musi zaczynać się od https:// (ustaw APP_URL w Vercel). Telegram, Google i Claude działają tylko przez https.",
+    "error": "Coś poszło nie tak",
+    "ready": "Gotowe",
+    "notReady": "Nie skonfigurowano",
+    "openSite": "Otwórz {name}",
+    "valuesTitle": "Adresy do wklejenia tam (naciśnij „Kopiuj”)",
+    "varsTitle": "Co dodać w Vercel",
+    "varSet": "dodano",
+    "varMissing": "jeszcze nie dodano",
+    "check": "Sprawdź",
+    "connectBot": "Połącz bota",
+    "copy": "Kopiuj",
+    "copied": "Skopiowano",
+    "value": {
+      "syncUrl": "Adres dla Inngest (Sync new app)",
+      "webhookUrl": "Adres webhooka Telegrama (aplikacja ustawi go sama)",
+      "redirectUri": "Adres powrotu (Redirect URI)",
+      "eventsUrl": "Adres zdarzeń (Request URL)",
+      "connectorUrl": "Adres dla Claude (custom connector)"
+    },
+    "p": {
+      "inngest": {
+        "title": "Zadania w tle (Inngest)",
+        "why": "Bez nich nie działają powiadomienia, przypomnienia i nocne przeliczenia; Telegram i kalendarz na nich polegają.",
+        "s1": "Otwórz app.inngest.com i zaloguj się przez GitHub (konto już masz).",
+        "s2": "Manage → Event Keys → utwórz klucz i skopiuj go.",
+        "s3": "Manage → Signing Key → skopiuj klucz. Kluczy nie wolno wklejać do czatów.",
+        "s4": "W Vercel dodaj INNGEST_EVENT_KEY, INNGEST_SIGNING_KEY i JOBS_MODE o wartości inngest.",
+        "s5": "W Vercel naciśnij Redeploy.",
+        "s6": "W Inngest naciśnij Sync new app i wklej adres poniżej. Na liście pojawią się funkcje. Potem naciśnij tutaj „Sprawdź”."
+      },
+      "telegram": {
+        "title": "Bot w Telegramie",
+        "why": "Jeden bot dla wszystkich: ludzie wiążą swój czat jednym kliknięciem i dostają powiadomienia i polecenia.",
+        "s1": "W Telegramie znajdź @BotFather i wyślij /newbot.",
+        "s2": "Wymyśl nazwę bota i username kończący się na bot (np. MeetOwlBot).",
+        "s3": "BotFather przyśle token. To jak hasło: skopiuj i nikomu nie pokazuj.",
+        "s4": "W Vercel dodaj TELEGRAM_BOT_TOKEN (token), TELEGRAM_BOT_USERNAME (username bez @) i TELEGRAM_WEBHOOK_SECRET (dowolny długi ciąg liter i cyfr, wymyśl sam).",
+        "s5": "W Vercel naciśnij Redeploy.",
+        "s6": "Naciśnij tutaj „Sprawdź”. Jeśli pisze, że bot nie jest połączony, naciśnij „Połącz bota”: aplikacja powie Telegramowi, dokąd wysyłać wiadomości."
+      },
+      "google": {
+        "title": "Kalendarz Google",
+        "why": "Spotkania z MeetOwl w Kalendarzu Google, a zmiany z Google wracają.",
+        "s1": "Otwórz console.cloud.google.com i zaloguj się. Utwórz projekt o nazwie MeetOwl.",
+        "s2": "APIs & Services → Library → Google Calendar API → Enable.",
+        "s3": "OAuth consent screen (Google Auth Platform): typ użytkowników External, nazwa MeetOwl, Twój e-mail do kontaktu.",
+        "s4": "Data access → dodaj zakres .../auth/calendar.events.",
+        "s5": "Audience: dodaj siebie jako testowego użytkownika, potem naciśnij Publish app (status In production). Inaczej Google resetuje dostęp co 7 dni.",
+        "s6": "Credentials → Create credentials → OAuth client ID → Web application. W Authorized redirect URIs wklej adres poniżej dokładnie.",
+        "s7": "Skopiuj Client ID i Client secret i dodaj w Vercel jako GOOGLE_CAL_CLIENT_ID i GOOGLE_CAL_CLIENT_SECRET. Redeploy, potem „Sprawdź”."
+      },
+      "slack": {
+        "title": "Slack",
+        "why": "Nowe leady, wygrane szanse i „czerwone” projekty na kanale.",
+        "s1": "Otwórz api.slack.com/apps → Create New App → From scratch. Nazwij MeetOwl i wybierz przestrzeń roboczą.",
+        "s2": "OAuth & Permissions → Redirect URLs → dodaj adres powrotu poniżej.",
+        "s3": "Scopes → Bot Token Scopes: chat:write, chat:write.public, channels:read, users:read, users:read.email.",
+        "s4": "Event Subscriptions → On → Request URL: adres zdarzeń poniżej. Zasubskrybuj zdarzenia bota app_uninstalled i tokens_revoked.",
+        "s5": "Basic Information → skopiuj Client ID, Client Secret i Signing Secret i dodaj w Vercel jako SLACK_CLIENT_ID, SLACK_CLIENT_SECRET i SLACK_SIGNING_SECRET. Redeploy.",
+        "s6": "Manage Distribution → włącz publiczną dystrybucję, aby każda przestrzeń robocza mogła zainstalować aplikację. Potem „Sprawdź”."
+      },
+      "claude": {
+        "title": "Claude",
+        "why": "Ludzie proszą Claude w czacie, a on pracuje w MeetOwl za nich. Niczego nie trzeba rejestrować.",
+        "s1": "Nic do ustawienia: działa, gdy adres platformy zaczyna się od https.",
+        "s2": "Ludzie kopiują adres z karty Claude na stronie „Integracje”. Naciśnij „Sprawdź”, aby się upewnić."
+      }
+    },
+    "result": {
+      "https": "Adres platformy musi zaczynać się od https://. Ustaw APP_URL w Vercel i zrób Redeploy.",
+      "inngest_keys": "Event Key lub Signing Key nie zostały jeszcze dodane.",
+      "inngest_mode": "Klucze są, ale JOBS_MODE nie jest inngest. Dodaj JOBS_MODE = inngest i zrób Redeploy.",
+      "inngest_ok": "Gotowe. Upewnij się jeszcze, że aplikacja jest zsynchronizowana w Inngest (Sync new app): powinny być widoczne funkcje.",
+      "telegram_keys": "Token bota lub sekret webhooka nie zostały jeszcze dodane.",
+      "telegram_token": "Telegram nie przyjmuje tego tokena. Skopiuj go ponownie od BotFather.",
+      "telegram_username": "Dodaj TELEGRAM_BOT_USERNAME: username bota {name} bez @.",
+      "telegram_mismatch": "TELEGRAM_BOT_USERNAME nie zgadza się z botem tego tokena: nazywa się {name}.",
+      "telegram_webhook": "Token jest dobry, ale Telegram jeszcze nie wysyła wiadomości tutaj. Naciśnij „Połącz bota”.",
+      "telegram_ok": "Gotowe: bot @{name} jest połączony i dostarcza wiadomości tutaj.",
+      "google_keys": "Client ID lub Client secret nie zostały jeszcze dodane.",
+      "google_id": "Client ID wygląda źle: powinien kończyć się na .apps.googleusercontent.com.",
+      "google_ok": "Klucze są na miejscu. Pełnym sprawdzeniem jest pierwsze prawdziwe połączenie na stronie „Integracje”.",
+      "slack_keys": "Jeden z trzech kluczy Slack nie został jeszcze dodany.",
+      "slack_ok": "Klucze są na miejscu. Pełnym sprawdzeniem jest pierwsze prawdziwe połączenie na stronie „Integracje”.",
+      "claude_ok": "Gotowe: adres jest https, ludzie mogą łączyć Claude."
+    }
   }
 }

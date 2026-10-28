@@ -85,6 +85,11 @@ export async function telegramStatus(userId: string, workspaceId: string) {
 export async function registerTelegramWebhook(userId: string, workspaceId: string): Promise<{ url: string }> {
   await loadWorkspaceMember(db, userId, workspaceId, "member:invite");
   await requireIntegrations(workspaceId);
+  return setTelegramWebhook();
+}
+
+/** The same, without a workspace: for the platform owner's setup page. */
+export async function setTelegramWebhook(): Promise<{ url: string }> {
   const { TELEGRAM_BOT_TOKEN: token, TELEGRAM_WEBHOOK_SECRET: secret } = env();
   if (!token || !secret) throw notConfigured("Telegram");
   const url = telegramWebhookUrl();
@@ -92,6 +97,20 @@ export async function registerTelegramWebhook(userId: string, workspaceId: strin
   await httpJson("telegram", `https://api.telegram.org/bot${token}/setWebhook`, { method: "POST", json: { url, secret_token: secret, allowed_updates: ["message"] } });
   return { url };
 }
+
+/** Asks Telegram who the bot is: proves the token is a real one. Null when Telegram could not be asked or refused the token. */
+export async function telegramBotCheck(): Promise<{ username: string | null } | null> {
+  const token = env().TELEGRAM_BOT_TOKEN;
+  if (!token) return null;
+  try {
+    const me = await httpJson<{ result?: { username?: string } }>("telegram", `https://api.telegram.org/bot${token}/getMe`, { timeoutMs: 5_000 });
+    return { username: me.result?.username ?? null };
+  } catch {
+    return null;
+  }
+}
+
+export { webhookState as telegramWebhookState };
 
 export async function disconnectTelegram(userId: string, workspaceId: string): Promise<void> {
   const row = await db.userIntegration.findFirst({ where: { userId, kind: "TELEGRAM", workspaceId } });
