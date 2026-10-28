@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type CSSProperties, type DragEvent, type ReactNode } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { HOUR_PX, DAY_MINUTES, initialFocus, layoutDay, minutesToPx, parseClock, splitTimed } from "@/modules/views/timegrid";
@@ -9,6 +10,7 @@ import type { GridItem } from "./CalendarGrid";
 
 const HOURS = Array.from({ length: 24 }, (_, h) => h);
 const pad = (n: number) => String(n).padStart(2, "0");
+const FOLD_KEY = "meetowl.allDayFolded";
 
 /**
  * Day or week as hours down the side, one column per day, like Google Calendar: events sit at their start time and
@@ -21,6 +23,24 @@ export function TimeGrid({ days, items, today, timeZone = "UTC", onMove, onSlot,
   const [over, setOver] = useState<string | null>(null);
   const [now, setNow] = useState<Date | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
+  // The "all day" strip can hold dozens of tasks; it folds up so the hours stay in view. The choice is remembered on this device.
+  const [folded, setFolded] = useState(false);
+  useEffect(() => {
+    try {
+      setFolded(localStorage.getItem(FOLD_KEY) === "1");
+    } catch {
+      /* private window: start open */
+    }
+  }, []);
+  const toggleFold = () =>
+    setFolded((f) => {
+      try {
+        localStorage.setItem(FOLD_KEY, f ? "0" : "1");
+      } catch {
+        /* not remembered */
+      }
+      return !f;
+    });
   const latest = useRef({ items, days, today });
   latest.current = { items, days, today };
 
@@ -47,6 +67,7 @@ export function TimeGrid({ days, items, today, timeZone = "UTC", onMove, onSlot,
   for (const i of items) byDay.set(i.day, [...(byDay.get(i.day) ?? []), i]);
   const nowMinute = now ? zonedParts(now, timeZone).minutes : null;
   const columns = `3.5rem repeat(${days.length}, minmax(0, 1fr))`;
+  const allDayTotal = items.filter((i) => days.includes(i.day) && parseClock(i.time) === null).length;
   const weekday = (d: string) => new Date(`${d}T00:00:00Z`).toLocaleDateString(locale, { weekday: "short", timeZone: "UTC" });
 
   const drop = (d: string) => ({
@@ -77,16 +98,38 @@ export function TimeGrid({ days, items, today, timeZone = "UTC", onMove, onSlot,
           ))}
         </div>
         <div className="grid border-b border-border" style={{ gridTemplateColumns: columns }} data-testid="all-day-row">
-          <div className="px-1 py-1.5 text-right text-[10px] leading-tight text-muted-foreground">{t("allDay")}</div>
+          <div className="flex items-center justify-end gap-0.5 px-0.5 py-1 text-right text-[10px] leading-tight text-muted-foreground">
+            <span>{t("allDay")}</span>
+            <button
+              type="button"
+              onClick={toggleFold}
+              aria-expanded={!folded}
+              aria-label={folded ? t("allDayShow", { n: allDayTotal }) : t("allDayHide")}
+              title={folded ? t("allDayShow", { n: allDayTotal }) : t("allDayHide")}
+              className="grid size-5 shrink-0 place-items-center rounded hover:bg-muted hover:text-foreground"
+              data-testid="all-day-toggle"
+            >
+              {folded ? <ChevronDown className="size-3.5" aria-hidden /> : <ChevronUp className="size-3.5" aria-hidden />}
+            </button>
+          </div>
           {days.map((d) => (
             <div
               key={d}
               data-day={d}
               {...drop(d)}
               onClick={onSlot ? (e) => !(e.target as HTMLElement).closest("[data-testid=calendar-item]") && onSlot(d) : undefined}
-              className={cn("flex min-h-9 flex-col gap-1 border-l border-border p-1", onSlot && "cursor-pointer", over === d && "bg-primary/10")}
+              className={cn("flex flex-col gap-1 border-l border-border p-1", folded ? "min-h-7 items-center justify-center" : "max-h-40 min-h-9 overflow-y-auto", onSlot && "cursor-pointer", over === d && "bg-primary/10")}
             >
-              {splitTimed(byDay.get(d) ?? []).allDay.map((i) => renderItem(i))}
+              {folded
+                ? (() => {
+                    const n = splitTimed(byDay.get(d) ?? []).allDay.length;
+                    return n > 0 ? (
+                      <span className="rounded-full bg-muted px-2 text-[11px] tabular-nums text-muted-foreground" data-testid="all-day-count">
+                        {n}
+                      </span>
+                    ) : null;
+                  })()
+                : splitTimed(byDay.get(d) ?? []).allDay.map((i) => renderItem(i))}
             </div>
           ))}
         </div>

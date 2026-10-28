@@ -1223,7 +1223,9 @@
     "hideDone": "Ukryj zakończone",
     "todayLabel": "Dziś",
     "allDoneHidden": "Wszystkie zadania z datami są zakończone i ukryte ({n}). Naciśnij „Ukryj zakończone”, aby je zobaczyć.",
-    "overdueSince": "spóźnione od {date}"
+    "overdueSince": "spóźnione od {date}",
+    "allDayHide": "Zwiń wiersz „Cały dzień”",
+    "allDayShow": "Pokaż wiersz „Cały dzień” ({n})"
   },
   "reports": {
     "title": "Raporty",

@@ -1223,7 +1223,9 @@
     "hideDone": "Hide finished",
     "todayLabel": "Today",
     "allDoneHidden": "All the tasks with dates are finished and hidden ({n}). Press “Hide finished” to see them.",
-    "overdueSince": "overdue since {date}"
+    "overdueSince": "overdue since {date}",
+    "allDayHide": "Collapse the all-day row",
+    "allDayShow": "Show the all-day row ({n})"
   },
   "reports": {
     "title": "Reports",
