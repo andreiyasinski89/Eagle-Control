@@ -1,4 +1,6 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
+import { redirect } from "@/i18n/navigation";
+import { auth } from "@/server/auth";
 import { env } from "@/lib/env";
 import { Button } from "@/components/ui/button";
 import { isRefCode } from "@/modules/auth/signup";
@@ -8,9 +10,11 @@ import { SignInForm } from "./sign-in-form";
 export default async function SignInPage({
   searchParams,
 }: {
-  searchParams: Promise<{ sent?: string; callbackUrl?: string; tab?: string; ref?: string; inv?: string }>;
+  searchParams: Promise<{ sent?: string; error?: string; callbackUrl?: string; tab?: string; ref?: string; inv?: string }>;
 }) {
   const [t, sp] = await Promise.all([getTranslations("auth"), searchParams]);
+  // The link was opened twice (a mail preview, a double click): if the first time worked, the person is already in.
+  if (sp.error && (await auth())?.user) redirect({ href: "/", locale: await getLocale() });
   const googleEnabled = Boolean(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET);
   // Only same-site relative callbacks, never an arbitrary URL.
   const demo = env().DEMO_MODE;
@@ -59,6 +63,11 @@ export default async function SignInPage({
             </>
           ) : (
             <>
+              {sp.error && (
+                <p role="alert" className="rounded-xl border border-border bg-card p-4 text-sm">
+                  {t("linkError")}
+                </p>
+              )}
               {mailEnabled && <SignInForm googleEnabled={googleEnabled} callbackUrl={callbackUrl} initialMode={sp.tab === "signup" || validRef || validInv ? "signup" : "signin"} refCode={validRef} inviter={inviter} invCode={validInv} platformInviter={platformInviter} />}
               {demo && (
                 <form method="post" action="/api/demo/login" className="flex flex-col gap-2" data-testid="demo-login">

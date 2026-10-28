@@ -64,7 +64,8 @@
     "invitedBy": "{name} invited you to MeetOwl.",
     "shareWithInviter": "{name} will see your name and e-mail as a new contact.",
     "invitedToPlatform": "{name} invites you to MeetOwl: your own workspace, client base, CRM, reports and projects.",
-    "shareProgress": "{name} will see that you registered and how far you have got, but not your clients or projects."
+    "shareProgress": "{name} will see that you registered and how far you have got, but not your clients or projects.",
+    "linkError": "This sign-in link was already used or has expired (it works once, for 15 minutes). Enter your e-mail below and we will send a new one."
   },
   "onboarding": {
     "title": "Create your workspace",

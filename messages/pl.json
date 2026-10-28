@@ -64,7 +64,8 @@
     "invitedBy": "{name} zaprasza Cię do MeetOwl.",
     "shareWithInviter": "{name} zobaczy Twoje imię i e-mail jako nowy kontakt.",
     "invitedToPlatform": "{name} zaprasza Cię do MeetOwl: własna przestrzeń, baza klientów, CRM, raporty i projekty.",
-    "shareProgress": "{name} zobaczy, że się zarejestrowałeś i jak daleko doszedłeś, ale nie Twoich klientów ani projektów."
+    "shareProgress": "{name} zobaczy, że się zarejestrowałeś i jak daleko doszedłeś, ale nie Twoich klientów ani projektów.",
+    "linkError": "Ten link do logowania został już użyty lub wygasł (działa raz, przez 15 minut). Wpisz poniżej e-mail, a wyślemy nowy."
   },
   "onboarding": {
     "title": "Utwórz przestrzeń roboczą",

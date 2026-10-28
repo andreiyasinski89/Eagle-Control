@@ -41,7 +41,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(db),
   session: { strategy: "database" },
   providers,
-  pages: { signIn: "/sign-in", verifyRequest: "/sign-in?sent=1" },
+  // A used or expired link lands on our own sign-in page (with a plain explanation), not on Auth.js's bare error page.
+  pages: { signIn: "/sign-in", verifyRequest: "/sign-in?sent=1", error: "/sign-in" },
   events: {
     // A brand-new account: give it the name and language typed on the sign-up form, and the sponsor's link it came through.
     async createUser({ user }) {
