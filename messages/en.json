@@ -1960,7 +1960,9 @@
     "modeHint_on": "The paid rules apply to everyone: Free limits, Pro locks, the trial and payments.",
     "recompute": "Recalculate plans",
     "recomputed": "Plans recalculated: {n} of {total} workspaces changed.",
-    "setupLink": "Connect services"
+    "setupLink": "Connect services",
+    "role": "Role",
+    "crmLevel": "CRM access"
   },
   "sharing": {
     "title": "Show my activity to my sponsor",

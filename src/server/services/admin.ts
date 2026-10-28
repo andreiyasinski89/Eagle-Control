@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { Plan, Prisma } from "@prisma/client";
 import { env } from "@/lib/env";
-import { crmLevel } from "@/modules/crm/access";
+import { CRM_LEVELS, crmLevel, levelFields } from "@/modules/crm/access";
 import { db } from "@/server/db";
 import { ApiError, forbidden, notFound } from "@/server/http/errors";
 import { recomputePlans, syncPlan } from "./entitlements";
@@ -134,6 +134,25 @@ export async function setWorkspacePlan(actorId: string, workspaceId: string, pla
   await syncPlan(workspaceId);
   await log(actorId, "workspace.plan", null, { workspaceId, name: w.name, from: w.plan, to: plan });
   return { plan };
+}
+
+export const memberRoleSchema = z
+  .object({ role: z.enum(["ADMIN", "MEMBER", "GUEST", "CLIENT"]).optional(), crmLevel: z.enum(CRM_LEVELS).optional() })
+  .refine((v) => v.role !== undefined || v.crmLevel !== undefined, "Nothing to update");
+
+/**
+ * Sets a person's role (and how much of the CRM they see) in a workspace by hand: for when someone was invited as a client by mistake, or
+ * a member should become a guest. An owner's role is not changed here (a workspace must always have one). Written in the admin's log.
+ */
+export async function setMemberRole(actorId: string, workspaceId: string, userId: string, input: z.infer<typeof memberRoleSchema>) {
+  await requireSuperAdmin(actorId);
+  const m = await db.membership.findUnique({ where: { userId_workspaceId: { userId, workspaceId } }, include: { workspace: { select: { name: true } } } });
+  if (!m) throw notFound("member");
+  if (m.role === "OWNER") throw forbidden();
+  const data: Prisma.MembershipUpdateInput = { ...(input.role ? { role: input.role } : {}), ...(input.crmLevel ? levelFields(input.crmLevel) : {}) };
+  await db.membership.update({ where: { id: m.id }, data });
+  await log(actorId, "member.role", userId, { workspaceId, name: m.workspace.name, from: { role: m.role, crm: crmLevel(m) }, to: { role: input.role ?? m.role, crm: input.crmLevel ?? crmLevel(m) } });
+  return { role: input.role ?? m.role };
 }
 
 /** After changing the switch (or the list of preview addresses) in Vercel: puts every workspace's plan right now instead of waiting for the daily run. */

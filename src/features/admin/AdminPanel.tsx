@@ -77,6 +77,7 @@ export function AdminPanel() {
   };
   const fail = (e: unknown) => setError(e instanceof ApiFailure ? e.message : t("error"));
   const suspend = useMutation({ mutationFn: (v: { id: string; suspended: boolean }) => api.post(`/api/v1/admin/users/${v.id}/suspend`, { suspended: v.suspended }), onSuccess: () => (setError(null), refresh()), onError: fail });
+  const role = useMutation({ mutationFn: (v: { id: string; userId: string; role?: string; crmLevel?: string }) => api.patch(`/api/v1/admin/workspaces/${v.id}/members/${v.userId}`, { role: v.role, crmLevel: v.crmLevel }), onSuccess: () => (setError(null), refresh()), onError: fail });
   const plan = useMutation({ mutationFn: (v: { id: string; plan: Plan }) => api.patch(`/api/v1/admin/workspaces/${v.id}`, { plan: v.plan }), onSuccess: () => (setError(null), refresh()), onError: fail });
   const recompute = useMutation({ mutationFn: () => api.post<{ checked: number; changed: number }>("/api/v1/admin/plans/recompute"), onSuccess: (r) => (setError(null), setRecomputed(t("recomputed", { n: r.changed, total: r.checked })), refresh()), onError: fail });
   const [recomputed, setRecomputed] = useState<string | null>(null);
@@ -233,12 +234,34 @@ export function AdminPanel() {
                       <li key={w.id} className="rounded-xl border border-border p-2.5 text-sm" data-testid="admin-workspace">
                         <div className="flex items-center gap-2">
                           <span className="min-w-0 flex-1 truncate font-medium">{w.name}</span>
-                          <span className="rounded-full bg-muted px-2 py-0.5 text-xs">{w.role}</span>
+                          {w.role === "OWNER" ? (
+                            <span className="rounded-full bg-muted px-2 py-0.5 text-xs">{w.role}</span>
+                          ) : (
+                            <select className="h-8 rounded-md border border-border bg-card px-2 text-sm" value={w.role} disabled={role.isPending} aria-label={`${t("role")}: ${w.name}`} data-testid="admin-role" onChange={(e) => role.mutate({ id: w.id, userId: d.id, role: e.target.value })}>
+                              {["ADMIN", "MEMBER", "GUEST", "CLIENT"].map((r) => (
+                                <option key={r} value={r}>
+                                  {r}
+                                </option>
+                              ))}
+                            </select>
+                          )}
                         </div>
                         <div className="mt-1 text-xs text-muted-foreground">
                           {t("members", { n: w.members })}
                           {w.contacts !== null && ` · ${t("people", { n: w.contacts })}`} · CRM: {w.crm}
                         </div>
+                        {(w.role === "MEMBER" || w.role === "GUEST") && (
+                          <label className="mt-2 flex items-center gap-2 text-xs">
+                            {t("crmLevel")}
+                            <select className="h-8 rounded-md border border-border bg-card px-2 text-sm" value={w.crm} disabled={role.isPending} data-testid="admin-crm" onChange={(e) => role.mutate({ id: w.id, userId: d.id, crmLevel: e.target.value })}>
+                              {["NONE", "OWN", "TEAM", "ALL"].map((l) => (
+                                <option key={l} value={l}>
+                                  {l}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                        )}
                         {w.role === "OWNER" && (
                           <label className="mt-2 flex items-center gap-2 text-xs">
                             {t("plan")}

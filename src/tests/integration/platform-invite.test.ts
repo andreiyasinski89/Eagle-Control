@@ -16,7 +16,7 @@ vi.mock("@/server/mail", () => ({ sendMail: vi.fn() }));
 
 import { createWorkspace } from "@/server/services/workspace";
 import { createContact } from "@/server/services/crm/contacts";
-import { adjustBonus, getUserDetail, isSuperAdminEmail, listUsers, requireSuperAdmin, setSuspended, setWorkspacePlan } from "@/server/services/admin";
+import { adjustBonus, getUserDetail, isSuperAdminEmail, listUsers, requireSuperAdmin, setMemberRole, setSuspended, setWorkspacePlan } from "@/server/services/admin";
 import { applySignupIntent, getInvites, inviteInfo, joinByInvite, saveSignupIntent } from "@/server/services/signup";
 
 let close: () => Promise<void>;
@@ -151,5 +151,22 @@ describe("the platform owner", () => {
     expect(d.pointsLog.some((p) => p.note === "Contest prize")).toBe(true);
     expect(d.actions.map((a) => a.action)).toEqual(expect.arrayContaining(["bonus.adjusted", "user.restored", "user.suspended"]));
     expect(await raw.adminLog.count({ where: { action: "workspace.plan" } })).toBe(1);
+  });
+
+  it("changes a person's role and CRM access in a workspace by hand, never an owner's, and writes it in the log", async () => {
+    const ben = (await user("ben@x.io", "Ben")).id;
+    await raw.membership.create({ data: { userId: ben, workspaceId: ws.id, role: "CLIENT", crmAccess: false } });
+    await expect(setMemberRole(anna, ws.id, ben, { role: "MEMBER" })).rejects.toMatchObject({ status: 404 }); // for anyone but the platform owner it does not exist
+    expect(await setMemberRole(boss, ws.id, ben, { role: "MEMBER", crmLevel: "OWN" })).toEqual({ role: "MEMBER" });
+    expect(await raw.membership.findUniqueOrThrow({ where: { userId_workspaceId: { userId: ben, workspaceId: ws.id } } })).toMatchObject({ role: "MEMBER", crmAccess: true, crmScope: "OWN" });
+    // only the CRM level: the role stays
+    await setMemberRole(boss, ws.id, ben, { crmLevel: "NONE" });
+    expect(await raw.membership.findUniqueOrThrow({ where: { userId_workspaceId: { userId: ben, workspaceId: ws.id } } })).toMatchObject({ role: "MEMBER", crmAccess: false });
+    // a workspace's owner keeps the role: it must always have one
+    await expect(setMemberRole(boss, ws.id, anna, { role: "GUEST" })).rejects.toMatchObject({ status: 403 });
+    await expect(setMemberRole(boss, ws.id, "nobody", { role: "GUEST" })).rejects.toMatchObject({ status: 404 });
+    const log = await raw.adminLog.findMany({ where: { action: "member.role" } });
+    expect(log).toHaveLength(2);
+    expect(log[0]?.data).toMatchObject({ from: { role: "CLIENT" }, to: { role: "MEMBER" } });
   });
 });

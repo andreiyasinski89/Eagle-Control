@@ -1960,7 +1960,9 @@
     "modeHint_on": "Płatne zasady obowiązują wszystkich: limity Free, blokady Pro, okres próbny i płatności.",
     "recompute": "Przelicz plany",
     "recomputed": "Plany przeliczone: zmieniło się {n} z {total} przestrzeni.",
-    "setupLink": "Połączenie usług"
+    "setupLink": "Połączenie usług",
+    "role": "Rola",
+    "crmLevel": "Dostęp do CRM"
   },
   "sharing": {
     "title": "Pokazuj moją aktywność sponsorowi",
