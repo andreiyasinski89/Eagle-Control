@@ -13,6 +13,9 @@ import { useMapStore } from "@/features/mindmap/store";
 import type { ClientNode } from "@/features/mindmap/types";
 import { useSelection } from "@/features/mindmap/useSelection";
 import { allowedChildTypes } from "@/modules/nodes/node-rules";
+import { eventSummary, presetOf, ruleFromPreset, type Preset, type Repeat } from "@/modules/nodes/repeat";
+import { RepeatFields } from "@/features/views/RepeatFields";
+import { useTimeZone } from "@/features/views/useTimeZone";
 import type { PatchNodeInput } from "@/modules/nodes/schemas";
 import { cn } from "@/lib/utils";
 import { Attachments } from "./Attachments";
@@ -471,7 +474,12 @@ function EventSection({ node, data, canWrite, save }: { node: ClientNode; data: 
   const people = useMapStore((s) => s.people);
   const attendees = (data.attendeeIds as string[] | undefined) ?? [];
   const url = typeof data.meetingUrl === "string" ? data.meetingUrl : "";
-  const merge = (patch: Record<string, unknown>) => save({ data: { ...data, ...patch } });
+  const merge = async (patch: Record<string, unknown>) => {
+    const next = { ...data, ...patch };
+    await save({ data: next });
+    // The card on the map shows when and how the event repeats; keep it in step with what was just saved.
+    useMapStore.getState().patchLocal(node.id, { event: eventSummary(next) });
+  };
   const iso = (v: string) => (v ? new Date(v).toISOString() : undefined);
   const validUrl = /^https?:\/\//i.test(url);
   return (
@@ -484,6 +492,7 @@ function EventSection({ node, data, canWrite, save }: { node: ClientNode; data: 
           <Input type="datetime-local" disabled={!canWrite} defaultValue={toLocalInput(data.endsAt as string | undefined)} onBlur={(e) => void merge({ endsAt: iso(e.target.value) })} />
         </Field>
       </div>
+      <RepeatSection data={data} canWrite={canWrite} merge={merge} />
       <fieldset className="flex flex-wrap gap-x-4 gap-y-1">
         <legend className="mb-1 text-xs text-muted-foreground">{t("attendees")}</legend>
         {Object.values(people).map((p) => (
@@ -523,6 +532,61 @@ function EventSection({ node, data, canWrite, save }: { node: ClientNode; data: 
         )}
       </div>
     </Section>
+  );
+}
+
+/** The repeat rule of an event, and the dates of the series that are left out. One event stands for every date, so this is the only place to change them all. */
+function RepeatSection({ data, canWrite, merge }: { data: Record<string, unknown>; canWrite: boolean; merge: (patch: Record<string, unknown>) => Promise<void> }) {
+  const t = useTranslations("views");
+  const { tz } = useTimeZone();
+  const repeat = data.repeat as Repeat | undefined;
+  const [skipDay, setSkipDay] = useState("");
+  const setRepeat = (next: Repeat | null) => void merge({ repeat: next ?? undefined });
+  const skipped = repeat?.skip ?? [];
+  return (
+    <div className="flex flex-col gap-2" data-testid="repeat-section">
+      <RepeatFields
+        preset={presetOf(repeat)}
+        until={repeat?.until ?? ""}
+        disabled={!canWrite}
+        onPreset={(p: Preset) => setRepeat(ruleFromPreset(p, repeat?.tz ?? tz, repeat))}
+        onUntil={(d) => repeat && setRepeat({ ...repeat, until: d || undefined })}
+      />
+      {repeat && canWrite && (
+        <div className="flex flex-wrap items-end gap-2">
+          <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+            {t("repeatSkip")}
+            <Input type="date" value={skipDay} onChange={(e) => setSkipDay(e.target.value)} className="w-40" data-testid="repeat-skip-day" />
+          </label>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={!skipDay || skipped.includes(skipDay)}
+            onClick={() => {
+              setRepeat({ ...repeat, skip: [...skipped, skipDay].sort() });
+              setSkipDay("");
+            }}
+            data-testid="repeat-skip-add"
+          >
+            {t("repeatSkip")}
+          </Button>
+        </div>
+      )}
+      {skipped.length > 0 && (
+        <ul className="flex flex-wrap gap-1.5 text-xs" aria-label={t("repeatSkipped", { n: skipped.length })}>
+          {skipped.map((d) => (
+            <li key={d} className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5">
+              {d}
+              {canWrite && repeat && (
+                <button type="button" className="text-primary hover:underline" onClick={() => setRepeat({ ...repeat, skip: skipped.filter((x) => x !== d) })}>
+                  {t("repeatRestore")}
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 

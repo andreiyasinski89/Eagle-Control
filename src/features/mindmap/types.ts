@@ -72,5 +72,6 @@ export function rowToClient(row: NodeRow, prev?: ClientNode): ClientNode {
     visibleToClient: row.visibleToClient,
     tagIds: prev?.tagIds ?? [],
     blocked: prev?.blocked ?? false,
+    ...(prev?.event ? { event: prev.event } : {}),
   };
 }

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { NodeType } from "@prisma/client";
+import { repeatSchema } from "./repeat";
 
 export const nodeTypeSchema = z.enum(["PROJECT", "EPIC", "SPRINT", "TASK", "SUBTASK", "DOCUMENT", "EVENT"]);
 export const statusSchema = z.enum(["BACKLOG", "TODO", "IN_PROGRESS", "IN_REVIEW", "DONE", "CANCELLED"]);
@@ -26,6 +27,8 @@ export const eventData = z.object({
   /** Ask Google Calendar to attach a Meet link when the event is synced. */
   addMeet: z.boolean().optional(),
   location: z.string().max(300).optional(),
+  /** The rule of a repeating event: one node stands for every date of the series. */
+  repeat: repeatSchema.optional(),
 });
 export const emptyData = z.object({}).strip();
 

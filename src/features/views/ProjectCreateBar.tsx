@@ -10,6 +10,7 @@ import { api, ApiFailure } from "@/features/mindmap/api";
 import { reload } from "@/features/mindmap/actions";
 import { useMapStore } from "@/features/mindmap/store";
 import { CreateTasksDialog } from "./CreateTasksDialog";
+import { MergeRepeats } from "./MergeRepeats";
 
 /**
  * Two buttons for every section of a project (map, board, list, calendar, timeline): make tasks with their subtasks from a typed list,
@@ -70,6 +71,7 @@ export function ProjectCreateBar({ slug }: { slug: string }) {
           <ListTree className="size-4" />
           <span className="max-lg:sr-only">{t("newList")}</span>
         </Button>
+        <MergeRepeats projectId={projectId} />
       </div>
       {made && (
         <span role="status" className="text-xs text-muted-foreground" data-testid="project-tasks-made">

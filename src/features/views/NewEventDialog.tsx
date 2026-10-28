@@ -8,6 +8,7 @@ import { FormField, Modal, selectClass, textareaClass } from "@/components/ui/mo
 import { ApiFailure, api } from "@/features/mindmap/api";
 import { buildEvent, defaultTimes, type EventForm } from "@/modules/views/new-event";
 import { zoneLabel } from "@/modules/views/tz";
+import { RepeatFields } from "./RepeatFields";
 import { useTimeZone } from "./useTimeZone";
 
 const inputClass = "h-9 w-full rounded-md border border-border bg-card px-2 text-sm";
@@ -34,7 +35,7 @@ export function NewEventDialog({ open, onClose, workspaceId, day, time }: { open
   const tc = useTranslations("common");
   const qc = useQueryClient();
   const { tz, userId } = useTimeZone();
-  const [form, setForm] = useState<EventForm>(() => ({ title: "", day, allDay: false, ...defaultTimes(time, new Date(), tz), location: "", meetingUrl: "", agenda: "", addMeet: false, attendeeId: null }));
+  const [form, setForm] = useState<EventForm>(() => ({ title: "", day, allDay: false, ...defaultTimes(time, new Date(), tz), location: "", meetingUrl: "", agenda: "", addMeet: false, attendeeId: null, repeat: "NONE", repeatUntil: "" }));
   const [projectId, setProjectId] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -43,7 +44,7 @@ export function NewEventDialog({ open, onClose, workspaceId, day, time }: { open
   // A fresh form for every opening: the clicked day and time, nothing left over from the last meeting.
   useEffect(() => {
     if (!open) return;
-    setForm({ title: "", day, allDay: false, ...defaultTimes(time, new Date(), tz), location: "", meetingUrl: "", agenda: "", addMeet: false, attendeeId: null });
+    setForm({ title: "", day, allDay: false, ...defaultTimes(time, new Date(), tz), location: "", meetingUrl: "", agenda: "", addMeet: false, attendeeId: null, repeat: "NONE", repeatUntil: "" });
     setError(null);
   }, [open, day, time, tz]);
 
@@ -113,6 +114,7 @@ export function NewEventDialog({ open, onClose, workspaceId, day, time }: { open
           {t("eventAllDay")}
         </label>
         <p className="-mt-2 text-xs text-muted-foreground">{t("eventZoneHint", { zone: zoneLabel(tz) })}</p>
+        <RepeatFields preset={form.repeat ?? "NONE"} until={form.repeatUntil ?? ""} minDay={form.day} onPreset={(p) => set("repeat", p)} onUntil={(d) => set("repeatUntil", d)} />
 
         <FormField label={t("eventProject")} hint={t("eventProjectHint")}>
           {noProjects ? (

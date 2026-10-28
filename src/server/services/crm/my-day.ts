@@ -1,5 +1,6 @@
 import { db } from "@/server/db";
 import { dayScore } from "@/modules/crm/day-score";
+import { occurrences, type Repeat } from "@/modules/nodes/repeat";
 import { isValidTimeZone, todayIn, zonedToUtc } from "@/modules/views/tz";
 import { can } from "@/server/policies";
 import { loadWorkspaceMember } from "@/server/services/nodes/access";
@@ -67,14 +68,20 @@ export async function getMyDay(userId: string, workspaceId: string, now = new Da
         workspaceId,
         type: "EVENT",
         archivedAt: null,
-        AND: [{ OR: utcDates.map((d) => ({ data: { path: ["startsAt"], string_starts_with: d } })) }, { data: { path: ["attendeeIds"], array_contains: [userId] } }],
+        // A repeating event starts long before today; its dates are worked out below.
+        AND: [
+          { OR: [...utcDates.map((d) => ({ data: { path: ["startsAt"], string_starts_with: d } })), ...(["DAILY", "WEEKLY", "MONTHLY"] as const).map((f) => ({ data: { path: ["repeat", "freq"], equals: f } }))] },
+          { data: { path: ["attendeeIds"], array_contains: [userId] } },
+        ],
         ...(reachable ? { rootId: { in: reachable } } : {}),
       },
       select: { id: true, title: true, rootId: true, data: true },
     })
   )
-    .map((e) => ({ id: e.id, title: e.title, projectId: e.rootId, startsAt: (e.data as { startsAt?: string }).startsAt ?? null, endsAt: (e.data as { endsAt?: string }).endsAt ?? null, meetingUrl: (e.data as { meetingUrl?: string }).meetingUrl ?? null }))
-    .filter((e) => e.startsAt !== null && new Date(e.startsAt) >= dayFrom && new Date(e.startsAt) < dayTo)
+    .flatMap((e) => {
+      const d = e.data as { startsAt?: string; endsAt?: string; meetingUrl?: string; repeat?: Repeat };
+      return occurrences({ startsAt: d.startsAt, endsAt: d.endsAt, repeat: d.repeat }, dayFrom, dayTo).map((o) => ({ id: e.id, title: e.title, projectId: e.rootId, startsAt: o.start.toISOString() as string | null, endsAt: o.end ? o.end.toISOString() : null, meetingUrl: d.meetingUrl ?? null, repeats: !!d.repeat }));
+    })
     .sort((a, b) => (a.startsAt ?? "").localeCompare(b.startsAt ?? ""));
 
   const dueReminders = await db.reminder.findMany({ where: { userId, done: false, remindAt: { lte: now } }, orderBy: { remindAt: "asc" }, take: 50 });

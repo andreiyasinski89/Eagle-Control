@@ -12,11 +12,16 @@ import {
   Layers,
   ListChecks,
   Plus,
+  Repeat,
   Timer,
 } from "lucide-react";
 import type { NodeType } from "@prisma/client";
 import { useLocale, useTranslations } from "next-intl";
 import { allowedChildTypes } from "@/modules/nodes/node-rules";
+import { nextOccurrence, type EventSummary } from "@/modules/nodes/repeat";
+import { repeatLabel } from "@/features/views/repeat-label";
+import { zonedParts } from "@/modules/views/tz";
+import { useTimeZone } from "@/features/views/useTimeZone";
 import { showsStatus, STATUS_TONE, type StatusTone } from "@/modules/nodes/view";
 import { cn } from "@/lib/utils";
 import { createChild, rename, toggleCollapsed } from "./actions";
@@ -148,6 +153,47 @@ function shortDate(iso: string | null, locale: string): string | null {
   return iso ? new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(iso)) : null;
 }
 
+/**
+ * What an event card says under its title. A repeating event is one card: the rule ("Every week · Fri 19:00") and the next date with
+ * how many follow it. A single meeting just shows its day and hour. Hours are in the zone of the rule, or the person's own.
+ */
+function EventLines({ event }: { event: EventSummary }) {
+  const t = useTranslations("views");
+  const locale = useLocale();
+  const { tz: mine } = useTimeZone();
+  const r = event.repeat;
+  const tz = r?.tz ?? mine;
+  const day = (d: string) => new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(`${d}T00:00:00Z`));
+  const first = zonedParts(event.startsAt, tz);
+  if (!r) {
+    return (
+      <div className="mt-1.5 flex items-center gap-1.5 text-[11px] text-muted-foreground" data-testid="event-line">
+        <span>{day(first.day)}</span>
+        <span className="tabular-nums">{first.time}</span>
+      </div>
+    );
+  }
+  const label = repeatLabel(t, r);
+  const weekday = r.freq === "WEEKLY" ? new Intl.DateTimeFormat(locale, { weekday: "short", timeZone: "UTC" }).format(new Date(`${first.day}T00:00:00Z`)) : null;
+  const { next, more } = nextOccurrence({ startsAt: event.startsAt, endsAt: event.endsAt, repeat: r }, new Date());
+  return (
+    <div className="mt-1 flex flex-col gap-0.5 text-[11px] leading-4 text-muted-foreground" data-testid="event-line">
+      <div className="flex items-center gap-1 truncate font-medium text-foreground/80">
+        <Repeat className="size-3 shrink-0 text-primary" aria-label={t("repeatBadge")} />
+        <span className="truncate">
+          {label} · {weekday ? `${weekday} ` : ""}
+          <span className="tabular-nums">{first.time}</span>
+        </span>
+      </div>
+      <div className="truncate" data-testid="event-next">
+        {next ? t("repeatNext", { date: day(next.day) }) : r.until ? t("repeatUntilShort", { date: day(r.until) }) : t("repeatNoEnd")}
+        {next && more !== null && more > 0 ? ` · ${t("repeatMore", { n: more })}` : ""}
+        {next && more === null ? ` · ${t("repeatNoEnd")}` : ""}
+      </div>
+    </div>
+  );
+}
+
 function CardImpl({ data, selected }: NodeProps<CardNode>) {
   const { node, hiddenCount, hasChildren, dim, matched, heatmap, assignee, tags, canWrite } = data;
   const t = useTranslations("map");
@@ -180,7 +226,10 @@ function CardImpl({ data, selected }: NodeProps<CardNode>) {
         style={{ borderLeftWidth: 8, borderLeftColor: countable ? color : "var(--border)" }}
       >
         <Handle type="target" position={Position.Left} className="!opacity-0" />
-        <span className={cn("truncate text-[22px] font-semibold leading-7", node.status === "CANCELLED" && "line-through")}>{node.title}</span>
+        <span className={cn("truncate text-[22px] font-semibold leading-7", node.status === "CANCELLED" && "line-through")}>
+          {node.event?.repeat && <Repeat className="mr-1.5 inline size-5 align-[-2px] text-primary" aria-hidden />}
+          {node.title}
+        </span>
         {showsStatus(node.type) && <StatusChip status={node.status} className="self-start px-2 text-[14px] leading-5" />}
         <Handle type="source" position={Position.Right} className="!opacity-0" />
       </div>
@@ -244,7 +293,8 @@ function CardImpl({ data, selected }: NodeProps<CardNode>) {
         )}
       </div>
 
-      <div className="mt-1.5 flex items-center gap-2 text-[11px] text-muted-foreground">
+      {node.type === "EVENT" && node.event && <EventLines event={node.event} />}
+      <div className={cn("mt-1.5 flex items-center gap-2 text-[11px] text-muted-foreground", node.type === "EVENT" && node.event && !assignee && !node.blocked && tags.length === 0 && "hidden")}>
         {assignee && (
           <span
             className={cn(

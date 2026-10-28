@@ -421,6 +421,20 @@ describe("Google Calendar", () => {
     expect((await holder.db.node.findUniqueOrThrow({ where: { id } })).data).toMatchObject({ meetingUrl: "https://meet.example.test/abc-defg" });
   });
 
+  it("sends a repeating event to Google as one event with a rule, in the zone of the rule", async () => {
+    await connect();
+    answerWrites();
+    const id = await makeEvent("Friday call", { repeat: { freq: "WEEKLY", interval: 1, until: "2026-12-04", tz: "Europe/Warsaw", skip: ["2026-11-13"] } });
+    const posts = sent(/calendar\/v3\/calendars\/primary\/events\?conferenceDataVersion=1/).filter((c) => c.method === "POST");
+    const post = posts[posts.length - 1]!;
+    expect(post.body).toMatchObject({
+      summary: "Friday call",
+      start: { dateTime: "2026-11-02T10:00:00.000Z", timeZone: "Europe/Warsaw" },
+      recurrence: ["RRULE:FREQ=WEEKLY;UNTIL=20261204T225900Z", "EXDATE;TZID=Europe/Warsaw:20261113T110000"],
+    });
+    expect(await holder.db.calendarLink.count({ where: { nodeId: id } })).toBe(1); // one link for the whole series
+  });
+
   it("updates the same Google event on later changes and deletes it when the event is archived", async () => {
     await connect();
     answerWrites();

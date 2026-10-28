@@ -8,6 +8,8 @@ import { isCounting } from "@/modules/nodes/node-rules";
 import { loadNode, loadWorkspaceMember, projectIdOf } from "./access";
 import { blockedIds, evaluate, loadProjectRows } from "./recompute";
 
+import { eventSummary, type EventSummary } from "@/modules/nodes/repeat";
+
 export interface TreeNodeDto {
   id: string;
   parentId: string | null;
@@ -30,6 +32,8 @@ export interface TreeNodeDto {
   tagIds: string[];
   blocked: boolean;
   childCount: number;
+  /** Events only: the first date and the repeat rule, so a series is one card that says how it repeats. */
+  event?: EventSummary;
 }
 
 /**
@@ -40,7 +44,7 @@ export async function getTree(userId: string, projectId: string, today = new Dat
   const { node: project, membership } = await loadNode(db, userId, projectId);
   if (project.type !== "PROJECT") throw notFound("project");
 
-  const [full, tagRows] = await Promise.all([
+  const [full, tagRows, eventRows] = await Promise.all([
     db.node.findMany({
       where: { archivedAt: null, OR: [{ id: projectId }, { rootId: projectId }] },
       select: {
@@ -57,7 +61,9 @@ export async function getTree(userId: string, projectId: string, today = new Dat
       },
     }),
     db.nodeTag.findMany({ where: { node: { OR: [{ id: projectId }, { rootId: projectId }] } }, select: { nodeId: true, tagId: true } }),
+    db.node.findMany({ where: { rootId: projectId, type: "EVENT", archivedAt: null }, select: { id: true, data: true } }),
   ]);
+  const events = new Map(eventRows.map((e) => [e.id, eventSummary(e.data)]));
   const rows = await loadProjectRows(db, projectId);
   const blocked = await blockedIds(db, rows.map((r) => r.id));
   const computed = evaluate(rows, blocked, today);
@@ -91,6 +97,7 @@ export async function getTree(userId: string, projectId: string, today = new Dat
       tagIds: tags.get(r.id) ?? [],
       blocked: blocked.has(r.id),
       childCount: (kids.get(r.id) ?? []).length,
+      ...(r.type === "EVENT" && events.get(r.id) ? { event: events.get(r.id) } : {}),
     };
   });
 

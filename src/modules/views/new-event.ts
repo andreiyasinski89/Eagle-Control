@@ -1,3 +1,4 @@
+import { ruleFromPreset, type Preset, type Repeat } from "@/modules/nodes/repeat";
 import { zonedParts, zonedToUtc } from "./tz";
 
 /** Everything the "new meeting" form needs that is not drawing: defaults from where the user clicked, and the event's data payload. Hours the person sees and types are in their own time zone; what is stored is UTC. */
@@ -33,9 +34,13 @@ export interface EventForm {
   addMeet: boolean;
   /** The creator is the attendee, otherwise the event would not show under "only mine". */
   attendeeId: string | null;
+  /** How the meeting repeats; "NONE" for a single one. */
+  repeat?: Preset;
+  /** Last day of the repetition, YYYY-MM-DD, or empty for no end. */
+  repeatUntil?: string;
 }
 
-export type EventProblem = "title" | "day" | "time" | "url";
+export type EventProblem = "title" | "day" | "time" | "url" | "until";
 
 export type EventData = {
   startsAt: string;
@@ -45,6 +50,7 @@ export type EventData = {
   meetingUrl?: string;
   addMeet?: boolean;
   location?: string;
+  repeat?: Repeat;
 };
 
 function isUrl(v: string): boolean {
@@ -75,5 +81,10 @@ export function buildEvent(f: EventForm, tz = "UTC"): { ok: true; title: string;
   if (url) data.meetingUrl = url;
   else if (f.addMeet) data.addMeet = true;
   if (f.location.trim()) data.location = f.location.trim().slice(0, 300);
+  // The rule runs on the wall clock of the zone the person typed the hours in; an all-day meeting has no clock, so UTC days.
+  const until = f.repeatUntil?.trim();
+  if (until && (!/^\d{4}-\d{2}-\d{2}$/.test(until) || until < f.day)) return { ok: false, problem: "until" };
+  const repeat = ruleFromPreset(f.repeat ?? "NONE", f.allDay ? "UTC" : tz, { until: until || undefined, skip: [] });
+  if (repeat) data.repeat = repeat;
   return { ok: true, title, data };
 }

@@ -3,6 +3,7 @@ import { db } from "@/server/db";
 import { ApiError, notFound } from "@/server/http/errors";
 import { can } from "@/server/policies";
 import { nodePath } from "@/server/services/links";
+import { occurrences, type Repeat } from "@/modules/nodes/repeat";
 import { loadNode, loadWorkspaceMember } from "./access";
 
 const DAY = 86_400_000;
@@ -36,6 +37,8 @@ export interface CalendarItem {
   /** Workspace-relative link (`/projects/p/…`); the UI prefixes `/w/<slug>`. */
   href: string;
   context: string | null;
+  /** Set on a date of a repeating event: the event's own id, since `id` then carries the date as well. */
+  seriesId?: string;
 }
 
 /**
@@ -80,12 +83,25 @@ export async function workspaceCalendar(userId: string, workspaceId: string, q: 
   }));
 
   for (const e of eventRows) {
-    const d = e.data as { startsAt?: string; endsAt?: string; attendeeIds?: string[] };
-    if (!d.startsAt) continue;
-    const start = new Date(d.startsAt);
-    if (Number.isNaN(start.getTime()) || start < from || start >= to) continue;
+    const d = e.data as { startsAt?: string; endsAt?: string; attendeeIds?: string[]; repeat?: Repeat };
+    if (!d.startsAt || Number.isNaN(new Date(d.startsAt).getTime())) continue;
     if (mine && !d.attendeeIds?.includes(userId)) continue;
-    items.push({ id: e.id, kind: "event", title: e.title, at: start.toISOString(), endAt: d.endsAt ?? null, done: false, href: nodePath({ id: e.id, type: "EVENT", rootId: e.rootId }), context: e.rootId ? (projectTitle.get(e.rootId) ?? null) : null });
+    const context = e.rootId ? (projectTitle.get(e.rootId) ?? null) : null;
+    const href = nodePath({ id: e.id, type: "EVENT", rootId: e.rootId });
+    // A repeating event is one node; its dates inside the window are worked out here, so the calendar shows each of them.
+    for (const o of occurrences({ startsAt: d.startsAt, endsAt: d.endsAt, repeat: d.repeat }, from, to)) {
+      items.push({
+        id: d.repeat ? `${e.id}@${o.day}` : e.id,
+        kind: "event",
+        title: e.title,
+        at: o.start.toISOString(),
+        endAt: o.end ? o.end.toISOString() : null,
+        done: false,
+        href,
+        context,
+        ...(d.repeat ? { seriesId: e.id } : {}),
+      });
+    }
   }
 
   if (can(membership, "crm:read")) {

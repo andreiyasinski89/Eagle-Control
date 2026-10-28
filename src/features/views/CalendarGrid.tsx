@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type CSSProperties } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Repeat } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
@@ -26,6 +26,8 @@ export interface GridItem {
   /** End time of day (HH:MM, "24:00" for midnight), for the height on the hour grid. */
   endTime?: string;
   hint?: string;
+  /** A date of a repeating event: drawn with the repeat sign. */
+  repeat?: boolean;
 }
 
 /** The days a calendar shows for an anchor day: 42 cells for a month, 7 for a week, 1 for a day. */
@@ -72,6 +74,7 @@ export function CalendarGrid({ anchor, mode, onAnchor, onMode, items, onMove, on
     const cls = cn(placed ? "absolute z-10 overflow-hidden rounded px-1.5 py-0.5 text-left text-xs leading-tight" : "block w-full truncate rounded px-1.5 py-0.5 text-left text-xs", TONE[i.tone ?? "default"]);
     const label = (
       <>
+        {i.repeat && <Repeat className="mr-1 inline size-3 align-[-1px] opacity-70" aria-label={t("repeatBadge")} />}
         {i.time && <span className="mr-1 tabular-nums opacity-70">{i.time}</span>}
         {i.title}
       </>

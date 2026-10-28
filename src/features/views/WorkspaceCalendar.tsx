@@ -26,6 +26,7 @@ interface Item {
   done: boolean;
   href: string;
   context: string | null;
+  seriesId?: string;
 }
 
 /** Deadlines, events, CRM follow-ups and deal dates for the whole workspace in one calendar, drawn in the person's own time zone. */
@@ -56,6 +57,7 @@ export function WorkspaceCalendar({ workspaceId, slug }: { workspaceId: string; 
     tone: i.done ? "done" : i.kind === "event" ? "event" : i.kind === "task" || i.kind === "milestone" ? "default" : "crm",
     href: `/w/${slug}${i.href}`,
     hint: [t(`itemKind.${i.kind}`), i.context].filter(Boolean).join(" · "),
+    repeat: !!i.seriesId,
   }));
 
   return (

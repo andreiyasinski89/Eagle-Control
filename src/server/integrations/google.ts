@@ -1,3 +1,4 @@
+import { exdates, toRrule, type Repeat } from "@/modules/nodes/repeat";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import type { Prisma, UserIntegration } from "@prisma/client";
 import { env } from "@/lib/env";
@@ -149,6 +150,7 @@ interface EventData {
   meetingUrl?: string;
   addMeet?: boolean;
   location?: string;
+  repeat?: Repeat;
 }
 
 interface GoogleEvent {
@@ -197,8 +199,10 @@ export async function pushEvent(nodeId: string): Promise<"created" | "updated" |
     summary: node.title,
     description: [node.description, `${appUrl()}/w/${ws.slug}${nodePath(node)}`].filter(Boolean).join("\n\n"),
     location: data.location,
-    start: { dateTime: start, timeZone: "UTC" },
-    end: { dateTime: end, timeZone: "UTC" },
+    // A repeating event goes to Google as one event with a rule, in the zone the rule runs in, so its hour holds through the change of clocks.
+    start: { dateTime: start, timeZone: data.repeat?.tz ?? "UTC" },
+    end: { dateTime: end, timeZone: data.repeat?.tz ?? "UTC" },
+    recurrence: data.repeat ? [`RRULE:${toRrule(data.repeat)}`, ...(data.repeat.skip.length ? [`EXDATE;TZID=${data.repeat.tz}:${exdates({ startsAt: data.startsAt, repeat: data.repeat }).join(",")}`] : [])] : null,
     attendees: attendees.map((a) => ({ email: a.email })),
     extendedProperties: { private: { meetowlNodeId: node.id } },
     ...(wantsMeet ? { conferenceData: { createRequest: { requestId: randomUUID(), conferenceSolutionKey: { type: "hangoutsMeet" } } } } : {}),
