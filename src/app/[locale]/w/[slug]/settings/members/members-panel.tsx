@@ -81,6 +81,11 @@ export function MembersPanel({ workspaceId, meId, canManage, isOwner, members, i
               ))}
             </select>
           </div>
+          {role === "CLIENT" && (
+            <p className="w-full text-xs text-[var(--health-yellow)]" data-testid="client-role-hint">
+              {t("clientHint")}
+            </p>
+          )}
           {(role === "MEMBER" || role === "GUEST") && (
             <div className="flex flex-col gap-1">
               <label htmlFor="invite-crm" className="text-sm font-medium">
@@ -138,7 +143,23 @@ export function MembersPanel({ workspaceId, meId, canManage, isOwner, members, i
 
                 <div className="flex flex-wrap items-end gap-x-4 gap-y-3 border-t border-border pt-3">
                   <Cell label={t("roleShort")} className="w-28">
-                    <span className="inline-flex h-9 items-center rounded-md bg-muted px-2.5 text-sm">{tr(m.role)}</span>
+                    {canManage && m.role !== "OWNER" && m.userId !== meId ? (
+                      <select
+                        value={m.role}
+                        aria-label={`${t("role")} ${label}`}
+                        data-testid="member-role"
+                        className="h-9 w-full rounded-md border border-border bg-card px-2 text-sm"
+                        onChange={(e) => void call(`${base}/members/${m.userId}`, { method: "PATCH", body: JSON.stringify({ role: e.target.value }) })}
+                      >
+                        {INVITE_ROLES.map((r) => (
+                          <option key={r} value={r}>
+                            {tr(r)}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className="inline-flex h-9 items-center rounded-md bg-muted px-2.5 text-sm">{tr(m.role)}</span>
+                    )}
                   </Cell>
                   <Cell label={t("crmShort")} className="w-48">
                     {m.role === "MEMBER" && canManage ? (

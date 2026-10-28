@@ -117,7 +117,8 @@
     "rateShort": "Rate per hour",
     "roleShort": "Role",
     "you": "you",
-    "noContacts": "No phone or Telegram yet"
+    "noContacts": "No phone or Telegram yet",
+    "clientHint": "A Client sees only a separate portal with the projects opened to them: no CRM, no team. For a partner who should work with you in the CRM choose Member."
   },
   "invite": {
     "title": "Invite people to the platform",
@@ -1517,7 +1518,10 @@
     "noComments": "No messages yet.",
     "writeMessage": "Write a message to the team",
     "send": "Send",
-    "account": "Account"
+    "account": "Account",
+    "ownTitle": "Want to run your own business in MeetOwl?",
+    "ownText": "You are here as a client of this workspace. Make a workspace of your own: your people, the CRM, projects and reports. It is free.",
+    "ownButton": "Create my workspace"
   },
   "ai": {
     "title": "AI assistant",

@@ -117,7 +117,8 @@
     "rateShort": "Stawka za godzinę",
     "roleShort": "Rola",
     "you": "ty",
-    "noContacts": "Brak telefonu i Telegrama"
+    "noContacts": "Brak telefonu i Telegrama",
+    "clientHint": "Klient widzi tylko osobny portal z otwartymi dla niego projektami: bez CRM i bez zespołu. Dla partnera, który pracuje z Tobą w CRM, wybierz „Uczestnik”."
   },
   "invite": {
     "title": "Zaproś ludzi na platformę",
@@ -1517,7 +1518,10 @@
     "noComments": "Brak wiadomości.",
     "writeMessage": "Napisz do zespołu",
     "send": "Wyślij",
-    "account": "Konto"
+    "account": "Konto",
+    "ownTitle": "Chcesz prowadzić własny biznes w MeetOwl?",
+    "ownText": "Jesteś tu jako klient tej przestrzeni. Załóż własną: Twoje osoby, CRM, projekty i raporty. To bezpłatne.",
+    "ownButton": "Utwórz moją przestrzeń"
   },
   "ai": {
     "title": "Asystent AI",

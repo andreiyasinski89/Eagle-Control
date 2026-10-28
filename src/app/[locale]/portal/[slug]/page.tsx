@@ -20,6 +20,8 @@ export default async function PortalHome({ params }: { params: Promise<{ slug: s
     unavailable = true; // the plan does not include the portal (402) or this person has no access (404)
   }
   if (unavailable || !list) return <p className="p-8 text-center text-muted-foreground">{t("unavailable")}</p>;
+  // A person who is here only as someone's client has no workspace of their own yet: say how they can have one.
+  const team = session?.user?.id ? await db.membership.count({ where: { userId: session.user.id, role: { not: "CLIENT" } } }) : 0;
   // One project: go straight to it.
   return (
     <main className="mx-auto w-full max-w-3xl p-6">
@@ -43,6 +45,15 @@ export default async function PortalHome({ params }: { params: Promise<{ slug: s
             </li>
           ))}
         </ul>
+      )}
+      {team === 0 && (
+        <section className="mt-8 flex flex-col gap-3 rounded-2xl border border-border bg-card p-5" data-testid="portal-own-workspace">
+          <h2 className="font-semibold">{t("ownTitle")}</h2>
+          <p className="text-sm text-muted-foreground">{t("ownText")}</p>
+          <Link href="/onboarding" className="inline-flex h-9 w-fit items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90">
+            {t("ownButton")}
+          </Link>
+        </section>
       )}
     </main>
   );
