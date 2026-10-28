@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import type { Prisma } from "@prisma/client";
 import { db } from "@/server/db";
-import { ApiError, limitReached } from "@/server/http/errors";
+import { ApiError, forbidden, limitReached } from "@/server/http/errors";
 import { checkLimit } from "@/modules/plans";
 import { contactKeys, findDuplicateGroups } from "@/modules/crm/dedupe";
 import { DECLINE_REASONS } from "@/modules/crm/decline";
@@ -465,18 +465,30 @@ export async function getContactIn(tx: Tx, userId: string, contactId: string) {
 }
 
 export async function contactDuplicateGroups(userId: string, workspaceId: string) {
-  await loadWorkspaceMember(db, userId, workspaceId, "crm:full");
-  const all = await db.contact.findMany({ where: { workspaceId, node: { archivedAt: null } }, select: { nodeId: true, firstName: true, lastName: true, emails: true, phones: true } });
+  const m = await loadWorkspaceMember(db, userId, workspaceId, "crm:full");
+  const all = await db.contact.findMany({ where: withScope({ workspaceId, node: { archivedAt: null } }, await contactScope(db, m)), select: { nodeId: true, firstName: true, lastName: true, emails: true, phones: true } });
   return findDuplicateGroups(all.map((c) => ({ id: c.nodeId, ...c })), contactKeys).map((g) => g.map((c) => ({ id: c.id, name: fullName(c.firstName, c.lastName), emails: c.emails, phones: c.phones })));
 }
 
 // ── GDPR ───────────────────────────────────────────────────────────────────
 
+/**
+ * Whoever may export or erase a person's data: the people the CRM gives that right to, and the one who keeps the person (their owner, who may change them).
+ * A partner who keeps their own people must be able to answer a request about one of them; the people above cannot, as they do not see that person.
+ */
+async function assertKeeperOrCan(tx: Tx, userId: string, workspaceId: string, contactId: string, action: "crm:export" | "crm:erase"): Promise<void> {
+  const m = await tx.membership.findUnique({ where: { userId_workspaceId: { userId, workspaceId } } });
+  if (!m) throw forbidden();
+  if (can(m, action)) return;
+  const c = await tx.contact.findUniqueOrThrow({ where: { nodeId: contactId }, select: { ownerId: true } });
+  if (c.ownerId !== userId || !can(m, "crm:write")) throw forbidden();
+}
+
 /** Everything we hold about one person, as portable JSON. */
 export async function gdprExport(userId: string, contactId: string) {
   return db.$transaction(async (tx) => {
     const node = await loadCrmNode(tx, userId, contactId, "CONTACT");
-    await loadWorkspaceMember(tx, userId, node.workspaceId, "crm:export");
+    await assertKeeperOrCan(tx, userId, node.workspaceId, contactId, "crm:export");
     const [contact, consent, activities, comments, ingests, deals, stageHistory] = await Promise.all([
       tx.contact.findUniqueOrThrow({ where: { nodeId: contactId } }),
       tx.consentRecord.findMany({ where: { contactNodeId: contactId } }),
@@ -501,7 +513,7 @@ export async function gdprErase(userId: string, contactId: string): Promise<void
   const files: string[] = [];
   const workspaceId = await db.$transaction(async (tx) => {
     const node = await loadCrmNode(tx, userId, contactId, "CONTACT", true);
-    await loadWorkspaceMember(tx, userId, node.workspaceId, "crm:erase");
+    await assertKeeperOrCan(tx, userId, node.workspaceId, contactId, "crm:erase");
     const attachments = await tx.attachment.findMany({ where: { nodeId: contactId }, select: { url: true } });
     files.push(...attachments.map((a) => a.url));
     await tx.crmActivity.deleteMany({ where: { contactId } });

@@ -124,6 +124,49 @@ function StageEditor({ pipeline, workspaceId, onSaved }: { pipeline: PipelineDto
   );
 }
 
+/** Who sees other people's contacts: private (the default) or open. Everyone sees the choice; only the owner can change it. */
+function PrivacyPanel({ workspaceId }: { workspaceId: string }) {
+  const t = useTranslations("crm");
+  const qc = useQueryClient();
+  const key = ["contact-privacy", workspaceId];
+  const { data } = useQuery({ queryKey: key, queryFn: () => api.get<{ mode: "PRIVATE" | "OPEN"; canChange: boolean }>(`/api/v1/workspaces/${workspaceId}/contact-privacy`) });
+  const [note, setNote] = useState<string | null>(null);
+  const save = useMutation({
+    mutationFn: (mode: "PRIVATE" | "OPEN") => api.put(`/api/v1/workspaces/${workspaceId}/contact-privacy`, { mode }),
+    onSuccess: () => {
+      setNote(t("privacySaved"));
+      for (const k of ["contact-privacy", "people", "contacts", "my-day", "tracker", "network", "partners", "groups"]) void qc.invalidateQueries({ queryKey: [k] });
+    },
+    onError: () => setNote(t("privacyFailed")),
+  });
+  if (!data) return null;
+  const options = [
+    { mode: "PRIVATE" as const, label: t("privacyPrivate"), hint: t("privacyPrivateHint") },
+    { mode: "OPEN" as const, label: t("privacyOpen"), hint: t("privacyOpenHint") },
+  ];
+  return (
+    <Panel title={t("privacyTitle")} hint={t("privacyHint")}>
+      <div role="radiogroup" aria-label={t("privacyTitle")} className="flex flex-col gap-2" data-testid="privacy-panel">
+        {options.map((o) => (
+          <label key={o.mode} className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 ${data.mode === o.mode ? "border-primary bg-primary/5" : "border-border"} ${data.canChange ? "" : "cursor-default opacity-80"}`}>
+            <input type="radio" name="contact-privacy" className="mt-1" checked={data.mode === o.mode} disabled={!data.canChange || save.isPending} onChange={() => (setNote(null), save.mutate(o.mode))} data-testid={`privacy-${o.mode}`} />
+            <span className="flex flex-col gap-0.5 text-sm">
+              <span className="font-medium">{o.label}</span>
+              <span className="text-xs text-muted-foreground">{o.hint}</span>
+            </span>
+          </label>
+        ))}
+      </div>
+      {!data.canChange && <p className="mt-2 text-xs text-muted-foreground">{t("privacyOwnerOnly")}</p>}
+      {note && (
+        <p role="status" className="mt-2 text-xs text-muted-foreground">
+          {note}
+        </p>
+      )}
+    </Panel>
+  );
+}
+
 export function CrmSettings({ workspaceId }: { workspaceId: string }) {
   const t = useTranslations("crm");
   const qc = useQueryClient();
@@ -144,6 +187,7 @@ export function CrmSettings({ workspaceId }: { workspaceId: string }) {
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4 p-6">
       <h1 className="text-2xl font-semibold">{t("crmSettings")}</h1>
+      <PrivacyPanel workspaceId={workspaceId} />
       {error && (
         <p role="alert" className="text-sm text-danger">
           {error}

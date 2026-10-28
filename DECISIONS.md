@@ -200,4 +200,9 @@
 | 196 | A CRM item belongs to a day if it is planned for that day or was completed on it; tasks finished late stay "cleared backlog" | What is written down afterwards, with no date, is still work done that day; a task is already counted once as backlog. |
 | 197 | A CRM meeting and a calendar event are not merged into one when they are about the same meeting | There is no link between them, so a safe match is impossible; a link can be added later if people ask for it. |
 | 198 | A project event can be marked done by hand and then counts as held at once; a repeating event cannot, its dates are held when their time is over | An event has no completion of its own, so the status of its node is used; one status cannot stand for many dates. |
+| 199 | One setting per workspace, `contactPrivacy`, decides who sees other people's contacts; private by default, for new and existing workspaces | The base of acquaintances is the partner's own; leaders who need to see everything choose "open" on purpose. |
+| 200 | In a private workspace the role does not widen what one sees: the "team" level and owner/admin/whole-CRM see only their own people, shares and pooled teams | The only wide view that is left is numbers; names need a share. |
+| 201 | Only the owner of the workspace switches the mode, and it is logged | An admin must not be able to open every partner's list. |
+| 202 | What was shared with someone is not theirs to pass on; a group is shared only if all its people are the sharer's own | A share must not become a way round the owner's decision. |
+| 203 | The keeper of a contact can export and erase its data, not only owners and admins | In a private workspace the owner and admin do not see the partner's contacts, so the partner has to be able to answer a request about them. |
 

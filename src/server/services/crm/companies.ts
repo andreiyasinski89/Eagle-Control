@@ -7,6 +7,7 @@ import { companyKeys, findDuplicateGroups } from "@/modules/crm/dedupe";
 import { dealHealth, effectiveProbability, stageStatus } from "@/modules/crm/deal-rules";
 import { normalizeDomain } from "@/modules/crm/normalize";
 import { loadWorkspaceMember, logActivity, type Tx } from "@/server/services/nodes/access";
+import { contactScope, withScope } from "./scope";
 import { assertWorkspaceMember, loadCrmNode, pageArgs, STALE_DAYS, STUCK_DAYS, toNum } from "./common";
 
 const text = (max: number) => z.string().trim().max(max).nullable().optional();
@@ -216,8 +217,10 @@ export async function getCompanyIn(tx: Tx, userId: string, companyId: string) {
   const node = await loadCrmNode(tx, userId, companyId, "COMPANY");
   const c = await tx.company.findUniqueOrThrow({ where: { nodeId: companyId } });
   const now = new Date();
+  const me = await tx.membership.findUniqueOrThrow({ where: { userId_workspaceId: { userId, workspaceId: node.workspaceId } } });
+  const seen = await contactScope(tx, me);
   const [contacts, deals, tags] = await Promise.all([
-    tx.contact.findMany({ where: { companyId, node: { archivedAt: null } }, include: { node: { select: { title: true } } }, orderBy: { node: { createdAt: "asc" } } }),
+    tx.contact.findMany({ where: withScope({ companyId, node: { archivedAt: null } }, seen), include: { node: { select: { title: true } } }, orderBy: { node: { createdAt: "asc" } } }),
     tx.deal.findMany({ where: { companyId, node: { archivedAt: null } }, include: { node: { select: { title: true, createdAt: true } }, stage: true }, orderBy: { node: { createdAt: "desc" } } }),
     tx.nodeTag.findMany({ where: { nodeId: companyId }, select: { tag: { select: { id: true, name: true, color: true } } } }),
   ]);

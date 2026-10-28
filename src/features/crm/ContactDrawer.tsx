@@ -406,16 +406,16 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
         <Attachments nodeId={contactId} items={node?.attachments ?? []} canWrite={canWrite} onChange={refresh} />
       </Section>
 
-      {(canExport || canErase) && (
+      {(canExport || canErase || (canWrite && c.ownerId === meId)) && (
         <Section title={t("privacy")}>
           <div className="flex flex-wrap gap-2">
-            {canExport && (
+            {(canExport || (canWrite && c.ownerId === meId)) && (
               <Button size="sm" variant="outline" onClick={exportData}>
                 <Download className="size-4" />
                 {t("exportPersonalData")}
               </Button>
             )}
-            {canErase && (
+            {(canErase || (canWrite && c.ownerId === meId)) && (
               <Button size="sm" variant="danger" onClick={() => setErasing(true)}>
                 <ShieldAlert className="size-4" />
                 {t("erase")}

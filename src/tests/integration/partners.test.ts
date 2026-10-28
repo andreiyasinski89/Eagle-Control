@@ -37,7 +37,7 @@ beforeAll(async () => {
   outsider = (await t.db.user.create({ data: { email: "x@x.io", name: "Out" } })).id;
   ws = await createWorkspace(owner, "Acme");
   await createWorkspace(outsider, "Other");
-  await t.db.workspace.update({ where: { id: ws.id }, data: { plan: "PRO" } });
+  await t.db.workspace.update({ where: { id: ws.id }, data: { plan: "PRO", contactPrivacy: "OPEN" } });
   await t.db.membership.create({ data: { userId: friend, workspaceId: ws.id, role: "MEMBER" } });
 }, 120_000);
 afterAll(async () => close?.());

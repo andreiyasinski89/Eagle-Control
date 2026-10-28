@@ -25,6 +25,7 @@ import {
 import { companyKeys, contactKeys } from "@/modules/crm/dedupe";
 import { normalizeCompanyName, normalizeDomain } from "@/modules/crm/normalize";
 import { loadWorkspaceMember, logActivity, type Tx } from "@/server/services/nodes/access";
+import { contactScope, withScope } from "./scope";
 import { createCompaniesBulk, type CompanyFields } from "./companies";
 import { assertContactCapacity, cleanEmails, contactWhere, createContactsBulk, updateContactIn, type BulkContact, type listContactsSchema } from "./contacts";
 import { invalid, toNum } from "./common";
@@ -238,8 +239,8 @@ export async function commitImport(userId: string, workspaceId: string, bytes: U
 const stamp = (d: Date | null) => (d ? d.toISOString().slice(0, 10) : "");
 
 export async function exportContactsCsv(userId: string, workspaceId: string, filter: z.infer<typeof listContactsSchema>): Promise<string> {
-  await loadWorkspaceMember(db, userId, workspaceId, "crm:export");
-  const rows = await db.contact.findMany({ where: contactWhere(workspaceId, filter), orderBy: { firstName: "asc" }, take: 20_000, include: { company: { select: { legalName: true } } } });
+  const m = await loadWorkspaceMember(db, userId, workspaceId, "crm:export");
+  const rows = await db.contact.findMany({ where: withScope(contactWhere(workspaceId, filter), await contactScope(db, m)), orderBy: { firstName: "asc" }, take: 20_000, include: { company: { select: { legalName: true } } } });
   await db.activityLog.create({ data: { workspaceId, nodeId: null, actorId: userId, action: "export.contacts", diff: { rows: rows.length } } });
   return toCsv(
     ["First name", "Last name", "Email", "Phone", "Position", "Company", "Telegram", "WhatsApp", "Instagram", "Consent", "Last contacted"],

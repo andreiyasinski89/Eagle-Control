@@ -32,7 +32,7 @@ beforeAll(async () => {
   owner = (await t.db.user.create({ data: { email: "o@x.io", name: "Owner" } })).id;
   partner = (await t.db.user.create({ data: { email: "p@x.io", name: "Partner" } })).id;
   ws = await createWorkspace(owner, "Acme");
-  await t.db.workspace.update({ where: { id: ws.id }, data: { plan: "PRO" } });
+  await t.db.workspace.update({ where: { id: ws.id }, data: { plan: "PRO", contactPrivacy: "OPEN" } });
   await t.db.membership.create({ data: { userId: partner, workspaceId: ws.id, role: "MEMBER" } });
 }, 120_000);
 afterAll(async () => close?.());

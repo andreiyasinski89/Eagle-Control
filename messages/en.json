@@ -918,7 +918,16 @@
       "partners": "Partners",
       "meetings": "Calls and meetings",
       "tasks": "Tasks"
-    }
+    },
+    "privacyTitle": "Who sees people's contacts",
+    "privacyHint": "A person's list of acquaintances is theirs. This decides what the people above them can see.",
+    "privacyPrivate": "Private (recommended)",
+    "privacyPrivateHint": "Everyone sees only their own people and what was shared with them, owners and admins included. The people above see numbers: touches, meetings, people by stage.",
+    "privacyOpen": "Open",
+    "privacyOpenHint": "Owners, admins and members with the whole CRM see everyone's contacts, as their CRM access level says.",
+    "privacyOwnerOnly": "Only the owner of the workspace can change this.",
+    "privacySaved": "Saved.",
+    "privacyFailed": "Could not save. Please try again."
   },
   "myday": {
     "title": "My day",

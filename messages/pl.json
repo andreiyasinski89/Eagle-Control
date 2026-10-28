@@ -918,7 +918,16 @@
       "partners": "Partnerzy",
       "meetings": "Rozmowy i spotkania",
       "tasks": "Zadania"
-    }
+    },
+    "privacyTitle": "Kto widzi kontakty ludzi",
+    "privacyHint": "Lista znajomych należy do osoby, która ją prowadzi. Tu decydujesz, co widzą osoby wyżej.",
+    "privacyPrivate": "Prywatnie (zalecane)",
+    "privacyPrivateHint": "Każdy widzi tylko swoich ludzi i to, czym się z nim podzielono, także właściciele i administratorzy. Osoby wyżej widzą liczby: kontakty, spotkania, ludzi wg etapów.",
+    "privacyOpen": "Otwarte",
+    "privacyOpenHint": "Właściciele, administratorzy i uczestnicy z pełnym dostępem do CRM widzą kontakty wszystkich, zgodnie z poziomem dostępu.",
+    "privacyOwnerOnly": "Zmienić to może tylko właściciel przestrzeni.",
+    "privacySaved": "Zapisano.",
+    "privacyFailed": "Nie udało się zapisać. Spróbuj ponownie."
   },
   "myday": {
     "title": "Mój dzień",

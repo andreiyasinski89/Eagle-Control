@@ -5,23 +5,32 @@ import type { Tx } from "@/server/services/nodes/access";
 
 type Who = Pick<Membership, "role" | "crmAccess" | "crmScope" | "teamScope" | "userId" | "workspaceId">;
 
+/** Whether the workspace keeps people private: owners, admins and members with wide access see only their own people and what was shared. */
+export async function contactsPrivate(tx: Tx, workspaceId: string): Promise<boolean> {
+  const w = await tx.workspace.findUnique({ where: { id: workspaceId }, select: { contactPrivacy: true } });
+  return w?.contactPrivacy !== "OPEN";
+}
+
 /**
  * Which people a member may see, as a filter for `contact` queries; `null` means all of them.
- * Owners, admins and members with the whole CRM are not filtered. A scoped member (own people or their team's) sees the people they own,
+ * In a private workspace (the default) nobody sees all of them, whatever their role: only their own people, those held by their own
+ * partner card, what was shared with them and what a hand-made team pools. In an open workspace owners, admins and members with the whole CRM are not filtered. A scoped member (own people or their team's) sees the people they own,
  * the people held by their partner card (or those of their line, for the team scope), those partner cards, and what was shared with them
  * (a contact, or a whole group with its subgroups). With `write`, only what they may change: view-only shares are left out.
  */
 export async function contactScope(tx: Tx, m: Who, opts: { write?: boolean } = {}): Promise<Prisma.ContactWhereInput | null> {
   const level = crmLevel(m);
-  if (level === "ALL") return null;
   if (level === "NONE") return { nodeId: { in: [] } };
+  const priv = await contactsPrivate(tx, m.workspaceId);
+  if (level === "ALL" && !priv) return null;
   const links = await tx.contact.findMany({
     where: { workspaceId: m.workspaceId, OR: [{ sponsorId: { not: null } }, { linkedUserId: { not: null } }] },
     select: { nodeId: true, sponsorId: true, linkedUserId: true },
   });
   const flat = links.map((l) => ({ id: l.nodeId, sponsorId: l.sponsorId, linkedUserId: l.linkedUserId }));
-  const reach = reachOf(personalLevel(m) === "TEAM" ? "TEAM" : "OWN", m.userId, flat);
-  if (m.teamScope === "TEAM") {
+  // The line below a member is theirs to see only in an open workspace; private ones show it as numbers, never as people.
+  const reach = reachOf(!priv && personalLevel(m) === "TEAM" ? "TEAM" : "OWN", m.userId, flat);
+  if (m.teamScope === "TEAM" || (priv && m.teamScope === "ALL")) {
     // A hand-made team shares its members' people among them.
     const mates = await tx.teamMember.findMany({ where: { team: { workspaceId: m.workspaceId, crmScope: "TEAM", members: { some: { userId: m.userId } } } }, select: { userId: true } });
     const pool = poolReach(flat, mates.map((x) => x.userId));

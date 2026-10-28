@@ -386,3 +386,12 @@
 - **Calendar events of projects can be marked done too.** The row of an event now has a **Done** button; the meeting is counted as held at once, without waiting for its end time, and the row then shows "Done" in green. A series has no single "done": its dates count as held when their time is over, so no button is shown for it.
 - Tests: a project event marked done counts as held before it ends; a series is not made "held" by the status of its node.
 
+## 0.37.0 — Block H: people's contacts are private
+
+- **Migration 0029 (additive):** `Workspace.contactPrivacy` (`PRIVATE` | `OPEN`), default `PRIVATE`, also for the workspaces that exist now. Nothing is deleted or renamed.
+- **Private is the default.** In a private workspace nobody sees another person's contacts, whatever the role or CRM level: owners, admins and members with the whole CRM see only the people they own, those held by their own partner card, what was shared with them, and what a hand-made team pools. The "team" level no longer shows the line below as people; the people above see numbers (touches, meetings, stages), not names. **Open** restores the old behaviour, level by level. Only the owner of the workspace can switch (CRM settings → "Who sees people's contacts"); the change is written to the log.
+- **Closed ways round, at the level of the queries, not the screens:** the calendar (activities and deals of others), the CSV export, the duplicate list and merging, the people of a company page and the Client Map, the card, the table, the map, the groups, My day and the team tree (they all go through one rule). Tests call the services directly as the owner, an admin, a whole-CRM member and a "team" leader, and each gets a 404 for another person's card.
+- **Sharing is the only way in.** A person's keeper can share them with anyone, owners and admins included (in a private workspace they appear in the list of people to share with); what was shared to someone cannot be passed on by them. A whole group can be shared only when all its people are the sharer's own, so a group share cannot open other people's contacts.
+- **A person's data can be exported and erased by whoever keeps that person** (and still by owners and admins who see them), so a partner can answer a request about their own contact; the people above cannot, as they do not see it.
+- The demo workspace is open (a showcase). Existing tests of the old rules now run in an open workspace; a new test file (15 tests) covers the private one.
+

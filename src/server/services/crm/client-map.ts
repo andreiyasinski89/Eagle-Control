@@ -2,6 +2,7 @@ import type { Health, NodeStatus, NodeType, ProgressMode } from "@prisma/client"
 import { db } from "@/server/db";
 import { dealHealth, effectiveProbability, stageStatus } from "@/modules/crm/deal-rules";
 import { loadWorkspaceMember } from "@/server/services/nodes/access";
+import { contactScope, withScope } from "./scope";
 import { blockedIds, evaluate } from "@/server/services/nodes/recompute";
 import { fullName, loadCrmNode, NO_TOUCH_DAYS, STALE_DAYS, STUCK_DAYS, toNum } from "./common";
 
@@ -62,7 +63,7 @@ export async function getClientMap(userId: string, companyId: string, today = ne
   const co = await db.company.findUniqueOrThrow({ where: { nodeId: companyId } });
 
   const [contacts, deals] = await Promise.all([
-    db.contact.findMany({ where: { companyId, node: { archivedAt: null } }, include: { node: { select: { title: true, position: true, collapsed: true } } } }),
+    db.contact.findMany({ where: withScope({ companyId, node: { archivedAt: null } }, await contactScope(db, membership)), include: { node: { select: { title: true, position: true, collapsed: true } } } }),
     db.deal.findMany({ where: { companyId, node: { archivedAt: null } }, include: { stage: true, node: { select: { title: true, position: true } } } }),
   ]);
   const links = deals.length ? await db.nodeLink.findMany({ where: { kind: "DEAL_PROJECT", fromNodeId: { in: deals.map((d) => d.nodeId) }, to: { archivedAt: null, type: "PROJECT" } }, select: { fromNodeId: true, toNodeId: true } }) : [];

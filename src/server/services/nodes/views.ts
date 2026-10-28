@@ -5,6 +5,7 @@ import { can } from "@/server/policies";
 import { nodePath } from "@/server/services/links";
 import { occurrences, type Repeat } from "@/modules/nodes/repeat";
 import { loadNode, loadWorkspaceMember } from "./access";
+import { contactScope } from "@/server/services/crm/scope";
 
 const DAY = 86_400_000;
 
@@ -105,14 +106,19 @@ export async function workspaceCalendar(userId: string, workspaceId: string, q: 
   }
 
   if (can(membership, "crm:read")) {
+    // An activity belongs to a person, a company or a deal: the person's own always show, those of a person one may see show, and the
+    // ones about companies and deals only for whoever sees the whole CRM. Deals are for the whole-CRM level only.
+    const scope = await contactScope(db, membership);
+    const full = can(membership, "crm:full");
+    const visible = scope ? { OR: [{ ownerId: userId }, { contact: { is: scope } }, ...(full ? [{ contactId: null }] : [])] } : {};
     const [acts, deals] = await Promise.all([
       db.crmActivity.findMany({
-        where: { workspaceId, dueAt: { gte: from, lt: to }, ...(mine ? { ownerId: userId } : {}) },
+        where: { AND: [{ workspaceId, dueAt: { gte: from, lt: to }, ...(mine ? { ownerId: userId } : {}) }, visible] },
         take: 500,
         include: { deal: { select: { node: { select: { title: true } } } }, company: { select: { legalName: true } } },
       }),
       db.deal.findMany({
-        where: { workspaceId, node: { archivedAt: null }, stage: { isWon: false, isLost: false }, ...(mine ? { ownerId: userId } : {}), OR: [{ nextStepAt: { gte: from, lt: to } }, { expectedCloseDate: { gte: from, lt: to } }] },
+        where: { workspaceId, node: { archivedAt: null }, stage: { isWon: false, isLost: false }, ...(mine ? { ownerId: userId } : {}), ...(full ? {} : { nodeId: { in: [] } }), OR: [{ nextStepAt: { gte: from, lt: to } }, { expectedCloseDate: { gte: from, lt: to } }] },
         take: 500,
         select: { nodeId: true, nextStep: true, nextStepAt: true, expectedCloseDate: true, node: { select: { title: true, id: true, type: true, rootId: true } }, company: { select: { legalName: true } } },
       }),

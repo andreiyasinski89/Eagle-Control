@@ -6,7 +6,8 @@ import { forbidden, notFound } from "@/server/http/errors";
 import { can } from "@/server/policies";
 import { loadWorkspaceMember, logActivity, type Tx } from "@/server/services/nodes/access";
 import { invalid, loadCrmNode } from "./common";
-import { contactVisible } from "./scope";
+import { descendantIds } from "@/modules/crm/groups";
+import { contactsPrivate, contactVisible } from "./scope";
 
 export const shareSchema = z
   .object({ userId: z.string().optional(), teamId: z.string().optional(), level: z.enum(["VIEW", "EDIT"]).default("VIEW") })
@@ -15,9 +16,12 @@ export const shareSchema = z
 type ShareInput = z.infer<typeof shareSchema>;
 type Object_ = { contactId: string; groupId?: undefined } | { groupId: string; contactId?: undefined };
 
-/** Who may give and take away access to one person: those who see the whole CRM, and the person's owner (who can change them). */
+/**
+ * Who may give and take away access to one person: those who see the whole CRM, and the person's owner (who can change them).
+ * In a private workspace only the owner of the person: what was shared with someone is theirs to look at, not to pass on.
+ */
 async function assertCanManageContact(tx: Tx, m: Membership, contactId: string): Promise<void> {
-  if (can(m, "crm:full")) return;
+  if (can(m, "crm:full") && !(await contactsPrivate(tx, m.workspaceId))) return;
   const c = await tx.contact.findUniqueOrThrow({ where: { nodeId: contactId }, select: { ownerId: true } });
   if (c.ownerId !== m.userId || !can(m, "crm:write") || !(await contactVisible(tx, m, contactId, { write: true }))) throw forbidden();
 }
@@ -32,10 +36,12 @@ async function describe(tx: Tx, workspaceId: string, rows: { id: string; userId:
 
 /** The members and teams a share can be given to: members who see part of the CRM (those who see all need no share, those with none could not open it). */
 async function candidates(tx: Tx, workspaceId: string, selfId: string) {
-  const members = await tx.membership.findMany({ where: { workspaceId, role: "MEMBER", userId: { not: selfId } }, include: { user: { select: { name: true, email: true } } }, orderBy: { createdAt: "asc" } });
+  const priv = await contactsPrivate(tx, workspaceId);
+  // In a private workspace owners and admins see only their own people too, so they can be given access like anybody else.
+  const members = await tx.membership.findMany({ where: { workspaceId, role: priv ? { in: ["MEMBER", "ADMIN", "OWNER"] } : "MEMBER", userId: { not: selfId } }, include: { user: { select: { name: true, email: true } } }, orderBy: { createdAt: "asc" } });
   const teams = await tx.team.findMany({ where: { workspaceId }, select: { id: true, name: true }, orderBy: { name: "asc" } });
   return {
-    users: members.filter((m) => ["OWN", "TEAM"].includes(crmLevel(m))).map((m) => ({ id: m.userId, name: m.user.name ?? m.user.email })),
+    users: members.filter((m) => (priv ? crmLevel(m) !== "NONE" : ["OWN", "TEAM"].includes(crmLevel(m)))).map((m) => ({ id: m.userId, name: m.user.name ?? m.user.email })),
     teams,
   };
 }
@@ -50,7 +56,7 @@ async function assertGrantee(tx: Tx, workspaceId: string, granterId: string, inp
   const m = await tx.membership.findUnique({ where: { userId_workspaceId: { userId: input.userId as string, workspaceId } } });
   if (!m || m.role === "CLIENT" || m.role === "GUEST") throw invalid("invalid_grantee", "The person must be a member of this workspace");
   const level = crmLevel(m);
-  if (level === "ALL") throw invalid("already_sees_all", "This member already sees everything");
+  if (level === "ALL" && !(await contactsPrivate(tx, workspaceId))) throw invalid("already_sees_all", "This member already sees everything");
   if (level === "NONE") throw invalid("grantee_no_crm", "Give this member access to the CRM first (Settings → Members)");
 }
 
@@ -107,6 +113,12 @@ export async function listGroupShares(userId: string, groupId: string) {
 export async function grantGroupShare(userId: string, groupId: string, input: ShareInput) {
   return db.$transaction(async (tx) => {
     const g = await loadGroupForShare(tx, userId, groupId);
+    // A shared group opens every person in it. In a private workspace that is allowed only when they are all the granter's own.
+    if (await contactsPrivate(tx, g.workspaceId)) {
+      const groups = await tx.contactGroup.findMany({ where: { workspaceId: g.workspaceId }, select: { id: true, parentId: true } });
+      const others = await tx.contact.count({ where: { workspaceId: g.workspaceId, groupId: { in: descendantIds(groups, groupId) }, ownerId: { not: userId } } });
+      if (others > 0) throw forbidden();
+    }
     await assertGrantee(tx, g.workspaceId, userId, input);
     const s = await upsertShare(tx, g.workspaceId, userId, { groupId }, input);
     await logActivity(tx, { workspaceId: g.workspaceId, nodeId: null, actorId: userId, action: "contact_group.shared", diff: { group: g.name, to: input.userId ?? input.teamId ?? null, kind: input.userId ? "user" : "team", level: input.level } });

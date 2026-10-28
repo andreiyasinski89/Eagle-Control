@@ -30,6 +30,12 @@ enum CrmScope {
   ALL
 }
 
+/// Whose people an owner, an admin or a member with wide CRM access may see. PRIVATE (the default): only the people they own, and what was shared with them; the rest is numbers. OPEN: as the CRM access level says.
+enum ContactPrivacy {
+  PRIVATE
+  OPEN
+}
+
 /// What a share lets the person do with a contact or a group of contacts.
 enum ShareLevel {
   VIEW
@@ -261,6 +267,8 @@ model Workspace {
   giftUntil   DateTime?
   region    String   @default("eu")
   createdAt DateTime @default(now())
+  /// See ContactPrivacy: who sees other people's contacts.
+  contactPrivacy ContactPrivacy @default(PRIVATE)
 
   memberships      Membership[]
   invitations      Invitation[]

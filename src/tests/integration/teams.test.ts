@@ -44,7 +44,7 @@ beforeAll(async () => {
   cora = await user("cora");
   guest = await user("guest");
   ws = await createWorkspace(owner, "Acme");
-  await t.db.workspace.update({ where: { id: ws.id }, data: { plan: "PRO" } });
+  await t.db.workspace.update({ where: { id: ws.id }, data: { plan: "PRO", contactPrivacy: "OPEN" } });
   const member = (userId: string, role: "MEMBER" | "GUEST", crmAccess: boolean, crmScope: "OWN" | "ALL") => t.db.membership.create({ data: { userId, workspaceId: ws.id, role, crmAccess, crmScope } });
   await member(anna, "MEMBER", true, "OWN");
   await member(boris, "MEMBER", true, "OWN");

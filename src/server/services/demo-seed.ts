@@ -22,6 +22,8 @@ export async function seedDemoData(): Promise<{ ownerId: string; workspaceId: st
 
   let workspace = await db.workspace.findUnique({ where: { slug: DEMO_SLUG } });
   if (!workspace) workspace = await createWorkspace(owner.id, "Demo Studio", DEMO_SLUG);
+  // The demo is a showcase with everyone's sample people in one place: the open mode shows them all to its owner.
+  if (workspace.contactPrivacy !== "OPEN") workspace = await db.workspace.update({ where: { id: workspace.id }, data: { contactPrivacy: "OPEN" } });
 
   await db.membership.upsert({
     where: { userId_workspaceId: { userId: member.id, workspaceId: workspace.id } },

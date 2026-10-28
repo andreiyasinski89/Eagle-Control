@@ -4,6 +4,8 @@ import { db } from "@/server/db";
 import { planCompanyMerge, planContactMerge, type CompanyLike, type ContactLike } from "@/modules/crm/dedupe";
 import { normalizeDomain } from "@/modules/crm/normalize";
 import { loadWorkspaceMember, logActivity, type Tx } from "@/server/services/nodes/access";
+import { contactScope } from "./scope";
+import { notFound } from "@/server/http/errors";
 import { fullName, invalid } from "./common";
 import { phoneKeys } from "./contacts";
 
@@ -19,8 +21,13 @@ async function moveNodeAttachments(tx: Tx, fromIds: string[], toId: string) {
 }
 
 async function loadSet(tx: Tx, userId: string, workspaceId: string, ids: string[], type: "CONTACT" | "COMPANY") {
-  await loadWorkspaceMember(tx, userId, workspaceId, "crm:merge");
+  const member = await loadWorkspaceMember(tx, userId, workspaceId, "crm:merge");
   const unique = [...new Set(ids)];
+  // A contact one may not see, or only look at, cannot be merged: to this person it does not exist.
+  if (type === "CONTACT") {
+    const scope = await contactScope(tx, member, { write: true });
+    if (scope && (await tx.contact.count({ where: { AND: [{ nodeId: { in: unique } }, scope] } })) !== unique.length) throw notFound("contact");
+  }
   const nodes = await tx.node.findMany({ where: { id: { in: unique }, workspaceId, type, archivedAt: null }, select: { id: true } });
   if (nodes.length !== unique.length) throw invalid("invalid_merge", `Every record must be an active ${type.toLowerCase()} of this workspace`);
 }

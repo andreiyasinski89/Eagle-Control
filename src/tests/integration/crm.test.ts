@@ -76,7 +76,7 @@ describe("pipelines", () => {
     expect((await listLostReasons(sales, ws.id)).length).toBeGreaterThan(0);
   });
   it("enforces stage rules and protects stages that hold deals", async () => {
-    await holder.db.workspace.update({ where: { id: ws.id }, data: { plan: "PRO" } });
+    await holder.db.workspace.update({ where: { id: ws.id }, data: { plan: "PRO", contactPrivacy: "OPEN" } });
     const p = await createPipeline(owner, ws.id, { name: "Partners" });
     const open = p.stages.filter((s) => !s.isWon && !s.isLost);
 
@@ -222,7 +222,7 @@ describe("lead → deal → project → Client Map (the phase 3 scenario)", () =
     const d = await createDeal(sales, ws.id, { title: "Second sale", amount: 500, currency: "USD", companyId, primaryContactId: contactId });
     expect((await winDeal(sales, d.id)).status).toBe("won");
     await expect(createProjectFromDeal(sales, d.id, {})).rejects.toMatchObject({ status: 402, code: "plan_limit" });
-    await holder.db.workspace.update({ where: { id: ws.id }, data: { plan: "PRO" } });
+    await holder.db.workspace.update({ where: { id: ws.id }, data: { plan: "PRO", contactPrivacy: "OPEN" } });
   });
 
   it("the board totals per column and per currency, and flags stagnation", async () => {
@@ -277,7 +277,7 @@ describe("contacts: duplicates, consent and GDPR", () => {
     expect(revoked.consentHistory[0]?.revokedAt).toBeTruthy();
   });
 
-  it("exports everything about a person, and erases it only for owners/admins with all traces gone", async () => {
+  it("exports everything about a person, and erases it only for its keeper, owners and admins, with all traces gone", async () => {
     await createActivity(sales, ws.id, { type: "NOTE", subject: "Met at conference", contactId: victim });
     await ingestLead({ workspaceId: ws.id, source: "form:y", sourceLabel: "Website", pipelineId, ownerId: sales }, { name: "Piotr Nowak", email: "piotr@alpha.pl", message: "hello" });
     const exported = await gdprExport(sales, victim);
@@ -285,7 +285,10 @@ describe("contacts: duplicates, consent and GDPR", () => {
     expect(exported.activities.length).toBeGreaterThan(0);
     expect(exported.leadSubmissions.length).toBe(1);
 
-    await expect(gdprErase(sales, victim)).rejects.toMatchObject({ status: 403 });
+    // a member who sees the person but neither keeps them nor is an owner or admin may not erase; the keeper (sales) could, and so can an admin
+    const other = (await holder.db.user.create({ data: { email: "other@x.io", name: "other" } })).id;
+    await holder.db.membership.create({ data: { userId: other, workspaceId: ws.id, role: "MEMBER", crmAccess: true, crmScope: "ALL" } });
+    await expect(gdprErase(other, victim)).rejects.toMatchObject({ status: 403 });
     await gdprErase(admin, victim);
 
     expect(await holder.db.node.findUnique({ where: { id: victim } })).toBeNull();
