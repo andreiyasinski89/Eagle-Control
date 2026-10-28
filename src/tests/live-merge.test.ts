@@ -84,6 +84,18 @@ describe("presence on the client", () => {
     expect(Object.keys(usePresenceStore.getState().others)).toEqual(["c2"]);
   });
 
+  it("does not list me when I have the project open in another window or on another device", () => {
+    const p = usePresenceStore.getState();
+    p.sync([user("mine", "me"), user("other-tab", "me"), user("c1", "ann")], "mine", "me");
+    expect(Object.keys(usePresenceStore.getState().others)).toEqual(["c1"]);
+    p.upsert(user("phone", "me"), "me");
+    p.upsert(user("c2", "bob"), "me");
+    expect(Object.keys(usePresenceStore.getState().others).sort()).toEqual(["c1", "c2"]);
+    // without knowing who I am, nothing is hidden beyond my own connection
+    p.sync([user("mine", "me"), user("other-tab", "me")], "mine");
+    expect(Object.keys(usePresenceStore.getState().others)).toEqual(["other-tab"]);
+  });
+
   it("stamps arrivals with the local clock, whatever the server clock says", () => {
     usePresenceStore.getState().upsert(user("c1", "ann", { updatedAt: 1 }));
     expect(Date.now() - (usePresenceStore.getState().others.c1?.updatedAt ?? 0)).toBeLessThan(1000);

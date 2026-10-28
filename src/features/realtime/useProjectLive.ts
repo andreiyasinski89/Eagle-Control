@@ -61,10 +61,10 @@ export function useProjectLive(projectId: string): void {
           hub.sendPresence(room, { selectedNodeId: latest.current.selectedId, editingNodeId: latest.current.editingId, cursor: usePresenceStore.getState().cursor });
           break;
         case "presence.sync":
-          presence.sync(e.users, hub.connId);
+          presence.sync(e.users, hub.connId, meId);
           break;
         case "presence":
-          if (e.user.connId !== hub.connId) presence.upsert(e.user);
+          if (e.user.connId !== hub.connId) presence.upsert(e.user, meId);
           break;
         case "presence.leave":
           presence.leave(e.connId);

@@ -9,8 +9,9 @@ interface PresenceState {
   /** The node whose fields I am typing in (drawer); the canvas title editor uses the map store instead. */
   editing: string | null;
   setEditing: (id: string | null) => void;
-  sync: (users: readonly PresenceUser[], selfConnId: string | null) => void;
-  upsert: (user: PresenceUser) => void;
+  /** `selfUserId`: my own account, so my other windows and devices are not listed as someone else either. */
+  sync: (users: readonly PresenceUser[], selfConnId: string | null, selfUserId?: string | null) => void;
+  upsert: (user: PresenceUser, selfUserId?: string | null) => void;
   leave: (connId: string) => void;
   clear: () => void;
   setCursor: (cursor: { x: number; y: number } | null) => void;
@@ -22,8 +23,8 @@ export const usePresenceStore = create<PresenceState>((set) => ({
   editing: null,
   setEditing: (editing) => set({ editing }),
   // `updatedAt` is re-stamped with this browser's clock on arrival: it is only used to expire quiet connections.
-  sync: (users, selfConnId) => set({ others: Object.fromEntries(users.filter((u) => u.connId !== selfConnId).map((u) => [u.connId, { ...u, updatedAt: Date.now() }])) }),
-  upsert: (user) => set((s) => ({ others: { ...s.others, [user.connId]: { ...user, updatedAt: Date.now() } } })),
+  sync: (users, selfConnId, selfUserId) => set({ others: Object.fromEntries(users.filter((u) => u.connId !== selfConnId && (!selfUserId || u.userId !== selfUserId)).map((u) => [u.connId, { ...u, updatedAt: Date.now() }])) }),
+  upsert: (user, selfUserId) => set((s) => (selfUserId && user.userId === selfUserId ? s : { others: { ...s.others, [user.connId]: { ...user, updatedAt: Date.now() } } })),
   leave: (connId) =>
     set((s) => {
       if (!(connId in s.others)) return s;
