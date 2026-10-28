@@ -927,7 +927,11 @@
     "privacyOpenHint": "Owners, admins and members with the whole CRM see everyone's contacts, as their CRM access level says.",
     "privacyOwnerOnly": "Only the owner of the workspace can change this.",
     "privacySaved": "Saved.",
-    "privacyFailed": "Could not save. Please try again."
+    "privacyFailed": "Could not save. Please try again.",
+    "tempAuto": "Worked out from touches, replies and meetings. Tap a temperature to set it yourself.",
+    "tempManual": "Set by you until {date}; then it is worked out again.",
+    "tempBackToAuto": "Work it out for me",
+    "tempBadgeManual": "set by hand"
   },
   "myday": {
     "title": "My day",
@@ -2031,7 +2035,9 @@
     "stepUpSent": "Code sent to {to}",
     "stepUpCode": "Code",
     "stepUpConfirm": "Confirm",
-    "stepUpOpenUntil": "Dangerous actions are open until {time}"
+    "stepUpOpenUntil": "Dangerous actions are open until {time}",
+    "recomputeTemperatures": "Recalculate temperatures",
+    "temperaturesRecomputed": "Temperatures recalculated: {changed} of {checked} people changed."
   },
   "sharing": {
     "title": "Show my activity to my sponsor",

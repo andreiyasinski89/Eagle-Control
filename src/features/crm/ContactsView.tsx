@@ -193,7 +193,14 @@ export function ContactsView({ workspaceId, slug, canWrite, canExport, canMerge,
       sortKey: "name",
       render: (c) => (
         <div>
-          <div className="font-medium">{c.name}</div>
+          <div className="font-medium">
+            {c.name}
+            {c.temperature && (
+              <span className="ml-1.5" title={t(`temp.${c.temperature}`)} aria-label={t(`temp.${c.temperature}`)} data-testid="contact-temperature">
+                {{ HOT: "🔥", WARM: "🟡", COLD: "❄️" }[c.temperature]}
+              </span>
+            )}
+          </div>
           {c.position && <div className="text-xs text-muted-foreground">{c.position}</div>}
         </div>
       ),

@@ -18,6 +18,7 @@ export const functions = [
   job("health/refresh", { cron: "0 2 * * *" }), // nightly: health depends on "today"
   job("reminders/dispatch", { cron: "*/5 * * * *" }),
   job("maintenance/run", { cron: "30 3 * * *" }),
+  job("crm/temperature", { cron: "40 3 * * *" }),
   job("billing/expire", { cron: "15 4 * * *" }),
   job("account/erase", { cron: "20 * * * *" }),
   job("demo/reset", { cron: "0 3 * * *" }),

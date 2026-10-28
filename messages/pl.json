@@ -927,7 +927,11 @@
     "privacyOpenHint": "Właściciele, administratorzy i uczestnicy z pełnym dostępem do CRM widzą kontakty wszystkich, zgodnie z poziomem dostępu.",
     "privacyOwnerOnly": "Zmienić to może tylko właściciel przestrzeni.",
     "privacySaved": "Zapisano.",
-    "privacyFailed": "Nie udało się zapisać. Spróbuj ponownie."
+    "privacyFailed": "Nie udało się zapisać. Spróbuj ponownie.",
+    "tempAuto": "Liczone z kontaktów, odpowiedzi i spotkań. Dotknij wartości, aby ustawić własną.",
+    "tempManual": "Ustawione przez Ciebie do {date}; potem zostanie policzone na nowo.",
+    "tempBackToAuto": "Policz za mnie",
+    "tempBadgeManual": "ręcznie"
   },
   "myday": {
     "title": "Mój dzień",
@@ -2031,7 +2035,9 @@
     "stepUpSent": "Kod wysłano na {to}",
     "stepUpCode": "Kod",
     "stepUpConfirm": "Potwierdź",
-    "stepUpOpenUntil": "Niebezpieczne działania otwarte do {time}"
+    "stepUpOpenUntil": "Niebezpieczne działania otwarte do {time}",
+    "recomputeTemperatures": "Przelicz temperatury",
+    "temperaturesRecomputed": "Temperatury przeliczone: zmieniło się {changed} z {checked} osób."
   },
   "sharing": {
     "title": "Pokazuj moją aktywność sponsorowi",

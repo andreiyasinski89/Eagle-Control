@@ -205,4 +205,9 @@
 | 201 | Only the owner of the workspace switches the mode, and it is logged | An admin must not be able to open every partner's list. |
 | 202 | What was shared with someone is not theirs to pass on; a group is shared only if all its people are the sharer's own | A share must not become a way round the owner's decision. |
 | 203 | The keeper of a contact can export and erase its data, not only owners and admins | In a private workspace the owner and admin do not see the partner's contacts, so the partner has to be able to answer a request about them. |
+| 204 | The temperature is worked out by points from facts, with thresholds 6 and 3, and the rules are one pure function with a list of reasons | Nobody fills it in by hand; the rules can be read, tested and changed in one place. |
+| 205 | A new name with no history is cold; a person added far along the funnel can be warm | The same rules for everybody, no special case for "empty". A close friend is made hot with one tap. |
+| 206 | A hand-set temperature holds 14 days; clearing it gives the decision back at once | The person who knows the contact is right in the short run; after two weeks the facts should decide again. |
+| 207 | Replies, agreed meetings and price questions come from the result of a touch (`outcome`, `signals`), which the touch queue will record; until then the rules rest on the stage, the touches, meetings held and silence | We count what is known; a reply is not guessed from a message that was only sent. |
+| 208 | The nightly job and the admin button share one function; there is no separate migration script | Cooling needs a daily pass anyway, and one button covers the existing people. |
 

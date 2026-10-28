@@ -173,7 +173,10 @@ function PlanCard({ title, pair, href, planned, done }: { title: string; pair: P
 }
 
 /** The people whose next step is due: a number first, then, folded out, each one by name with a link and a way to close the step. */
+const TEMPERATURE_ICON: Record<string, string> = { HOT: "🔥", WARM: "🟡", COLD: "❄️" };
+
 function ContactsDueBlock({ title, hint, items, base, locale, stage, onDone, busy, openLabel, expand }: { expand: boolean; title: string; hint: string; items: ContactDue[]; base: string; locale: string; stage: (s: string) => string; onDone: (id: string) => void; busy: boolean; openLabel: string }) {
+  const tcrm = useTranslations("crm");
   const [open, setOpen] = useState(false);
   // Pressing the tasks number is asking to see the tasks: the people are part of them, so the list opens.
   useEffect(() => {
@@ -209,6 +212,11 @@ function ContactsDueBlock({ title, hint, items, base, locale, stage, onDone, bus
                 <Link href={`${base}/crm/contacts?contact=${c.id}`} className="font-medium hover:underline">
                   {c.name}
                 </Link>
+                {c.temperature && (
+                  <span className="ml-1.5" title={tcrm(`temp.${c.temperature}`)} aria-label={tcrm(`temp.${c.temperature}`)} data-testid="due-temperature">
+                    {TEMPERATURE_ICON[c.temperature] ?? ""}
+                  </span>
+                )}
                 <span className="block truncate text-xs text-muted-foreground">{[stage(c.stage), c.nextStep].filter(Boolean).join(" · ")}</span>
               </span>
               {c.nextStepAt && <span className={cn("text-xs tabular-nums", c.overdue ? "text-[var(--health-red)]" : "text-muted-foreground")}>{shortDate(c.nextStepAt, locale)}</span>}

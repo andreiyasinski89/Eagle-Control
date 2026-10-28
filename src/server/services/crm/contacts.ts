@@ -6,11 +6,13 @@ import { ApiError, forbidden, limitReached } from "@/server/http/errors";
 import { checkLimit } from "@/modules/plans";
 import { contactKeys, findDuplicateGroups } from "@/modules/crm/dedupe";
 import { DECLINE_REASONS } from "@/modules/crm/decline";
-import { parsePriority, PRIORITIES, STAGES, TEMPERATURES } from "@/modules/crm/people";
+import { parsePriority, PRIORITIES, STAGES, TEMPERATURES, type Stage } from "@/modules/crm/people";
 import { normalizeEmail, normalizePhone, uniqueNonNull } from "@/modules/crm/normalize";
 import { can } from "@/server/policies";
 import { loadWorkspaceMember, logActivity, type Tx } from "@/server/services/nodes/access";
 import { contactScope, contactVisible, withoutSelf, withScope } from "./scope";
+import { refreshTemperature } from "./temperature";
+import { computeTemperature, manualUntil } from "@/modules/crm/temperature";
 import { deleteObject } from "@/server/storage";
 import { assertWorkspaceMember, fullName, invalid, loadCrmNode, pageArgs, toDate } from "./common";
 import { assertGroup } from "./groups";
@@ -109,13 +111,20 @@ export interface Funnel {
   ownerId?: string | null;
 }
 
+/** The temperature of a person just added, by the same rules as every other: a name with no history is cold, one added far along the funnel may be warm. */
+const initialTemperature = (stage: Stage | undefined) => computeTemperature({ stage: stage ?? "NEW", createdAt: new Date(), lastContactedAt: null, stageChangedAt: null }, []).temperature;
+
 const blank = (v: string | null | undefined) => (v === undefined ? undefined : v === null || v.trim() === "" ? null : v.trim());
 
 /** What goes into the contact row for the funnel fields that were given (the rest keep their defaults). */
 function funnelData(f: Funnel): Partial<Prisma.ContactUncheckedCreateInput> {
   const out: Record<string, unknown> = {};
   if (f.stage) out.stage = f.stage;
-  if (f.temperature !== undefined) out.temperature = f.temperature;
+  // Set by hand: it holds for two weeks, then the computed temperature takes over; clearing it hands the decision back at once.
+  if (f.temperature !== undefined) {
+    out.temperature = f.temperature;
+    out.temperatureManualUntil = f.temperature ? manualUntil() : null;
+  }
   if (f.interests !== undefined) out.interests = f.interests;
   if (f.source !== undefined) out.source = blank(f.source) ?? null;
   if (f.influence !== undefined) out.influence = f.influence;
@@ -162,6 +171,7 @@ export async function createContactIn(
       birthday: input.birthday ? new Date(input.birthday) : null,
       consentGiven: input.consentGiven ?? false,
       consentAt: input.consentGiven ? new Date() : null,
+      temperature: initialTemperature(input.stage),
       ...funnelData(input),
     },
   });
@@ -223,6 +233,7 @@ export async function createContactsBulk(tx: Tx, userId: string, workspaceId: st
         companyId: r.companyId ?? null,
         ownerId: r.funnel?.ownerId ?? userId,
         consentGiven: false,
+        temperature: initialTemperature(r.funnel?.stage),
         ...funnelData(r.funnel ?? {}),
       })),
     });
@@ -291,6 +302,8 @@ export async function updateContactIn(tx: Tx, userId: string, contactId: string,
   }
   await tx.contact.update({ where: { nodeId: contactId }, data });
   if (stageMoved) await tx.contactStageEvent.create({ data: { contactNodeId: contactId, workspaceId: node.workspaceId, fromStage: cur.stage, toStage: patch.stage as (typeof STAGES)[number], actorId: userId } });
+  // The funnel moved or the hand-set temperature was cleared: the computed one takes over again at once.
+  if (stageMoved || patch.temperature === null) await refreshTemperature(tx, contactId);
   if (Object.keys(nodeData).length) await tx.node.update({ where: { id: contactId }, data: nodeData });
   await logActivity(tx, { workspaceId: node.workspaceId, nodeId: contactId, actorId: userId, action: "contact.updated", diff: { fields: Object.keys(patch) } });
 }
@@ -445,6 +458,8 @@ export async function getContactIn(tx: Tx, userId: string, contactId: string) {
     stageChangedAt: c.stageChangedAt,
     declineReason: c.declineReason,
     temperature: c.temperature,
+    /** Until when a temperature set by hand holds; null when the computed one is in force. */
+    temperatureManualUntil: c.temperatureManualUntil && c.temperatureManualUntil > new Date() ? c.temperatureManualUntil : null,
     interests: c.interests,
     source: c.source,
     influence: c.influence,

@@ -6,6 +6,7 @@ import { can } from "@/server/policies";
 import { loadWorkspaceMember, type Tx } from "@/server/services/nodes/access";
 import { assertWorkspaceMember, invalid, pageArgs, toDate } from "./common";
 import { contactScope, contactVisible } from "./scope";
+import { refreshTemperature } from "./temperature";
 
 export const activitySchema = z.object({
   type: z.enum(["CALL", "EMAIL", "MEETING", "NOTE", "TASK", "MESSAGE"]),
@@ -29,7 +30,10 @@ const TOUCH_TYPES: CrmActivityType[] = ["CALL", "EMAIL", "MEETING", "MESSAGE"];
 /** A completed activity keeps the relationship "warm": it resets the deal's idle clock and the contact's last touch. */
 async function recordTouch(tx: Tx, a: { type: CrmActivityType; contactId: string | null; dealId: string | null }, at: Date) {
   if (a.dealId) await tx.deal.update({ where: { nodeId: a.dealId }, data: { lastActivityAt: at } });
-  if (a.contactId && TOUCH_TYPES.includes(a.type)) await tx.contact.update({ where: { nodeId: a.contactId }, data: { lastContactedAt: at } });
+  if (a.contactId && TOUCH_TYPES.includes(a.type)) {
+    await tx.contact.update({ where: { nodeId: a.contactId }, data: { lastContactedAt: at } });
+    await refreshTemperature(tx, a.contactId, at);
+  }
 }
 
 async function resolveLinks(tx: Tx, workspaceId: string, input: Pick<ActivityInput, "contactId" | "companyId" | "dealId">) {

@@ -47,6 +47,7 @@ export interface ContactDetail {
   stage: FunnelValues["stage"];
   declineReason: string | null;
   temperature: FunnelValues["temperature"];
+  temperatureManualUntil?: string | null;
   interests: string[];
   source: string | null;
   influence: number | null;
@@ -228,6 +229,7 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
 
       <Section title={t("funnel")}>
         <FunnelFields
+          temperatureManualUntil={c.temperatureManualUntil ?? null}
           disabled={dis}
           workspaceId={workspaceId}
           value={{ stage: c.stage, declineReason: c.declineReason, temperature: c.temperature, interests: c.interests, source: c.source, influence: c.influence, nextStep: c.nextStep, nextStepAt: c.nextStepAt, typeTag: c.typeTag, country: c.country, sponsorName: c.sponsorName, groupId: c.groupId }}

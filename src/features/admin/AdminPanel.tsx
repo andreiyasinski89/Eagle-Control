@@ -99,6 +99,7 @@ export function AdminPanel() {
   const plan = useMutation({ mutationFn: (v: { id: string; plan: Plan }) => api.patch(`/api/v1/admin/workspaces/${v.id}`, { plan: v.plan }), onSuccess: () => (setError(null), refresh()), onError: fail });
   const recompute = useMutation({ mutationFn: () => api.post<{ checked: number; changed: number }>("/api/v1/admin/plans/recompute"), onSuccess: (r) => (setError(null), setRecomputed(t("recomputed", { n: r.changed, total: r.checked })), refresh()), onError: fail });
   const [recomputed, setRecomputed] = useState<string | null>(null);
+  const recalcTemps = useMutation({ mutationFn: () => api.post<{ checked: number; changed: number }>("/api/v1/admin/temperatures/recompute"), onSuccess: (r) => (setError(null), setRecomputed(t("temperaturesRecomputed", { changed: r.changed, checked: r.checked }))), onError: fail });
   const [points, setPoints] = useState("");
   const [note, setNote] = useState("");
   const bonus = useMutation({
@@ -141,6 +142,9 @@ export function AdminPanel() {
           <span className="min-w-0 flex-1 text-xs text-muted-foreground">{t(`modeHint_${list.data.mode}`)}</span>
           <Button type="button" variant="outline" size="sm" disabled={recompute.isPending} onClick={() => recompute.mutate()} data-testid="admin-recompute">
             {t("recompute")}
+          </Button>
+          <Button type="button" variant="outline" size="sm" disabled={recalcTemps.isPending} onClick={() => recalcTemps.mutate()} data-testid="admin-recalc-temperatures">
+            {t("recomputeTemperatures")}
           </Button>
           {recomputed && (
             <span role="status" className="w-full text-xs text-muted-foreground">

@@ -1,3 +1,4 @@
+import { recalcTemperatures } from "@/server/services/crm/temperature";
 import { z } from "zod";
 import type { Plan, Prisma } from "@prisma/client";
 import { env } from "@/lib/env";
@@ -182,6 +183,14 @@ export async function recomputeAllPlans(actorId: string) {
   await requireSuperAdmin(actorId);
   const r = await recomputePlans();
   await log(actorId, "plans.recomputed", null, { ...r });
+  return r;
+}
+
+/** Works the temperature of every person out again: the one-time pass for those who had none, and a way to redo it by hand. */
+export async function recalcAllTemperatures(actorId: string) {
+  await requireSuperAdmin(actorId);
+  const r = await recalcTemperatures();
+  await log(actorId, "temperatures.recomputed", null, { ...r });
   return r;
 }
 

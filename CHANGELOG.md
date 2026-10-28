@@ -395,3 +395,12 @@
 - **A person's data can be exported and erased by whoever keeps that person** (and still by owners and admins who see them), so a partner can answer a request about their own contact; the people above cannot, as they do not see it.
 - The demo workspace is open (a showcase). Existing tests of the old rules now run in an open workspace; a new test file (15 tests) covers the private one.
 
+## 0.38.0 — Block C: the temperature of a person is worked out
+
+- **Migration 0030 (additive):** `Contact.temperatureManualUntil`, `CrmActivity.outcome` and `CrmActivity.signals` (both empty until the touch queue records what came of a touch), an index on workspace + temperature.
+- **`computeTemperature(contact, activities)`** (pure, in `modules/crm/temperature.ts`, 14 tests): points from the stage of the funnel, the touches of the last 30 days, replies, an agreed meeting, a meeting held in the last 60 days, a question about the price in the last 14 days, a move forward in the funnel in the last 14, minus the silence since the last contact and minus messages left without an answer. 6 or more is hot, 3 or more is warm, the rest cold; those who said no or do not answer are cold; clients and partners have none. It also gives the reasons, so the screen can say why.
+- **It is kept up to date:** after every touch that is marked done, after a move in the funnel, every night (job `crm/temperature`, 03:40, so people cool as the days pass), and once for everybody: the admin has a **Recalculate temperatures** button, which also fills in the people who had none. A person added now gets a temperature at once (a name with no history is cold).
+- **A temperature set by hand holds for 14 days** and is marked in the card ("set by you until 12 Nov; then it is worked out again"); a new touch or the nightly job do not change it. Tapping the chosen value again, or "Work it out for me", clears it and the computed one is back at once.
+- **The icon is visible** on the board of people, in the Contacts table (new), in the plan of the day and in My day (next to a person due today).
+- Tests: 24 new (the rules; the service on a real database: a new person, a meeting held, a move in the funnel, a person who said no, a hand-set value that holds, expires and is cleared, cooling over 40 days, the nightly job, the one-time pass).
+

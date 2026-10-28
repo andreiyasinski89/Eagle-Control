@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/ui/modal";
 import { DECLINE_REASONS } from "@/modules/crm/decline";
@@ -32,7 +32,8 @@ const dayOf = (iso: string | null) => (iso ? iso.slice(0, 10) : "");
  * Where the person is in the funnel and what comes next, in the card: pick the stage and the warmth with one press,
  * say what the next step is and when. Every change is saved at once.
  */
-export function FunnelFields({ value, disabled, workspaceId, onChange }: { value: FunnelValues; disabled: boolean; workspaceId: string; onChange: (patch: Record<string, unknown>) => void }) {
+export function FunnelFields({ value, disabled, workspaceId, onChange, temperatureManualUntil }: { value: FunnelValues; disabled: boolean; workspaceId: string; onChange: (patch: Record<string, unknown>) => void; temperatureManualUntil?: string | null }) {
+  const locale = useLocale();
   const t = useTranslations("crm");
   const groups = useGroups(workspaceId);
 
@@ -71,6 +72,16 @@ export function FunnelFields({ value, disabled, workspaceId, onChange }: { value
             </button>
           ))}
         </div>
+        {temperatureManualUntil !== undefined && (
+          <p className="mt-1 text-xs text-muted-foreground" data-testid="temperature-note">
+            {temperatureManualUntil ? t("tempManual", { date: new Date(temperatureManualUntil).toLocaleDateString(locale, { day: "numeric", month: "short" }) }) : t("tempAuto")}
+            {temperatureManualUntil && !disabled && (
+              <button type="button" className="ml-2 text-primary hover:underline" onClick={() => onChange({ temperature: null })} data-testid="temperature-auto">
+                {t("tempBackToAuto")}
+              </button>
+            )}
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-[1fr_9rem] gap-3">

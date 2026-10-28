@@ -638,6 +638,8 @@ model Contact {
   /// Why the person said no (a code, see modules/crm/decline.ts); only while the stage is Declined.
   declineReason  String?
   temperature    Temperature?
+  /// A temperature set by hand holds until this moment; after it the computed one takes over again.
+  temperatureManualUntil DateTime?
   interests      String[]     @default([])
   source         String?
   /// 1 to 12: how much the person can move others, as the team rates it.
@@ -678,6 +680,7 @@ model Contact {
   @@index([workspaceId, nextStepAt])
   @@index([workspaceId, groupId])
   @@index([workspaceId, sponsorId])
+  @@index([workspaceId, temperature])
   @@index([workspaceId, heldById])
   @@index([emails], type: Gin)
   @@index([workspaceId])
@@ -924,6 +927,10 @@ model CrmActivity {
   /// How long a scheduled call or meeting lasts, so the calendar can draw it as a block. Null = a point in time.
   durationMin Int?
   completedAt DateTime?
+  /// What came of a touch: REPLIED, NO_REPLY, MEETING_SET or DECLINED. Feeds the temperature and the next step.
+  outcome     String?
+  /// Marks left on a touch, e.g. PRICE_QUESTION.
+  signals     String[] @default([])
   ownerId     String
   contactId   String?
   companyId   String?

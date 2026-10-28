@@ -42,7 +42,7 @@ describe("a person in the funnel", () => {
     const c = await createContact(owner, ws.id, { ...base, firstName: "Anna", lastName: "Kowalska", stage: "WARMING", temperature: "WARM", source: "Instagram", interests: ["Путешествия"], influence: 6, nextStep: "Call", nextStepAt: "2026-11-05T00:00:00.000Z", typeTag: "BUSINESS", country: "Poland", sponsorName: "Andrey" });
     expect(c).toMatchObject({ stage: "WARMING", temperature: "WARM", source: "Instagram", interests: ["Путешествия"], influence: 6, nextStep: "Call", typeTag: "BUSINESS", country: "Poland", sponsorName: "Andrey" });
     const plain = await createContact(owner, ws.id, { ...base, firstName: "Boris" });
-    expect(plain).toMatchObject({ stage: "NEW", temperature: null, interests: [], influence: null });
+    expect(plain).toMatchObject({ stage: "NEW", temperature: "COLD", interests: [], influence: null }); // a name with no history is cold by the rules, not empty
     const history = await raw.contactStageEvent.findMany({ where: { contactNodeId: c.id } });
     expect(history).toEqual([expect.objectContaining({ fromStage: null, toStage: "WARMING" })]);
   });
