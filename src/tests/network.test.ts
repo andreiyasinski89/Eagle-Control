@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildNetwork, ROOT_ID, type NetGroup, type NetPerson } from "@/modules/crm/network";
+import { buildNetwork, filterPeople, NO_FILTERS, ROOT_ID, type NetGroup, type NetPerson } from "@/modules/crm/network";
 
 const p = (id: string, extra: Partial<NetPerson> = {}): NetPerson => ({ id, name: id.toUpperCase(), stage: "NEW", temperature: null, sponsorId: null, heldById: null, groupId: null, influence: null, country: null, typeTag: null, ...extra });
 const people = [
@@ -80,5 +80,45 @@ describe("network map", () => {
       expect(nodes.length).toBe(new Set(nodes.map((n) => n.id)).size);
       for (const n of nodes) if (n.parentId) expect(ids.has(n.parentId)).toBe(true);
     }
+  });
+
+  describe("filters and sides", () => {
+    const ids = (xs: NetPerson[]) => xs.map((x) => x.id).sort();
+
+    it("hiding people without a sponsor keeps the head of a structure and drops the loners", () => {
+      const kept = filterPeople(people, { ...NO_FILTERS, hideNoSponsor: true });
+      expect(ids(kept)).toEqual(["anna", "boris", "low", "mid", "top"]); // "top" has no sponsor but sponsors others
+    });
+
+    it("stage and warmth narrow the people, never the partners", () => {
+      const ps = [p("a", { stage: "PARTNER" }), p("b", { stage: "CLIENT", temperature: "HOT" }), p("c", { stage: "NEW", temperature: "HOT" }), p("d", { stage: "CLIENT", temperature: "COLD" })];
+      expect(ids(filterPeople(ps, { ...NO_FILTERS, stage: "CLIENT" }))).toEqual(["a", "b", "d"]);
+      expect(ids(filterPeople(ps, { ...NO_FILTERS, temperature: "HOT" }))).toEqual(["a", "b", "c"]);
+    });
+
+    it("split sides: the working structure goes left, people without a sponsor and lone partners go right", () => {
+      const ps = [...people, p("solo", { stage: "PARTNER" })];
+      const nodes = buildNetwork("sponsors", { rootName: "Me", people: ps, groups }, { showPeople: true, split: true });
+      const t = Object.fromEntries(nodes.map((n) => [n.id, n]));
+      expect(t.top?.side).toBe("left");
+      expect(t.low?.side).toBe("left"); // below mid, below top
+      expect(t.anna?.side).toBe("left");
+      expect(t.solo?.side).toBe("right");
+      expect(t["net-no-sponsor"]?.side).toBe("right");
+      expect(t.clara?.side).toBe("right");
+      expect(t[ROOT_ID]?.side).toBeUndefined();
+    });
+
+    it("without split nothing has a side", () => {
+      const nodes = buildNetwork("sponsors", { rootName: "Me", people, groups }, { showPeople: true });
+      expect(nodes.every((n) => n.side === undefined)).toBe(true);
+    });
+
+    it("a level limit cuts the tree but the cut cards keep their real counts", () => {
+      const nodes = buildNetwork("sponsors", { rootName: "Me", people, groups }, { showPeople: false, maxDepth: 2 });
+      const t = Object.fromEntries(nodes.map((n) => [n.id, n]));
+      expect(Object.keys(t).sort()).toEqual([ROOT_ID, "mid", "top"].sort()); // "low" is the third level
+      expect(t.mid).toMatchObject({ direct: 1 }); // "low" is still counted
+    });
   });
 });

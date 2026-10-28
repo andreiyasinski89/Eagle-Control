@@ -47,6 +47,31 @@ export interface NetNode {
   branch?: number;
   /** A made-up group node ("no group", "no sponsor", "held by nobody"): the view gives it a name. */
   synthetic?: "noGroup" | "noSponsor" | "nobody";
+  /** With "split sides": which side of you the branch is drawn on. Only set below the root. */
+  side?: "left" | "right";
+}
+
+export interface NetFilters {
+  /** Leave out people with no sponsor who also have nobody under them: what remains is the structure that works. */
+  hideNoSponsor: boolean;
+  /** Only people (not partners) at this stage; null = every stage. */
+  stage: string | null;
+  /** Only people (not partners) with this warmth; null = any. */
+  temperature: string | null;
+}
+export const NO_FILTERS: NetFilters = { hideNoSponsor: false, stage: null, temperature: null };
+
+/** Narrows the list before the tree is built. Partners always stay: they are the skeleton of the structure. */
+export function filterPeople(people: NetPerson[], f: NetFilters): NetPerson[] {
+  let out = people;
+  if (f.hideNoSponsor) {
+    const ids = new Set(people.map((p) => p.id));
+    const sponsors = new Set(people.map((p) => p.sponsorId).filter((x): x is string => !!x));
+    out = out.filter((p) => (p.sponsorId && ids.has(p.sponsorId)) || sponsors.has(p.id));
+  }
+  if (f.stage) out = out.filter((p) => p.stage === "PARTNER" || p.stage === f.stage);
+  if (f.temperature) out = out.filter((p) => p.stage === "PARTNER" || p.temperature === f.temperature);
+  return out;
 }
 
 export const ROOT_ID = "net-root";
@@ -68,7 +93,7 @@ function partnerAbove(id: string, by: Map<string, NetPerson>): string | null {
   return null;
 }
 
-export function buildNetwork(mode: NetMode, input: { rootName: string; people: NetPerson[]; groups: NetGroup[] }, opts: { showPeople: boolean }): NetNode[] {
+export function buildNetwork(mode: NetMode, input: { rootName: string; people: NetPerson[]; groups: NetGroup[] }, opts: { showPeople: boolean; split?: boolean; maxDepth?: number | null }): NetNode[] {
   const { people, groups } = input;
   const by = new Map(people.map((p) => [p.id, p]));
   const out: NetNode[] = [{ id: ROOT_ID, parentId: null, position: 0, kind: "root", title: input.rootName }];
@@ -132,6 +157,36 @@ export function buildNetwork(mode: NetMode, input: { rootName: string; people: N
     if (n.kind === "person") continue;
     n.direct = (kids.get(n.id) ?? []).filter((c) => c.kind === "person" || c.kind === "partner").length;
     n.branch = count(n.id, new Set());
+  }
+
+  // Show only the first levels: the cut-off cards keep their real counts, so it is clear there is more below.
+  if (opts.maxDepth) {
+    const parentOf = new Map(out.map((n) => [n.id, n.parentId]));
+    const depth = (id: string): number => {
+      let d = 0;
+      for (let cur = parentOf.get(id); cur; cur = parentOf.get(cur)) d++;
+      return d;
+    };
+    const keep = out.filter((n) => depth(n.id) <= (opts.maxDepth as number));
+    out.length = 0;
+    out.push(...keep);
+  }
+
+  // Sides: the working structure to the left of you, the people without a sponsor (and partners with nobody under them) to the right.
+  if (opts.split && mode === "sponsors") {
+    const sideOf = new Map<string, "left" | "right">();
+    for (const n of out) {
+      if (n.parentId !== ROOT_ID) continue;
+      const alone = n.synthetic === "noSponsor" || (n.kind === "partner" && !(n.branch ?? 0) && !by.get(n.id)?.sponsorId);
+      sideOf.set(n.id, alone ? "right" : "left");
+    }
+    const parentOf = new Map(out.map((n) => [n.id, n.parentId]));
+    for (const n of out) {
+      if (n.id === ROOT_ID) continue;
+      let cur: string = n.id;
+      while (!sideOf.has(cur) && parentOf.get(cur) && parentOf.get(cur) !== ROOT_ID) cur = parentOf.get(cur) as string;
+      n.side = sideOf.get(cur) ?? "right";
+    }
   }
   return out;
 }

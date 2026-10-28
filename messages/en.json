@@ -843,7 +843,18 @@
     "access": "Who has access",
     "collapseGroups": "Fold the groups",
     "expandGroups": "Show the groups",
-    "meCard": "Me (make my card)"
+    "meCard": "Me (make my card)",
+    "netHideNoSponsor": "Hide people without a sponsor",
+    "netSplit": "Sides: structure left, no sponsor right",
+    "netStageFilter": "Stage",
+    "netStageAll": "Any stage",
+    "netWarmFilter": "Warmth",
+    "netWarmAll": "Any warmth",
+    "netDepth": "Levels",
+    "netDepthAll": "All levels",
+    "netDepthN": "{n, plural, one {# level} other {# levels}}",
+    "netFiltersHint": "Partners always stay on the map; stage and warmth narrow down the other people.",
+    "netReset": "Reset filters"
   },
   "myday": {
     "title": "My day",

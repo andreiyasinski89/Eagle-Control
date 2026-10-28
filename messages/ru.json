@@ -843,7 +843,18 @@
     "access": "Кто имеет доступ",
     "collapseGroups": "Свернуть группы",
     "expandGroups": "Показать группы",
-    "meCard": "Я (создать мою карточку)"
+    "meCard": "Я (создать мою карточку)",
+    "netHideNoSponsor": "Скрыть людей без спонсора",
+    "netSplit": "Стороны: структура слева, без спонсора справа",
+    "netStageFilter": "Этап",
+    "netStageAll": "Любой этап",
+    "netWarmFilter": "Теплота",
+    "netWarmAll": "Любая теплота",
+    "netDepth": "Уровни",
+    "netDepthAll": "Все уровни",
+    "netDepthN": "{n, plural, one {# уровень} few {# уровня} many {# уровней} other {# уровня}}",
+    "netFiltersHint": "Партнёры всегда остаются на карте; этап и теплота сужают круг остальных людей.",
+    "netReset": "Сбросить фильтры"
   },
   "myday": {
     "title": "Мой день",

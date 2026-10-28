@@ -843,7 +843,18 @@
     "access": "Kto ma dostęp",
     "collapseGroups": "Zwiń grupy",
     "expandGroups": "Pokaż grupy",
-    "meCard": "Ja (utwórz moją kartę)"
+    "meCard": "Ja (utwórz moją kartę)",
+    "netHideNoSponsor": "Ukryj osoby bez sponsora",
+    "netSplit": "Strony: struktura po lewej, bez sponsora po prawej",
+    "netStageFilter": "Etap",
+    "netStageAll": "Dowolny etap",
+    "netWarmFilter": "Ciepło",
+    "netWarmAll": "Dowolne ciepło",
+    "netDepth": "Poziomy",
+    "netDepthAll": "Wszystkie poziomy",
+    "netDepthN": "{n, plural, one {# poziom} few {# poziomy} many {# poziomów} other {# poziomu}}",
+    "netFiltersHint": "Partnerzy zawsze zostają na mapie; etap i ciepło zawężają pozostałe osoby.",
+    "netReset": "Wyczyść filtry"
   },
   "myday": {
     "title": "Mój dzień",
