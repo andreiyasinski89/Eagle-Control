@@ -75,7 +75,9 @@
     "firstName": "First name",
     "lastName": "Last name (optional)",
     "suggestion": "{name}'s workspace",
-    "limit": "The free plan includes one workspace of your own. Ask for an invitation to join another, or upgrade the plan."
+    "limit": "The free plan includes one workspace of your own. Ask for an invitation to join another, or upgrade the plan.",
+    "share": "Let {name}, who invited me, see a summary of my activity",
+    "shareHint": "Numbers only, no names or contents. You can turn it off any time in Account."
   },
   "dashboard": {
     "title": "Welcome to {workspace}",
@@ -871,7 +873,43 @@
     "starterAdd": "Add ready-made scripts",
     "starterAdded": "{n, plural, one {# script was added} other {# scripts were added}}: one or more for every stage. Open any to rewrite it. Square brackets mark what to fill in by hand.",
     "starterNothing": "All the ready-made scripts are already here, nothing to add.",
-    "starterFailed": "Could not add the scripts. Try again in a moment."
+    "starterFailed": "Could not add the scripts. Try again in a moment.",
+    "tabTeamActivity": "Team activity",
+    "actTitle": "Team activity",
+    "actPeriod": "Period",
+    "actDays": "{n} days",
+    "actQuiet": "{n, plural, one {# has gone quiet} other {# have gone quiet}}",
+    "actHint": "How the people directly below you are doing: what they did over the period and when they last did something. Active: within the last 3 days; quiet: 3-6 days; long gone: 7 days or more.",
+    "actPartnersTitle": "Partners of your first line",
+    "actPartnersEmpty": "No partners in your first line yet. Set a person's stage to Partner and name you as their sponsor.",
+    "actInviteesTitle": "People who came through your link",
+    "actInviteesHint": "They work in their own workspaces. You see numbers only (never names or what is written), and only if they chose to share them in their account.",
+    "actInviteesEmpty": "Nobody has come through your link yet.",
+    "actNotShared": "Summary not shared: the person has not agreed to show their activity.",
+    "actJoined": "joined {date}",
+    "actPerson": "Person",
+    "actState": "State",
+    "actLast": "Last action",
+    "actBelow": "{n, plural, one {# partner below} other {# partners below}}",
+    "actNever": "no sign yet",
+    "actToday": "today",
+    "actYesterday": "yesterday",
+    "actDaysAgo": "{n} days ago",
+    "actStatus": {
+      "active": "Active",
+      "quiet": "Gone quiet",
+      "gone": "Long gone",
+      "never": "No sign yet"
+    },
+    "actCol": {
+      "added": "Added",
+      "contacted": "Reached",
+      "presentations": "Presentations",
+      "clients": "Clients",
+      "partners": "Partners",
+      "meetings": "Calls and meetings",
+      "tasks": "Tasks"
+    }
   },
   "myday": {
     "title": "My day",
@@ -1875,5 +1913,10 @@
     "modeHint_on": "The paid rules apply to everyone: Free limits, Pro locks, the trial and payments.",
     "recompute": "Recalculate plans",
     "recomputed": "Plans recalculated: {n} of {total} workspaces changed."
+  },
+  "sharing": {
+    "title": "Show my activity to my sponsor",
+    "hint": "{name} invited you. If you agree, they see a summary of your activity: numbers (people added, reached, presentations, calls and meetings, tasks) and the date of your last action. Never your clients' names, messages or notes.",
+    "toggle": "Let {name} see my activity summary"
   }
 }

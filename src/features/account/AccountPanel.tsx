@@ -9,6 +9,7 @@ import { Link } from "@/i18n/navigation";
 import { api, ApiFailure } from "@/features/mindmap/api";
 import { SkeletonRows } from "@/components/ui/skeleton";
 import { InviteCard } from "./InviteCard";
+import { SharingCard } from "./SharingCard";
 import { ProfileSection, type ProfileValues } from "./ProfileSection";
 import { TimeZoneSection } from "./TimeZoneSection";
 
@@ -94,6 +95,7 @@ export function AccountPanel({ email, avatar, profile }: { email: string; avatar
       <ProfileSection email={email} avatar={avatar} initial={profile} />
 
       <InviteCard />
+      <SharingCard />
       {done && <p role="status" className="text-sm">{done}</p>}
 
       <TimeZoneSection />

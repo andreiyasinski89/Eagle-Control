@@ -7,13 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 /** The first sign-in: who you are and what to call your workspace, in one form. The names are kept if they were given at sign-up. */
-export function OnboardingForm({ firstName: first0, lastName: last0, suggestion }: { firstName: string; lastName: string; suggestion: string }) {
+export function OnboardingForm({ firstName: first0, lastName: last0, suggestion, inviter }: { firstName: string; lastName: string; suggestion: string; inviter: string }) {
   const t = useTranslations("onboarding");
   const tc = useTranslations("common");
   const router = useRouter();
   const [firstName, setFirstName] = useState(first0);
   const [lastName, setLastName] = useState(last0);
   const [name, setName] = useState(suggestion);
+  const [share, setShare] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,6 +25,7 @@ export function OnboardingForm({ firstName: first0, lastName: last0, suggestion 
     if (firstName.trim() !== first0 || lastName.trim() !== last0) {
       await fetch("/api/v1/me", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ firstName, lastName }) }).catch(() => undefined);
     }
+    if (inviter && share) await fetch("/api/v1/account/sharing", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ share: true }) }).catch(() => undefined);
     const res = await fetch("/api/v1/workspaces", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -59,6 +61,15 @@ export function OnboardingForm({ firstName: first0, lastName: last0, suggestion 
         {t("name")}
       </label>
       <Input id="name" required minLength={2} maxLength={60} value={name} onChange={(e) => setName(e.target.value)} data-testid="onb-workspace" />
+      {inviter && (
+        <label className="flex items-start gap-2 text-sm" data-testid="onb-share">
+          <input type="checkbox" className="mt-0.5 size-4" checked={share} onChange={(e) => setShare(e.target.checked)} />
+          <span>
+            {t("share", { name: inviter })}
+            <span className="block text-xs text-muted-foreground">{t("shareHint")}</span>
+          </span>
+        </label>
+      )}
       {error && (
         <p role="alert" className="text-sm text-danger">
           {error}

@@ -1,0 +1,1 @@
+ALTER TABLE "User" ADD COLUMN "shareActivity" BOOLEAN NOT NULL DEFAULT false;

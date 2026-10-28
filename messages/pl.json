@@ -75,7 +75,9 @@
     "firstName": "Imię",
     "lastName": "Nazwisko (opcjonalnie)",
     "suggestion": "Przestrzeń: {name}",
-    "limit": "Plan darmowy obejmuje jedną własną przestrzeń. Poproś o zaproszenie do innej albo zmień plan."
+    "limit": "Plan darmowy obejmuje jedną własną przestrzeń. Poproś o zaproszenie do innej albo zmień plan.",
+    "share": "Pozwól {name}, który(a) mnie zaprosił(a), widzieć podsumowanie mojej aktywności",
+    "shareHint": "Tylko liczby, bez nazwisk i treści. Możesz to wyłączyć w każdej chwili w sekcji Konto."
   },
   "dashboard": {
     "title": "Witaj w {workspace}",
@@ -871,7 +873,43 @@
     "starterAdd": "Dodaj gotowe skrypty",
     "starterAdded": "{n, plural, one {Dodano # skrypt} few {Dodano # skrypty} many {Dodano # skryptów} other {Dodano # skryptu}}: na każdy etap lejka. Otwórz dowolny, żeby go przepisać po swojemu. W nawiasach kwadratowych jest to, co trzeba wpisać ręcznie.",
     "starterNothing": "Wszystkie gotowe skrypty już tu są, nie ma co dodawać.",
-    "starterFailed": "Nie udało się dodać skryptów. Spróbuj za chwilę."
+    "starterFailed": "Nie udało się dodać skryptów. Spróbuj za chwilę.",
+    "tabTeamActivity": "Aktywność zespołu",
+    "actTitle": "Aktywność zespołu",
+    "actPeriod": "Okres",
+    "actDays": "{n, plural, one {# dzień} few {# dni} many {# dni} other {# dnia}}",
+    "actQuiet": "{n, plural, one {# ucichł} few {# ucichli} many {# ucichło} other {# ucichło}}",
+    "actHint": "Jak radzą sobie osoby bezpośrednio pod Tobą: co zrobiły w okresie i kiedy ostatnio coś robiły. Aktywny: w ciągu 3 dni; cichy: 3–6 dni; dawno nic: 7 dni i więcej.",
+    "actPartnersTitle": "Partnerzy pierwszej linii",
+    "actPartnersEmpty": "W pierwszej linii nie ma jeszcze partnerów. Ustaw osobie etap Partner i wskaż siebie jako sponsora.",
+    "actInviteesTitle": "Osoby, które przyszły z Twojego linku",
+    "actInviteesHint": "Pracują we własnych przestrzeniach. Widzisz tylko liczby (nigdy nazwisk ani treści) i tylko jeśli sami zgodzili się na to w swoim koncie.",
+    "actInviteesEmpty": "Nikt jeszcze nie przyszedł z Twojego linku.",
+    "actNotShared": "Podsumowanie niedostępne: osoba nie zgodziła się pokazywać aktywności.",
+    "actJoined": "dołączył(a) {date}",
+    "actPerson": "Osoba",
+    "actState": "Stan",
+    "actLast": "Ostatnie działanie",
+    "actBelow": "{n, plural, one {# partner niżej} few {# partnerów niżej} many {# partnerów niżej} other {# partnera niżej}}",
+    "actNever": "jeszcze nie było",
+    "actToday": "dziś",
+    "actYesterday": "wczoraj",
+    "actDaysAgo": "{n, plural, one {# dzień temu} few {# dni temu} many {# dni temu} other {# dnia temu}}",
+    "actStatus": {
+      "active": "Aktywny",
+      "quiet": "Cichy",
+      "gone": "Dawno nic",
+      "never": "Jeszcze nie było"
+    },
+    "actCol": {
+      "added": "Dodano",
+      "contacted": "Kontakt",
+      "presentations": "Prezentacje",
+      "clients": "Klienci",
+      "partners": "Partnerzy",
+      "meetings": "Rozmowy i spotkania",
+      "tasks": "Zadania"
+    }
   },
   "myday": {
     "title": "Mój dzień",
@@ -1875,5 +1913,10 @@
     "modeHint_on": "Płatne zasady obowiązują wszystkich: limity Free, blokady Pro, okres próbny i płatności.",
     "recompute": "Przelicz plany",
     "recomputed": "Plany przeliczone: zmieniło się {n} z {total} przestrzeni."
+  },
+  "sharing": {
+    "title": "Pokazuj moją aktywność sponsorowi",
+    "hint": "{name} Cię zaprosił(a). Jeśli się zgodzisz, zobaczy podsumowanie Twojej aktywności: liczby (dodane osoby, kontakty, prezentacje, rozmowy i spotkania, zadania) i datę ostatniego działania. Nigdy nazwisk Twoich klientów, wiadomości ani notatek.",
+    "toggle": "Pozwól {name} widzieć podsumowanie mojej aktywności"
   }
 }

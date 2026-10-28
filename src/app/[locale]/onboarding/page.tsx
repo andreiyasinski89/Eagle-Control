@@ -11,7 +11,9 @@ export default async function OnboardingPage({ params }: { params: Promise<{ loc
   const session = await auth();
   if (!session?.user?.id) return redirect({ href: "/sign-in", locale });
   const t = await getTranslations("onboarding");
-  const me = await db.user.findUnique({ where: { id: session.user.id }, select: { name: true, firstName: true, lastName: true } });
+  const me = await db.user.findUnique({ where: { id: session.user.id }, select: { name: true, firstName: true, lastName: true, referredBy: { select: { name: true, email: true } } } });
+  // Someone who came through a link may let whoever invited them see a summary of their activity; the choice is theirs and starts off.
+  const inviter = me?.referredBy ? (me.referredBy.name?.trim() || me.referredBy.email.split("@")[0] || "") : "";
   // Accounts made before the split have only a display name: split it at the first space.
   const words = (me?.name ?? "").trim().split(/\s+/).filter(Boolean);
   const firstName = me?.firstName ?? (me?.lastName ? "" : (words[0] ?? ""));
@@ -23,7 +25,7 @@ export default async function OnboardingPage({ params }: { params: Promise<{ loc
         <h1 className="text-2xl font-semibold">{t("title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
       </div>
-      <OnboardingForm firstName={firstName} lastName={lastName} suggestion={suggestion} />
+      <OnboardingForm firstName={firstName} lastName={lastName} suggestion={suggestion} inviter={inviter} />
     </main>
   );
 }
