@@ -25,17 +25,17 @@ export default async function ProjectsPage({ params }: { params: Promise<{ slug:
       {projects.length === 0 ? (
         <p className="text-muted-foreground">{t("empty")}</p>
       ) : (
-        <ul className="grid gap-3 sm:grid-cols-2">
+        <ul className="grid gap-3 sm:grid-cols-2 sm:auto-rows-fr">
           {projects.map((p) => (
-            <li key={p.id}>
+            <li key={p.id} className="flex">
               <Link
                 href={`/w/${slug}/projects/p/${p.id}`}
-                className="block rounded-lg border border-border bg-card p-4 hover:border-primary"
+                className="flex w-full flex-col rounded-lg border border-border bg-card p-4 hover:border-primary"
                 style={{ borderLeft: `5px solid var(--health-${p.health.toLowerCase()})` }}
               >
                 <div className="font-medium">{p.title}</div>
                 {p.description && <div className="mt-1 line-clamp-2 text-sm text-muted-foreground">{p.description}</div>}
-                <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+                <div className="mt-auto flex items-center gap-2 pt-3 text-xs text-muted-foreground">
                   <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
                     <div className="h-full" style={{ width: `${p.progress}%`, background: `var(--health-${p.health.toLowerCase()})` }} />
                   </div>

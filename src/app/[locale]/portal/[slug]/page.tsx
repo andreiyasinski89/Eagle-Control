@@ -29,12 +29,12 @@ export default async function PortalHome({ params }: { params: Promise<{ slug: s
       {list.items.length === 0 ? (
         <p className="text-muted-foreground">{t("noProjects")}</p>
       ) : (
-        <ul className="grid gap-3 sm:grid-cols-2">
+        <ul className="grid gap-3 sm:grid-cols-2 sm:auto-rows-fr">
           {list.items.map((p) => (
-            <li key={p.id}>
-              <Link href={`/portal/${slug}/p/${p.id}`} data-testid="portal-project" className="block rounded-lg border border-border bg-card p-4 hover:border-primary" style={{ borderLeft: `5px solid var(--health-${p.health.toLowerCase()})` }}>
+            <li key={p.id} className="flex">
+              <Link href={`/portal/${slug}/p/${p.id}`} data-testid="portal-project" className="flex w-full flex-col rounded-lg border border-border bg-card p-4 hover:border-primary" style={{ borderLeft: `5px solid var(--health-${p.health.toLowerCase()})` }}>
                 <div className="font-medium">{p.title}</div>
-                <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+                <div className="mt-auto flex items-center gap-2 pt-3 text-xs text-muted-foreground">
                   <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
                     <div className="h-full" style={{ width: `${p.progress}%`, background: `var(--health-${p.health.toLowerCase()})` }} />
                   </div>
