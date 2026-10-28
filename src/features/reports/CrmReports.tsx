@@ -16,6 +16,7 @@ interface Report {
   funnel: { rows: { stageId: string; name: string; reached: number; conversion: number | null }[]; lost: number; deals: number };
   forecast: Record<string, { month: string; count: number; total: number; weighted: number }[]>;
   winLoss: { won: number; lost: number; winRate: number | null; wonAmount: Record<string, number>; lostAmount: Record<string, number>; reasons: { reason: string; count: number }[]; avgCycleDays: number | null; medianCycleDays: number | null };
+  declines: { total: number; reasons: { reason: string | null; count: number }[] };
   sources: { source: string; deals: number; won: number; conversion: number; wonAmount: Record<string, number> }[];
   managers: { ownerId: string; name: string; calls: number; emails: number; meetings: number; notes: number; tasksDone: number; dealsWon: number; wonAmount: Record<string, number> }[];
 }
@@ -25,12 +26,15 @@ const pct = (n: number | null) => (n === null ? "—" : `${Math.round(n * 100)}%
 
 export function CrmReports({ workspaceId, canExport }: { workspaceId: string; canExport: boolean }) {
   const t = useTranslations("reports");
+  const tc = useTranslations("crm");
   const locale = useLocale();
   const now = new Date();
   const [from, setFrom] = useState(iso(new Date(now.getTime() - 90 * 86_400_000)));
   const [to, setTo] = useState(iso(now));
   const qs = `from=${from}&to=${to}`;
   const { data, error, isLoading } = useQuery({ queryKey: ["crm-report", workspaceId, from, to], enabled: from <= to, queryFn: () => api.get<Report>(`/api/v1/workspaces/${workspaceId}/reports/crm?${qs}`) });
+  // Why we lose: what people said when they declined, and the reasons deals were lost, together, the most frequent first.
+  const why = data ? [...data.declines.reasons.map((r) => ({ label: r.reason ? tc(`declineReason.${r.reason as "OTHER"}`) : tc("declineNone"), value: r.count })), ...data.winLoss.reasons.map((r) => ({ label: r.reason, value: r.count }))].sort((a, b) => b.value - a.value) : [];
   const money = (m: Record<string, number>) => Object.entries(m).map(([c, v]) => new Intl.NumberFormat(locale, { style: "currency", currency: c, maximumFractionDigits: 0 }).format(v)).join(" · ") || "—";
   const csv = (section: string) =>
     canExport && (
@@ -84,8 +88,8 @@ export function CrmReports({ workspaceId, canExport }: { workspaceId: string; ca
                 ))
               )}
             </Card>
-            <Card title={t("winLoss")} hint={t("reasons")} action={csv("winloss")}>
-              {data.winLoss.reasons.length === 0 ? <p className="py-6 text-center text-sm text-muted-foreground">{t("noData")}</p> : <HBars color={SERIES[5]} rows={data.winLoss.reasons.map((r) => ({ label: r.reason, value: r.count }))} />}
+            <Card title={t("winLoss")} hint={t("declinedHint")} action={csv("winloss")}>
+              {why.length === 0 ? <p className="py-6 text-center text-sm text-muted-foreground">{t("noData")}</p> : <HBars color={SERIES[5]} rows={why} />}
             </Card>
             <Card title={t("sources")} action={csv("sources")}>
               <Table head={[t("source"), t("deals"), t("won"), t("conversion"), t("wonAmount")]} rows={data.sources.map((s) => [s.source, String(s.deals), String(s.won), pct(s.conversion), money(s.wonAmount)])} empty={t("noData")} />

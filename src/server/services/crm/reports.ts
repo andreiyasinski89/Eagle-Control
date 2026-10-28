@@ -6,6 +6,7 @@ import { can } from "@/server/policies";
 import { loadWorkspaceMember } from "@/server/services/nodes/access";
 import { requireFeature } from "@/server/services/metrics";
 import { toCsv } from "@/modules/crm/csv";
+import { declineStats } from "@/modules/crm/decline";
 import { invalid, toNum } from "./common";
 
 const DAY = 86_400_000;
@@ -39,13 +40,15 @@ export async function crmReport(userId: string, workspaceId: string, q: z.infer<
   const stageById = new Map(pipeline.stages.map((s) => [s.id, s]));
   const inPeriod = { gte: from, lt: to };
 
-  const [stageEvents, open, wonRows, lostRows, created, activities] = await Promise.all([
+  const [stageEvents, open, wonRows, lostRows, created, activities, declinedPeople] = await Promise.all([
     db.dealStageEvent.findMany({ where: { workspaceId, pipelineId: pipeline.id, at: inPeriod }, select: { dealId: true, toStageId: true, at: true } }),
     db.deal.findMany({ where: { workspaceId, pipelineId: pipeline.id, node: { archivedAt: null }, stage: { isWon: false, isLost: false } }, select: { nodeId: true, amount: true, currency: true, probability: true, stageId: true, expectedCloseDate: true } }),
     db.deal.findMany({ where: { workspaceId, pipelineId: pipeline.id, wonAt: inPeriod }, select: { amount: true, currency: true, source: true, ownerId: true, wonAt: true, node: { select: { createdAt: true } } } }),
     db.deal.findMany({ where: { workspaceId, pipelineId: pipeline.id, lostAt: inPeriod }, select: { amount: true, currency: true, source: true, lostAt: true, lostReason: { select: { name: true } }, node: { select: { createdAt: true } } } }),
     db.deal.findMany({ where: { workspaceId, pipelineId: pipeline.id, node: { createdAt: inPeriod } }, select: { source: true, amount: true, currency: true, stage: { select: { isWon: true } } } }),
     db.crmActivity.findMany({ where: { workspaceId, completedAt: inPeriod }, select: { ownerId: true, type: true } }),
+    // People who said no in the period (and are still at that stage), with the reason given.
+    db.contact.findMany({ where: { workspaceId, stage: "DECLINED", stageChangedAt: inPeriod, node: { archivedAt: null } }, select: { declineReason: true } }),
   ]);
 
   const openDeals: OpenDeal[] = open.map((d) => ({ id: d.nodeId, amount: toNum(d.amount), currency: d.currency, probability: d.probability ?? stageById.get(d.stageId)?.probability ?? 0, expectedCloseDate: d.expectedCloseDate }));
@@ -65,6 +68,7 @@ export async function crmReport(userId: string, workspaceId: string, q: z.infer<
     funnel: funnel(pipeline.stages, stageEvents),
     forecast: forecast(openDeals),
     winLoss: winLoss(closed),
+    declines: declineStats(declinedPeople),
     sources: bySource(created.map((d) => ({ source: d.source, won: d.stage.isWon, amount: toNum(d.amount), currency: d.currency }))),
     managers: managerActivity(
       activities.map((a) => ({ ownerId: a.ownerId, type: a.type })),
@@ -82,7 +86,7 @@ export function crmReportCsv(r: Awaited<ReturnType<typeof crmReport>>, section: 
     case "forecast":
       return toCsv(["Currency", "Month", "Deals", "Total", "Weighted"], Object.entries(r.forecast).flatMap(([cur, rows]) => rows.map((x) => [cur, x.month === "none" ? "no close date" : x.month, x.count, x.total, x.weighted])));
     case "winloss":
-      return toCsv(["Metric", "Value"], [["Won", r.winLoss.won], ["Lost", r.winLoss.lost], ["Win rate", r.winLoss.winRate === null ? "" : `${Math.round(r.winLoss.winRate * 100)}%`], ["Won amount", money(r.winLoss.wonAmount)], ["Lost amount", money(r.winLoss.lostAmount)], ["Average sales cycle (days)", r.winLoss.avgCycleDays ?? ""], ["Median sales cycle (days)", r.winLoss.medianCycleDays ?? ""], ...r.winLoss.reasons.map((x) => [`Lost: ${x.reason}`, x.count])]);
+      return toCsv(["Metric", "Value"], [["Won", r.winLoss.won], ["Lost", r.winLoss.lost], ["Win rate", r.winLoss.winRate === null ? "" : `${Math.round(r.winLoss.winRate * 100)}%`], ["Won amount", money(r.winLoss.wonAmount)], ["Lost amount", money(r.winLoss.lostAmount)], ["Average sales cycle (days)", r.winLoss.avgCycleDays ?? ""], ["Median sales cycle (days)", r.winLoss.medianCycleDays ?? ""], ...r.winLoss.reasons.map((x) => [`Lost: ${x.reason}`, x.count]), ...r.declines.reasons.map((x) => [`Declined: ${x.reason ?? "not specified"}`, x.count])]);
     case "sources":
       return toCsv(["Source", "Deals", "Won", "Conversion", "Won amount"], r.sources.map((x) => [x.source, x.deals, x.won, `${Math.round(x.conversion * 100)}%`, money(x.wonAmount)]));
     case "managers":

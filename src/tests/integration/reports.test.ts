@@ -17,6 +17,7 @@ import { getTree } from "@/server/services/nodes/queries";
 import { createDeal, loseDeal, moveDeal, winDeal } from "@/server/services/crm/deals";
 import { listLostReasons, listPipelines } from "@/server/services/crm/pipelines";
 import { createActivity } from "@/server/services/crm/activities";
+import { createContact, getContact, updateContact } from "@/server/services/crm/contacts";
 import { metricsQuerySchema, projectMetrics } from "@/server/services/metrics";
 import { crmReport, crmReportCsv, crmReportQuerySchema } from "@/server/services/crm/reports";
 
@@ -111,6 +112,26 @@ describe("CRM reports", () => {
     expect(r.forecast.EUR![0]).toMatchObject({ count: 1, total: 2000 });
     expect(r.sources.find((s) => s.source === "web")).toMatchObject({ deals: 2, won: 1, conversion: 0.5 });
     expect(r.managers[0]).toMatchObject({ name: "Owner", dealsWon: 1, calls: 1 });
+  });
+
+  it("counts the reasons people gave for saying no, most frequent first, and the ones left unsaid", async () => {
+    const base = { emails: [] as string[], phones: [] as string[], messengers: {}, allowDuplicate: false, consentGiven: false };
+    const person = async (firstName: string) => (await createContact(owner, ws.id, { ...base, firstName })).id;
+    const [a, b, c, d, still] = [await person("A"), await person("B"), await person("C"), await person("D"), await person("Still")];
+    await updateContact(owner, a, { stage: "DECLINED", declineReason: "NO_MONEY" });
+    await updateContact(owner, b, { stage: "DECLINED", declineReason: "NO_MONEY" });
+    await updateContact(owner, c, { stage: "DECLINED", declineReason: "NO_TIME" });
+    await updateContact(owner, d, { stage: "DECLINED" });
+    await updateContact(owner, still, { stage: "WARMING", declineReason: "NO_TIME" }); // a reason only lives with the Declined stage
+    expect((await getContact(owner, still)).declineReason).toBeNull();
+    const day = (n: number) => new Date(Date.now() + n * 86_400_000).toISOString().slice(0, 10);
+    const r = await crmReport(owner, ws.id, rq({ from: day(-1), to: day(1) }));
+    expect(r.declines).toEqual({ total: 4, reasons: [{ reason: "NO_MONEY", count: 2 }, { reason: "NO_TIME", count: 1 }, { reason: null, count: 1 }] });
+    expect(crmReportCsv(r, "winloss")).toContain("Declined: NO_MONEY,2");
+    // coming back from Declined clears the reason, so the person leaves the statistics
+    await updateContact(owner, a, { stage: "WARMING" });
+    expect((await getContact(owner, a)).declineReason).toBeNull();
+    expect((await crmReport(owner, ws.id, rq({ from: day(-1), to: day(1) }))).declines.total).toBe(3);
   });
 
   it("exports sections as CSV and keeps the period honest", async () => {

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/ui/modal";
+import { DECLINE_REASONS } from "@/modules/crm/decline";
 import { BOARD_STAGES, INTERESTS, PRIORITIES, SIDE_STAGES, SOURCES, TEMPERATURES, type Priority, type Stage, type Temp } from "@/modules/crm/people";
 import { cn } from "@/lib/utils";
 import { useGroups } from "./useGroups";
@@ -23,6 +24,7 @@ export interface FunnelValues {
   country: string | null;
   sponsorName: string | null;
   groupId: string | null;
+  declineReason: string | null;
 }
 
 const dayOf = (iso: string | null) => (iso ? iso.slice(0, 10) : "");
@@ -49,6 +51,19 @@ export function FunnelFields({ value, disabled, workspaceId, onChange }: { value
           ))}
         </div>
       </div>
+
+      {value.stage === "DECLINED" && (
+        <FormField label={t("declineLabel")}>
+          <select disabled={disabled} className="h-9 w-full rounded-md border border-border bg-card px-2 text-sm" value={value.declineReason ?? ""} onChange={(e) => onChange({ declineReason: e.target.value || null })} data-testid="decline-reason-select">
+            <option value="">{t("declineNone")}</option>
+            {DECLINE_REASONS.map((r) => (
+              <option key={r} value={r}>
+                {t(`declineReason.${r}`)}
+              </option>
+            ))}
+          </select>
+        </FormField>
+      )}
 
       <div>
         <div className="mb-1 text-xs font-medium text-muted-foreground">{t("field.temperature")}</div>

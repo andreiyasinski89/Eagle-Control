@@ -12,6 +12,7 @@ import { api, ApiFailure } from "@/features/mindmap/api";
 import { cn } from "@/lib/utils";
 import { STAGES, type Stage } from "@/modules/crm/people";
 import { ContactDrawer, messengerLinks } from "./ContactDrawer";
+import { useDeclineAsk } from "./DeclineReason";
 import { DataTable, Pager, type Column } from "./DataTable";
 import { DuplicatesDialog } from "./DuplicatesDialog";
 import { useCompanyOptions, useMembers } from "./hooks";
@@ -167,6 +168,7 @@ export function ContactsView({ workspaceId, slug, canWrite, canExport, canMerge,
     },
   });
 
+  const decline = useDeclineAsk();
   // The stage is changed right in the table: the pill is a choice list, and the row shows the new stage at once.
   const setStage = useMutation({
     mutationFn: ({ id, stage }: { id: string; stage: Stage }) => api.patch(`/api/v1/contacts/${id}`, { stage }),
@@ -178,6 +180,7 @@ export function ContactsView({ workspaceId, slug, canWrite, canExport, canMerge,
     onError: (_e, _v, ctx) => {
       for (const [k, v] of ctx?.was ?? []) qc.setQueryData(k, v);
     },
+    onSuccess: (_d, { id, stage }) => stage === "DECLINED" && decline.ask(id),
     onSettled: () => {
       for (const k of ["contacts", "people", "contact", "partners", "activities"]) void qc.invalidateQueries({ queryKey: [k] });
     },
@@ -337,6 +340,7 @@ export function ContactsView({ workspaceId, slug, canWrite, canExport, canMerge,
 
       {openId && <ContactDrawer key={openId} workspaceId={workspaceId} slug={slug} contactId={openId} canWrite={canWrite} canErase={canErase} canExport={canExport} meId={meId} onClose={() => setOpen(null)} />}
 
+      {decline.dialog}
       <NewContactDialog open={creating} onClose={() => setCreating(false)} workspaceId={workspaceId} onCreated={(id) => { void qc.invalidateQueries({ queryKey: ["contacts"] }); setOpen(id); }} />
       <ImportWizard open={importing} onClose={() => setImporting(false)} workspaceId={workspaceId} entity="contacts" />
       <DuplicatesDialog open={dupes} onClose={() => setDupes(false)} workspaceId={workspaceId} entity="contacts" />

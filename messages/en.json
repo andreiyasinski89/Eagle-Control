@@ -854,7 +854,20 @@
     "netDepthAll": "All levels",
     "netDepthN": "{n, plural, one {# level} other {# levels}}",
     "netFiltersHint": "Partners always stay on the map; stage and warmth narrow down the other people.",
-    "netReset": "Reset filters"
+    "netReset": "Reset filters",
+    "declineAsk": "Why did they say no?",
+    "declineSkip": "Skip",
+    "declineLabel": "Reason for the no",
+    "declineNone": "Not specified",
+    "declineReason": {
+      "NOT_INTERESTED": "Not interested, not for them",
+      "NO_MONEY": "No money or too expensive",
+      "NO_TIME": "No time",
+      "DISTRUST_MLM": "Distrusts network marketing (\"a pyramid\")",
+      "DISTRUST_PRODUCT": "Doubts the product or the company",
+      "FAMILY_AGAINST": "Family or close ones are against",
+      "OTHER": "Other"
+    }
   },
   "myday": {
     "title": "My day",
@@ -1230,7 +1243,8 @@
     "emails": "E-mails",
     "meetings": "Meetings",
     "notes": "Notes",
-    "dealsWon": "Deals won"
+    "dealsWon": "Deals won",
+    "declinedHint": "Reasons people gave for saying no, and the reasons deals were lost, most frequent first"
   },
   "live": {
     "here": "People in this project",

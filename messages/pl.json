@@ -854,7 +854,20 @@
     "netDepthAll": "Wszystkie poziomy",
     "netDepthN": "{n, plural, one {# poziom} few {# poziomy} many {# poziomów} other {# poziomu}}",
     "netFiltersHint": "Partnerzy zawsze zostają na mapie; etap i ciepło zawężają pozostałe osoby.",
-    "netReset": "Wyczyść filtry"
+    "netReset": "Wyczyść filtry",
+    "declineAsk": "Dlaczego odmówił?",
+    "declineSkip": "Pomiń",
+    "declineLabel": "Powód odmowy",
+    "declineNone": "Nie podano",
+    "declineReason": {
+      "NOT_INTERESTED": "Nie interesuje, nie dla niego",
+      "NO_MONEY": "Brak pieniędzy lub za drogo",
+      "NO_TIME": "Brak czasu",
+      "DISTRUST_MLM": "Nie ufa marketingowi sieciowemu („piramida”)",
+      "DISTRUST_PRODUCT": "Wątpi w produkt lub firmę",
+      "FAMILY_AGAINST": "Rodzina lub bliscy są przeciw",
+      "OTHER": "Inne"
+    }
   },
   "myday": {
     "title": "Mój dzień",
@@ -1230,7 +1243,8 @@
     "emails": "E-maile",
     "meetings": "Spotkania",
     "notes": "Notatki",
-    "dealsWon": "Wygrane szanse"
+    "dealsWon": "Wygrane szanse",
+    "declinedHint": "Powody odmów oraz powody przegranych szans, najczęstsze pierwsze"
   },
   "live": {
     "here": "Osoby w projekcie",

@@ -5,6 +5,7 @@ import { db } from "@/server/db";
 import { ApiError, limitReached } from "@/server/http/errors";
 import { checkLimit } from "@/modules/plans";
 import { contactKeys, findDuplicateGroups } from "@/modules/crm/dedupe";
+import { DECLINE_REASONS } from "@/modules/crm/decline";
 import { parsePriority, PRIORITIES, STAGES, TEMPERATURES } from "@/modules/crm/people";
 import { normalizeEmail, normalizePhone, uniqueNonNull } from "@/modules/crm/normalize";
 import { can } from "@/server/policies";
@@ -44,6 +45,7 @@ export const contactFieldsSchema = z.object({
   groupId: z.string().nullable().optional(),
   sponsorId: z.string().nullable().optional(),
   linkedUserId: z.string().nullable().optional(),
+  declineReason: z.enum(DECLINE_REASONS).nullable().optional(),
 });
 export const createContactSchema = contactFieldsSchema.extend({ allowDuplicate: z.boolean().default(false), consentGiven: z.boolean().default(false) });
 export const patchContactSchema = contactFieldsSchema.partial().refine((v) => Object.keys(v).length > 0, "Nothing to update");
@@ -103,6 +105,7 @@ export interface Funnel {
   groupId?: string | null;
   sponsorId?: string | null;
   linkedUserId?: string | null;
+  declineReason?: string | null;
   ownerId?: string | null;
 }
 
@@ -124,6 +127,7 @@ function funnelData(f: Funnel): Partial<Prisma.ContactUncheckedCreateInput> {
   if (f.groupId !== undefined) out.groupId = f.groupId;
   if (f.sponsorId !== undefined) out.sponsorId = f.sponsorId;
   if (f.linkedUserId !== undefined) out.linkedUserId = f.linkedUserId;
+  if (f.declineReason !== undefined) out.declineReason = f.declineReason;
   return out as Partial<Prisma.ContactUncheckedCreateInput>;
 }
 
@@ -265,6 +269,8 @@ export async function updateContactIn(tx: Tx, userId: string, contactId: string,
   if (patch.birthday !== undefined) data.birthday = toDate(patch.birthday);
   Object.assign(data, funnelData(patch));
   const stageMoved = patch.stage !== undefined && patch.stage !== cur.stage;
+  // A reason belongs to the Declined stage: leaving it (or being anywhere else) clears it.
+  if ((patch.stage ?? cur.stage) !== "DECLINED") data.declineReason = null;
   if (stageMoved) {
     data.stageChangedAt = new Date();
     // Moving into a stage fills in the next step by the workspace's rule, unless the change already says what is next.
@@ -437,6 +443,7 @@ export async function getContactIn(tx: Tx, userId: string, contactId: string) {
     createdAt: node.createdAt,
     stage: c.stage,
     stageChangedAt: c.stageChangedAt,
+    declineReason: c.declineReason,
     temperature: c.temperature,
     interests: c.interests,
     source: c.source,

@@ -625,6 +625,8 @@ model Contact {
   // The person in a funnel (network marketing): where they are, how warm, where they came from, what is next.
   stage          PersonStage  @default(NEW)
   stageChangedAt DateTime     @default(now())
+  /// Why the person said no (a code, see modules/crm/decline.ts); only while the stage is Declined.
+  declineReason  String?
   temperature    Temperature?
   interests      String[]     @default([])
   source         String?

@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { AddPeopleDialog } from "./AddPeopleDialog";
 import { PRIORITY_ICON } from "./FunnelFields";
 import { ContactDrawer } from "./ContactDrawer";
+import { useDeclineAsk } from "./DeclineReason";
 import { useMembers } from "./hooks";
 import { GroupsPanel, type GroupChoice } from "./GroupsPanel";
 import { ImportWizard } from "./ImportWizard";
@@ -95,8 +96,10 @@ export function PeopleBoard({ workspaceId, slug, canWrite, canExport, canErase, 
   const key = ["people", workspaceId, params.toString()];
   const { data, isLoading, isError } = useQuery({ queryKey: key, placeholderData: (p) => p, queryFn: () => api.get<PeopleData>(`/api/v1/workspaces/${workspaceId}/people?${params}`) });
 
+  const decline = useDeclineAsk();
   const move = useMutation({
     mutationFn: ({ id, stage }: { id: string; stage: Stage }) => api.patch(`/api/v1/contacts/${id}`, { stage }),
+    onSuccess: (_d, { id, stage }) => stage === "DECLINED" && decline.ask(id),
     onMutate: async ({ id, stage }) => {
       await qc.cancelQueries({ queryKey: ["people", workspaceId] });
       const prev = qc.getQueriesData<PeopleData>({ queryKey: ["people", workspaceId] });
@@ -421,6 +424,7 @@ export function PeopleBoard({ workspaceId, slug, canWrite, canExport, canErase, 
       )}
 
       {openId && <ContactDrawer key={openId} workspaceId={workspaceId} slug={slug} contactId={openId} canWrite={canWrite} canErase={canErase} canExport={canExport} meId={meId} onClose={() => setOpen(null)} />}
+      {decline.dialog}
       <AddPeopleDialog open={adding} onClose={() => setAdding(false)} workspaceId={workspaceId} meId={meId} defaultGroup={group !== "all" && group !== "none" ? group : ""} onAdded={() => (void qc.invalidateQueries({ queryKey: ["people", workspaceId] }), void qc.invalidateQueries({ queryKey: ["groups", workspaceId] }))} />
       <ImportWizard open={importing} onClose={() => (setImporting(false), void qc.invalidateQueries({ queryKey: ["people", workspaceId] }))} workspaceId={workspaceId} entity="contacts" />
     </div>

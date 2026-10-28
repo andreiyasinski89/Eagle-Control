@@ -45,6 +45,7 @@ export interface ContactDetail {
   consentAt: string | null;
   lastContactedAt: string | null;
   stage: FunnelValues["stage"];
+  declineReason: string | null;
   temperature: FunnelValues["temperature"];
   interests: string[];
   source: string | null;
@@ -215,7 +216,7 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
         <FunnelFields
           disabled={dis}
           workspaceId={workspaceId}
-          value={{ stage: c.stage, temperature: c.temperature, interests: c.interests, source: c.source, influence: c.influence, nextStep: c.nextStep, nextStepAt: c.nextStepAt, typeTag: c.typeTag, country: c.country, sponsorName: c.sponsorName, groupId: c.groupId }}
+          value={{ stage: c.stage, declineReason: c.declineReason, temperature: c.temperature, interests: c.interests, source: c.source, influence: c.influence, nextStep: c.nextStep, nextStepAt: c.nextStepAt, typeTag: c.typeTag, country: c.country, sponsorName: c.sponsorName, groupId: c.groupId }}
           onChange={(patchBody) => patch.mutate(patchBody)}
         />
       </Section>
