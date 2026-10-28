@@ -71,7 +71,7 @@ interface MyDay {
   plan: Plan;
   crm: boolean;
   tasks: { overdue: AgileTask[]; today: AgileTask[] };
-  events: { id: string; title: string; projectId: string | null; startsAt: string | null; meetingUrl: string | null }[];
+  events: { id: string; title: string; projectId: string | null; startsAt: string | null; meetingUrl: string | null; repeats?: boolean; done?: boolean }[];
   reminders: { id: string; remindAt: string; target: { id: string; title: string; type: string } | null }[];
   crmTasks: CrmItem[];
   scheduled: CrmItem[];
@@ -300,6 +300,13 @@ export function MyDayView({ workspaceId, slug, workspaceName, userName }: { work
     mutationFn: (id: string) => api.patch(`/api/v1/activities/${id}`, { completed: true }),
     onSettled: () => void qc.invalidateQueries({ queryKey: ["my-day"] }),
   });
+  // A calendar event has no "done" of its own until its time is over; this marks it held right away. A series has no single "done", so it is left to the clock.
+  const eventDone = useMutation({
+    mutationFn: (id: string) => api.patch(`/api/v1/nodes/${id}`, { status: "DONE" }),
+    onSettled: () => {
+      for (const k of ["my-day", "calendar"]) void qc.invalidateQueries({ queryKey: [k] });
+    },
+  });
   const stepDone = useMutation({
     mutationFn: (id: string) => api.post(`/api/v1/contacts/${id}/step-done`, {}),
     onSettled: () => {
@@ -341,8 +348,9 @@ export function MyDayView({ workspaceId, slug, workspaceName, userName }: { work
           {new Date(x.dueAt).toLocaleString(locale, { dateStyle: "short", timeStyle: "short", timeZone: tz })}
         </Link>
       )}
-      <Button size="sm" variant="outline" onClick={() => done.mutate(x.id)} disabled={done.isPending} aria-label={tc("markDone")}>
+      <Button size="sm" variant="outline" className="shrink-0" onClick={() => done.mutate(x.id)} disabled={done.isPending} data-testid="crm-row-done">
         <Check className="size-4" />
+        {tc("markDone")}
       </Button>
     </li>
   );
@@ -444,6 +452,19 @@ export function MyDayView({ workspaceId, slug, workspaceName, userName }: { work
                       {e.title}
                     </Link>
                     {e.startsAt && <span className="text-xs text-muted-foreground">{time(e.startsAt)}</span>}
+                    {e.done ? (
+                      <span className="inline-flex shrink-0 items-center gap-1 text-xs text-[var(--health-green)]" data-testid="event-held">
+                        <Check className="size-4" aria-hidden />
+                        {tc("markDone")}
+                      </span>
+                    ) : (
+                      !e.repeats && (
+                        <Button size="sm" variant="outline" className="shrink-0" onClick={() => eventDone.mutate(e.id)} disabled={eventDone.isPending} data-testid="event-done">
+                          <Check className="size-4" />
+                          {tc("markDone")}
+                        </Button>
+                      )
+                    )}
                     {e.meetingUrl && (
                       <a href={e.meetingUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
                         {t("join")}

@@ -380,3 +380,9 @@
 - The "CRM contacts and activities" card of My day no longer lists meetings (they are in the meetings number).
 - Tests: a new integration file covers a done and a planned CRM meeting, a meeting without a date, one done on another day, a project event, calls and messages, and the efficiency and productivity after the fix (it fails on the old code).
 
+## 0.36.1 — A visible "Done" button for meetings
+
+- **My day, "Meetings today":** the check mark without a label is now a button with the word **Done**, on every meeting from the CRM. The same in the contact card (planned items) and in the Activities tab, which already had it.
+- **Calendar events of projects can be marked done too.** The row of an event now has a **Done** button; the meeting is counted as held at once, without waiting for its end time, and the row then shows "Done" in green. A series has no single "done": its dates count as held when their time is over, so no button is shown for it.
+- Tests: a project event marked done counts as held before it ends; a series is not made "held" by the status of its node.
+

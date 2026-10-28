@@ -75,12 +75,12 @@ export async function getMyDay(userId: string, workspaceId: string, now = new Da
         ],
         ...(reachable ? { rootId: { in: reachable } } : {}),
       },
-      select: { id: true, title: true, rootId: true, data: true },
+      select: { id: true, title: true, rootId: true, data: true, status: true },
     })
   )
     .flatMap((e) => {
       const d = e.data as { startsAt?: string; endsAt?: string; meetingUrl?: string; repeat?: Repeat };
-      return occurrences({ startsAt: d.startsAt, endsAt: d.endsAt, repeat: d.repeat }, dayFrom, dayTo).map((o) => ({ id: e.id, title: e.title, projectId: e.rootId, startsAt: o.start.toISOString() as string | null, endsAt: o.end ? o.end.toISOString() : null, meetingUrl: d.meetingUrl ?? null, repeats: !!d.repeat }));
+      return occurrences({ startsAt: d.startsAt, endsAt: d.endsAt, repeat: d.repeat }, dayFrom, dayTo).map((o) => ({ id: e.id, title: e.title, projectId: e.rootId, startsAt: o.start.toISOString() as string | null, endsAt: o.end ? o.end.toISOString() : null, meetingUrl: d.meetingUrl ?? null, repeats: !!d.repeat, done: !d.repeat && e.status === "DONE" }));
     })
     .sort((a, b) => (a.startsAt ?? "").localeCompare(b.startsAt ?? ""));
 
@@ -102,7 +102,7 @@ export async function getMyDay(userId: string, workspaceId: string, now = new Da
   ]);
   const taskPair = { planned: plannedTaskRows.length, done: plannedTaskRows.filter((r) => r.status === "DONE" || r.progress >= 100).length };
   const nowMs = now.getTime();
-  const meetingPair = { planned: events.length, done: events.filter((e) => new Date(e.endsAt ?? (e.startsAt as string)).getTime() <= nowMs).length };
+  const meetingPair = { planned: events.length, done: events.filter((e) => e.done || new Date(e.endsAt ?? (e.startsAt as string)).getTime() <= nowMs).length };
   const finishPlan = (followUps: { planned: number; done: number }, backlogOpen: number, extraCleared: number, extraMeetings: { planned: number; done: number }) => {
     const meetings = { planned: meetingPair.planned + extraMeetings.planned, done: meetingPair.done + extraMeetings.done };
     const counts = { tasks: taskPair, meetings, followUps, backlogOpen: tasks.filter((t) => t.dueDate && t.dueDate < start).length + backlogOpen, backlogCleared: new Set(clearedTaskEvents.map((e) => e.nodeId)).size + extraCleared };

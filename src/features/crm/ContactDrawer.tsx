@@ -254,8 +254,9 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
                 </div>
                 {canWrite && (
                   <span className="flex shrink-0 gap-1">
-                    <Button size="sm" variant="ghost" aria-label={t("planDone")} title={t("planDone")} disabled={finish.isPending} onClick={() => finish.mutate(a.id)}>
+                    <Button size="sm" variant="outline" title={t("planDone")} disabled={finish.isPending} onClick={() => finish.mutate(a.id)}>
                       <Check className="size-4" />
+                      {t("markDone")}
                     </Button>
                     <Button size="sm" variant="ghost" aria-label={t("planRemove")} title={t("planRemove")} disabled={unplan.isPending} onClick={() => unplan.mutate(a.id)}>
                       <Trash2 className="size-4" />

@@ -101,4 +101,21 @@ describe("My day: meetings of the plan", () => {
     expect(subjects).not.toContain("Held yesterday");
     expect(subjects).not.toContain("Tomorrow");
   });
+
+  it("a calendar event marked done counts as held at once, before its time is over, and says so", async () => {
+    const before = (await getMyDay(owner, ws.id, NOW)).plan.meetings;
+    const review = (await getMyDay(owner, ws.id, NOW)).events.find((e) => e.title === "Review");
+    expect(review).toMatchObject({ done: false, repeats: false });
+    await raw.node.update({ where: { id: review?.id as string }, data: { status: "DONE" } });
+    const d = await getMyDay(owner, ws.id, NOW);
+    expect(d.plan.meetings).toEqual({ planned: before.planned, done: before.done + 1 }); // Review runs 15:00-16:00, NOW is noon
+    expect(d.events.find((e) => e.title === "Review")?.done).toBe(true);
+  });
+
+  it("a series has no single done: the status of the node does not make its dates held", async () => {
+    const series = (await transact(owner, (ctx) => createNode(ctx, { parentId: projectId, type: "EVENT", title: "Weekly", data: { startsAt: "2026-10-27T15:00:00.000Z", endsAt: "2026-10-27T16:00:00.000Z", attendeeIds: [owner], repeat: { freq: "WEEKLY", interval: 1, tz: "UTC", skip: [] } } }))).result.id;
+    await raw.node.update({ where: { id: series }, data: { status: "DONE" } });
+    const d = await getMyDay(owner, ws.id, NOW);
+    expect(d.events.find((e) => e.title === "Weekly")).toMatchObject({ repeats: true, done: false });
+  });
 });
