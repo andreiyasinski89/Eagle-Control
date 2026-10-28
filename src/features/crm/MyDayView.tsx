@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, CalendarClock, Check, CheckSquare, ChevronRight, Clock, Handshake, Timer, UserX } from "lucide-react";
+import { AlertTriangle, CalendarClock, Check, CheckSquare, ChevronRight, Clock, Handshake, Mail, MessageCircle, Phone, Timer, UserX, Users } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -31,6 +31,7 @@ interface CrmItem {
   dueAt: string | null;
   durationMin?: number | null;
   overdue: boolean;
+  done?: boolean;
   contactId: string | null;
   contactName: string | null;
   companyId: string | null;
@@ -64,6 +65,7 @@ interface MyDay {
   reminders: { id: string; remindAt: string; target: { id: string; title: string; type: string } | null }[];
   crmTasks: CrmItem[];
   scheduled: CrmItem[];
+  crmDay: CrmItem[];
   dealsNeedingNextStep: DealCardDto[];
   attention: { staleDeals: DealCardDto[]; coldContacts: { id: string; name: string; companyName: string | null; lastContactedAt: string | null }[] };
   counts: { total: number };
@@ -155,6 +157,66 @@ function PlanCard({ title, pair, href, planned, done }: { title: string; pair: P
         <span className="block h-full rounded-full" style={{ width: `${pct}%`, background: tone(pair.planned > 0 ? pct : null) }} />
       </span>
     </Link>
+  );
+}
+
+const TYPE_ICON: Record<string, typeof Phone> = { CALL: Phone, MEETING: CalendarClock, EMAIL: Mail, MESSAGE: MessageCircle, TASK: CheckSquare };
+
+/** Everything planned in the CRM for today against what is done; opens into the list, where each item can be ticked off. */
+function CrmDayCard({ title, hint, items, planned, done, base, tz, locale, onDone, busy }: { title: string; hint: string; items: CrmItem[]; planned: string; done: string; base: string; tz: string; locale: string; onDone: (id: string) => void; busy: boolean }) {
+  const tc = useTranslations("crm");
+  const [open, setOpen] = useState(false);
+  const total = items.length;
+  const finished = items.filter((x) => x.done).length;
+  const pct = total > 0 ? Math.round((finished / total) * 100) : 0;
+  return (
+    <div className="flex flex-col gap-2 rounded-2xl border border-border bg-card p-4 shadow-sm sm:col-span-full" data-testid="crm-day-card">
+      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} disabled={total === 0} className="flex flex-col gap-2 text-left focus-visible:outline-none disabled:cursor-default" data-testid="crm-day-toggle">
+        <span className="flex items-center justify-between text-sm font-medium">
+          <span className="flex items-center gap-2">
+            <Users className="size-4 text-muted-foreground" aria-hidden />
+            {title}
+          </span>
+          {total > 0 && <ChevronRight className={cn("size-4 text-muted-foreground transition-transform", open && "rotate-90")} aria-hidden />}
+        </span>
+        <span className="flex items-baseline gap-4 text-xs text-muted-foreground">
+          <span>
+            {planned} <b className="ml-1 text-base font-semibold tabular-nums text-foreground" data-testid="crm-day-planned">{total}</b>
+          </span>
+          <span>
+            {done} <b className="ml-1 text-base font-semibold tabular-nums text-foreground" data-testid="crm-day-done">{finished}</b>
+          </span>
+          <span className="hidden sm:inline">{hint}</span>
+        </span>
+        <span className="h-2 overflow-hidden rounded-full bg-muted" aria-hidden>
+          <span className="block h-full rounded-full" style={{ width: `${pct}%`, background: tone(total > 0 ? pct : null) }} />
+        </span>
+      </button>
+      {open && (
+        <ul className="mt-1 flex flex-col gap-2 border-t border-border pt-3" data-testid="crm-day-list">
+          {items.map((x) => {
+            const Icon = TYPE_ICON[x.type] ?? CheckSquare;
+            return (
+              <li key={x.id} className={cn("flex items-center gap-2 text-sm", x.done && "text-muted-foreground")}>
+                <Icon className="size-4 shrink-0 text-muted-foreground" aria-label={tc(`activity.${x.type}`)} />
+                <span className="min-w-0 flex-1">
+                  <Link href={x.contactId ? `${base}/crm/contacts?contact=${x.contactId}` : x.dealId ? `${base}/crm?deal=${x.dealId}` : `${base}/crm/activities`} className={cn("font-medium hover:underline", x.done && "line-through")}>
+                    {x.contactName ?? x.subject}
+                  </Link>
+                  <span className="block truncate text-xs text-muted-foreground">{[x.contactName ? x.subject : null, x.companyName, x.dealTitle].filter(Boolean).join(" · ")}</span>
+                </span>
+                {x.dueAt && <span className="text-xs text-muted-foreground">{new Date(x.dueAt).toLocaleTimeString(locale, { timeStyle: "short", timeZone: tz })}</span>}
+                {x.done ? <Check className="size-4 text-[var(--health-green)]" aria-label={tc("markDone")} /> : (
+                  <Button size="sm" variant="outline" onClick={() => onDone(x.id)} disabled={busy} aria-label={tc("markDone")}>
+                    <Check className="size-4" />
+                  </Button>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
   );
 }
 
@@ -352,10 +414,10 @@ export function MyDayView({ workspaceId, slug, workspaceName, userName }: { work
           <h2 id="plan-fact-title" className="text-sm font-semibold">
             {t("planFactTitle")}
           </h2>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             <PlanCard title={t("planTasks")} pair={plan.tasks} href={`${base}/tasks?tab=today`} planned={t("planned")} done={t("finished")} />
             <PlanCard title={t("planMeetings")} pair={plan.meetings} href={`${base}/calendar?day=${data?.date}`} planned={t("planned")} done={t("held")} />
-            <PlanCard title={t("planFollowUps")} pair={plan.followUps} href={`${base}/crm/activities`} planned={t("planned")} done={t("finished")} />
+            {data?.crm && <CrmDayCard title={t("planFollowUps")} hint={t("crmDayHint")} items={data.crmDay} planned={t("planned")} done={t("finished")} base={base} tz={tz} locale={locale} onDone={(id) => done.mutate(id)} busy={done.isPending} />}
           </div>
           {plan.planned === 0 && plan.backlogOpen === 0 && plan.backlogCleared === 0 ? (
             <p className="rounded-2xl border border-dashed border-border bg-card p-4 text-sm text-muted-foreground" data-testid="plan-fact-empty">

@@ -101,7 +101,7 @@ export async function getMyDay(userId: string, workspaceId: string, now = new Da
     return { ...counts, trackedMinutes: tracked._sum.minutes ?? 0, ...dayScore(counts) };
   };
 
-  const empty = { crmTasks: [], scheduled: [], dealsNeedingNextStep: [], attention: { staleDeals: [], coldContacts: [] } };
+  const empty = { crmTasks: [], scheduled: [], crmDay: [], dealsNeedingNextStep: [], attention: { staleDeals: [], coldContacts: [] } };
   if (!crm) {
     return { date: todayPrefix, timeZone, tasks: { overdue: tasks.filter((t) => t.dueDate && t.dueDate < start), today: tasks.filter((t) => t.dueDate && t.dueDate >= start) }, events, reminders, crm: false as const, ...empty, plan: finishPlan({ planned: 0, done: 0 }, 0, 0, { planned: 0, done: 0 }), counts: { total: tasks.length + events.length + reminders.length } };
   }
@@ -120,7 +120,7 @@ export async function getMyDay(userId: string, workspaceId: string, now = new Da
       include: { node: { select: { title: true, position: true, createdAt: true } }, stage: true, company: { select: { legalName: true } }, primaryContact: { select: { firstName: true, lastName: true } } },
       take: 300,
     }),
-    db.crmActivity.findMany({ where: { workspaceId, ownerId: userId, dueAt: { gte: dayFrom, lt: dayTo } }, select: { type: true, completedAt: true } }),
+    db.crmActivity.findMany({ where: { workspaceId, ownerId: userId, type: { not: "NOTE" }, dueAt: { gte: dayFrom, lt: dayTo } }, orderBy: { dueAt: "asc" }, take: 100, include: actInclude }),
     db.crmActivity.count({ where: { workspaceId, ownerId: userId, type: "TASK", completedAt: { gte: dayFrom, lt: dayTo }, dueAt: { lt: dayFrom } } }),
   ]);
   const act = (a: (typeof crmTasks)[number]) => ({
@@ -129,7 +129,8 @@ export async function getMyDay(userId: string, workspaceId: string, now = new Da
     subject: a.subject,
     dueAt: a.dueAt,
     durationMin: a.durationMin,
-    overdue: !!a.dueAt && a.dueAt < dayFrom,
+    overdue: !!a.dueAt && !a.completedAt && a.dueAt < dayFrom,
+    done: !!a.completedAt,
     contactId: a.contactId,
     companyId: a.companyId,
     contactName: a.contact ? [a.contact.firstName, a.contact.lastName].filter(Boolean).join(" ") : null,
@@ -145,13 +146,13 @@ export async function getMyDay(userId: string, workspaceId: string, now = new Da
     ? await db.contact.findMany({ where: { nodeId: { in: contactIds }, node: { archivedAt: null }, OR: [{ lastContactedAt: null }, { lastContactedAt: { lt: coldBefore } }] }, select: { nodeId: true, firstName: true, lastName: true, lastContactedAt: true, company: { select: { legalName: true } } }, take: 50 })
     : [];
 
-  const callsAndMeetings = dayActivities.filter((a) => a.type !== "TASK");
-  const followUps = dayActivities.filter((a) => a.type === "TASK");
+  // Everything the person planned in the CRM for today (calls, meetings, e-mails, messages, tasks) is one plan against fact;
+  // the meetings pair is only the calendar events, so nothing is counted twice.
   const plan = finishPlan(
-    { planned: followUps.length, done: followUps.filter((a) => a.completedAt).length },
+    { planned: dayActivities.length, done: dayActivities.filter((a) => a.completedAt).length },
     crmTasks.filter((a) => a.dueAt && a.dueAt < dayFrom).length,
     clearedFollowUps,
-    { planned: callsAndMeetings.length, done: callsAndMeetings.filter((a) => a.completedAt).length },
+    { planned: 0, done: 0 },
   );
 
   const result = {
@@ -164,6 +165,7 @@ export async function getMyDay(userId: string, workspaceId: string, now = new Da
     reminders,
     crmTasks: crmTasks.map(act),
     scheduled: scheduled.map(act),
+    crmDay: dayActivities.map(act),
     dealsNeedingNextStep: needNext.map((d) => toCard(d, now)),
     attention: {
       staleDeals: cards.filter((c) => c.health === "RED").slice(0, 20),

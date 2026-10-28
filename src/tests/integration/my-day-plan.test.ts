@@ -89,8 +89,8 @@ describe("My day: plan against fact", () => {
 
     const { plan } = await getMyDay(owner, ws.id, NOW);
     expect(plan.tasks).toEqual({ planned: 3, done: 1 });
-    expect(plan.meetings).toEqual({ planned: 4, done: 2 }); // Stand-up held + Call done
-    expect(plan.followUps).toEqual({ planned: 2, done: 1 });
+    expect(plan.meetings).toEqual({ planned: 2, done: 1 }); // Stand-up held, Review still to come
+    expect(plan.followUps).toEqual({ planned: 4, done: 2 }); // every CRM item of today: two calls and two follow-ups
     expect(plan.backlogOpen).toBe(2); // "Late, open" and "Old follow-up open"
     expect(plan.backlogCleared).toBe(2); // "Late, finished today" and "Old follow-up finished today"
     expect(plan).toMatchObject({ planned: 9, done: 4, efficiency: 44, trackedMinutes: 95 });
@@ -105,6 +105,8 @@ describe("My day: plan against fact", () => {
     expect(d.scheduled.map((s) => s.subject)).toEqual(["Call open"]);
     expect(d.scheduled[0]).toMatchObject({ contactId: expect.any(String), companyId: null }); // so the row can link to the contact
     expect(d.crmTasks.map((s) => s.subject).sort()).toEqual(["Follow-up open", "Old follow-up open"]);
+    // the CRM plan of the day: all four items due today, in time order, each saying whether it is done
+    expect(d.crmDay.map((s) => [s.subject, s.done])).toEqual([["Call done", true], ["Follow-up done", true], ["Call open", false], ["Follow-up open", false]]);
   });
 
   it("uses the person's own day: in Auckland it is already 4 November, and last night's stand-up belongs to the 3rd", async () => {

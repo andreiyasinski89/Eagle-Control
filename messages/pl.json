@@ -876,7 +876,7 @@
     "planFactTitle": "Plan i wykonanie na dziś",
     "planTasks": "Zadania",
     "planMeetings": "Spotkania i rozmowy",
-    "planFollowUps": "Działania wobec klientów",
+    "planFollowUps": "Kontakty i sprawy CRM na dziś",
     "planned": "Zaplanowano",
     "finished": "Wykonano",
     "held": "Odbyło się",
@@ -892,7 +892,8 @@
       "tasks": "Na dziś nie ma zadań.",
       "meetings": "Dziś nie ma spotkań ani rozmów.",
       "attention": "Nic nie wymaga uwagi."
-    }
+    },
+    "crmDayHint": "Rozmowy, spotkania, e-maile, wiadomości i zadania zaplanowane na dziś"
   },
   "notifications": {
     "title": "Powiadomienia",

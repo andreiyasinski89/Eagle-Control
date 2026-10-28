@@ -876,7 +876,7 @@
     "planFactTitle": "Plan and fact for today",
     "planTasks": "Tasks",
     "planMeetings": "Meetings and calls",
-    "planFollowUps": "CRM follow-ups",
+    "planFollowUps": "Contacts and CRM today",
     "planned": "Planned",
     "finished": "Done",
     "held": "Held or done",
@@ -892,7 +892,8 @@
       "tasks": "No tasks to do today.",
       "meetings": "No meetings or calls today.",
       "attention": "Nothing needs your attention."
-    }
+    },
+    "crmDayHint": "Calls, meetings, e-mails, messages and tasks planned for today"
   },
   "notifications": {
     "title": "Notifications",
