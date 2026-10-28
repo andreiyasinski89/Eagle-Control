@@ -1361,7 +1361,10 @@
       "lastError": "Telegram zgłasza błąd dostarczania: {error}",
       "p1": "Powiadomienia w Telegramie: nowy lead, przypomnienie, wzmianka",
       "p2": "Polecenia z czatu: /today, /task, /done, /lead",
-      "p3": "Powiązanie raz: otwórz bota i naciśnij Start"
+      "p3": "Powiązanie raz: otwórz bota i naciśnij Start",
+      "checking": "Sprawdzam…",
+      "notYet": "Jeszcze nie połączono. Otwórz bota w Telegramie, naciśnij Start i naciśnij ten przycisk ponownie.",
+      "linkedNow": "Gotowe. Telegram jest połączony."
     },
     "intro": "Połączenie zajmuje około minuty: naciśnij „Połącz” i zezwól na dostęp. Bez kodów i ustawień.",
     "needsSetup": "Jesteś właścicielem platformy: tę usługę trzeba raz zarejestrować. To kilka minut, a potem wszyscy łączą jednym przyciskiem.",

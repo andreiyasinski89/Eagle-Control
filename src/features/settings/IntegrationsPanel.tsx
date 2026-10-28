@@ -88,6 +88,21 @@ export function IntegrationsPanel({ workspaceId, banner }: { workspaceId: string
   const [channels, setChannels] = useState<{ id: string; name: string }[] | null>(null);
 
   const refresh = () => void qc.invalidateQueries({ queryKey: key });
+  // "I pressed Start": look again and say what was found, so the press is never silent.
+  const [checking, setChecking] = useState(false);
+  const [checkMsg, setCheckMsg] = useState<string | null>(null);
+  const checkLinked = async () => {
+    setChecking(true);
+    setCheckMsg(null);
+    try {
+      const fresh = await qc.fetchQuery({ queryKey: key, queryFn: () => api.get<Status>(base), staleTime: 0 });
+      setCheckMsg(fresh.telegram.linked ? t("telegram.linkedNow") : t("telegram.notYet"));
+    } catch (e) {
+      fail(e);
+    } finally {
+      setChecking(false);
+    }
+  };
   const fail = (e: unknown) => setError(e instanceof ApiFailure ? e.message : t("error"));
   const act = useMutation({ mutationFn: (fn: () => Promise<unknown>) => fn(), onSuccess: refresh, onError: fail });
   const run = (fn: () => Promise<unknown>) => {
@@ -266,9 +281,14 @@ export function IntegrationsPanel({ workspaceId, banner }: { workspaceId: string
                   <span>{t("telegram.manual", { bot: code.bot ?? "bot", code: code.code })}</span>
                 )}
                 <p className="mt-1 text-xs text-muted-foreground">{t("telegram.expires")}</p>
-                <Button size="sm" variant="ghost" onClick={refresh}>
-                  {t("telegram.check")}
+                <Button size="sm" variant="outline" className="mt-2" disabled={checking} onClick={() => void checkLinked()} data-testid="telegram-check">
+                  {checking ? t("telegram.checking") : t("telegram.check")}
                 </Button>
+                {checkMsg && (
+                  <p role="status" className="mt-2 text-xs text-muted-foreground" data-testid="telegram-check-result">
+                    {checkMsg}
+                  </p>
+                )}
               </div>
             )}
             {tg.linked && <p className="text-xs text-muted-foreground">{t("telegram.commands")}</p>}

@@ -1361,7 +1361,10 @@
       "lastError": "Telegram reports a delivery error: {error}",
       "p1": "Notifications in Telegram: new lead, reminder, mention",
       "p2": "Commands from the chat: /today, /task, /done, /lead",
-      "p3": "Link once: open the bot and press Start"
+      "p3": "Link once: open the bot and press Start",
+      "checking": "Checking…",
+      "notYet": "Not linked yet. Open the bot in Telegram, press Start, then press this button again.",
+      "linkedNow": "Linked. Telegram is connected."
     },
     "intro": "Connecting takes about a minute: press “Connect” and allow access. No codes, no settings.",
     "needsSetup": "You are the owner of the platform: this service still has to be registered once. It takes a few minutes, and then everyone connects with one button.",
