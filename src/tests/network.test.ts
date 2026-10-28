@@ -82,6 +82,31 @@ describe("network map", () => {
     }
   });
 
+  describe("my own card", () => {
+    const mine = [p("me", { stage: "PARTNER" }), p("lead", { stage: "PARTNER", sponsorId: "me" }), p("friend", { sponsorId: "me" }), p("client", { heldById: "me" }), p("stranger")];
+    const nodes = (mode: Parameters<typeof buildNetwork>[0]) => Object.fromEntries(buildNetwork(mode, { rootName: "Me", people: mine, groups, selfId: "me" }, { showPeople: true }).map((n) => [n.id, n]));
+
+    it("is not drawn: the root stands for it, and whoever it sponsors hangs from the root", () => {
+      const t = nodes("sponsors");
+      expect(t.me).toBeUndefined();
+      expect(t.lead?.parentId).toBe(ROOT_ID);
+      expect(t.friend?.parentId).toBe(ROOT_ID);
+      expect(t.stranger?.parentId).toBe("net-no-sponsor");
+      expect(t["net-no-sponsor"]).toMatchObject({ direct: 2 }); // the stranger and the client, who has no sponsor
+    });
+
+    it("is the middle of the map for who works with whom too", () => {
+      const t = nodes("held");
+      expect(t.client?.parentId).toBe(ROOT_ID);
+      expect(t.stranger?.parentId).toBe("net-nobody");
+    });
+
+    it("counts as a sponsor when people without one are hidden", () => {
+      const kept = filterPeople(mine, { ...NO_FILTERS, hideNoSponsor: true }, "me").map((x) => x.id).sort();
+      expect(kept).toEqual(["friend", "lead", "me"]); // "client" and "stranger" have no sponsor
+    });
+  });
+
   describe("filters and sides", () => {
     const ids = (xs: NetPerson[]) => xs.map((x) => x.id).sort();
 

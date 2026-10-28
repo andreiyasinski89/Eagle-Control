@@ -16,6 +16,7 @@ interface NetworkData {
   rootName: string;
   people: NetPerson[];
   groups: NetGroup[];
+  selfId: string | null;
   truncated: boolean;
   total: number;
 }
@@ -55,8 +56,8 @@ export function NetworkMap({ workspaceId, slug, canWrite, canExport, canErase, m
   const { nodes, shown } = useMemo(() => {
     if (!data) return { nodes: [] as TreeMapNode[], shown: 0 };
     const active = sponsorsMode ? filters : { ...filters, hideNoSponsor: false };
-    const people = filterPeople(hideLost ? data.people.filter((p) => !LOST.has(p.stage)) : data.people, active);
-    const net = buildNetwork(mode, { rootName: data.rootName, people, groups: data.groups }, { showPeople, split: sponsorsMode && split, maxDepth: sponsorsMode && depth > 0 ? depth : null });
+    const people = filterPeople(hideLost ? data.people.filter((p) => !LOST.has(p.stage)) : data.people, active, data.selfId);
+    const net = buildNetwork(mode, { rootName: data.rootName, people, groups: data.groups, selfId: data.selfId }, { showPeople, split: sponsorsMode && split, maxDepth: sponsorsMode && depth > 0 ? depth : null });
     const subtitle = (n: NetNode): string | undefined => {
       if (n.kind === "root") return t("netYou", { n: n.branch ?? 0 });
       if (n.kind === "group") return t("netBranch", { n: n.branch ?? 0 });

@@ -62,12 +62,12 @@ export interface NetFilters {
 export const NO_FILTERS: NetFilters = { hideNoSponsor: false, stage: null, temperature: null };
 
 /** Narrows the list before the tree is built. Partners always stay: they are the skeleton of the structure. */
-export function filterPeople(people: NetPerson[], f: NetFilters): NetPerson[] {
+export function filterPeople(people: NetPerson[], f: NetFilters, selfId: string | null = null): NetPerson[] {
   let out = people;
   if (f.hideNoSponsor) {
     const ids = new Set(people.map((p) => p.id));
     const sponsors = new Set(people.map((p) => p.sponsorId).filter((x): x is string => !!x));
-    out = out.filter((p) => (p.sponsorId && ids.has(p.sponsorId)) || sponsors.has(p.id));
+    out = out.filter((p) => (p.sponsorId && (ids.has(p.sponsorId) || p.sponsorId === selfId)) || sponsors.has(p.id));
   }
   if (f.stage) out = out.filter((p) => p.stage === "PARTNER" || p.stage === f.stage);
   if (f.temperature) out = out.filter((p) => p.stage === "PARTNER" || p.temperature === f.temperature);
@@ -93,8 +93,12 @@ function partnerAbove(id: string, by: Map<string, NetPerson>): string | null {
   return null;
 }
 
-export function buildNetwork(mode: NetMode, input: { rootName: string; people: NetPerson[]; groups: NetGroup[] }, opts: { showPeople: boolean; split?: boolean; maxDepth?: number | null }): NetNode[] {
-  const { people, groups } = input;
+export function buildNetwork(mode: NetMode, input: { rootName: string; people: NetPerson[]; groups: NetGroup[]; selfId?: string | null }, opts: { showPeople: boolean; split?: boolean; maxDepth?: number | null }): NetNode[] {
+  const { groups } = input;
+  // The person's own card is the root, not a node: whoever it sponsors or works with hangs from the root.
+  const selfId = input.selfId ?? null;
+  const people = selfId ? input.people.filter((p) => p.id !== selfId) : input.people;
+  const isSelf = (id: string | null) => !!selfId && id === selfId;
   const by = new Map(people.map((p) => [p.id, p]));
   const out: NetNode[] = [{ id: ROOT_ID, parentId: null, position: 0, kind: "root", title: input.rootName }];
   const personNode = (p: NetPerson, parentId: string, position: number): NetNode => ({ id: p.id, parentId, position, kind: p.stage === "PARTNER" ? "partner" : "person", title: p.name, stage: p.stage, temperature: p.temperature, country: p.country, typeTag: p.typeTag });
@@ -119,11 +123,11 @@ export function buildNetwork(mode: NetMode, input: { rootName: string; people: N
     }
     if (opts.showPeople) {
       const others = sorted(people.filter((p) => p.stage !== "PARTNER"));
-      const lone = others.filter((p) => !p.sponsorId || !by.get(p.sponsorId));
+      const lone = others.filter((p) => (!p.sponsorId || !by.get(p.sponsorId)) && !isSelf(p.sponsorId));
       if (lone.length) out.push(synthetic("noSponsor", partners.length));
       others.forEach((p, i) => {
         const sp = p.sponsorId ? by.get(p.sponsorId) : undefined;
-        out.push(personNode(p, sp ? sp.id : SYN.noSponsor, i));
+        out.push(personNode(p, sp ? sp.id : isSelf(p.sponsorId) ? ROOT_ID : SYN.noSponsor, i));
       });
     }
   } else if (mode === "groups") {
@@ -140,8 +144,8 @@ export function buildNetwork(mode: NetMode, input: { rootName: string; people: N
     if (opts.showPeople) {
       const isPartner = new Set(partners.map((p) => p.id));
       const others = sorted(people.filter((p) => p.stage !== "PARTNER"));
-      if (others.some((p) => !p.heldById || !isPartner.has(p.heldById))) out.push(synthetic("nobody", partners.length));
-      others.forEach((p, i) => out.push(personNode(p, p.heldById && isPartner.has(p.heldById) ? p.heldById : SYN.nobody, i)));
+      if (others.some((p) => (!p.heldById || !isPartner.has(p.heldById)) && !isSelf(p.heldById))) out.push(synthetic("nobody", partners.length));
+      others.forEach((p, i) => out.push(personNode(p, p.heldById && isPartner.has(p.heldById) ? p.heldById : isSelf(p.heldById) ? ROOT_ID : SYN.nobody, i)));
     }
   }
 

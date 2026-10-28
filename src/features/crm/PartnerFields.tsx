@@ -34,7 +34,7 @@ export function PartnerFields({ workspaceId, meId, contactId, stage, sponsorId, 
   const [copied, setCopied] = useState(false);
   const others = (partners.data ?? []).filter((p) => p.id !== contactId);
   const holder = partners.data?.find((p) => p.id === heldById);
-  // The signed-in person can be picked too: their own partner card is made the first time they choose it.
+  // The signed-in person can be picked too, as their account: the link behind it is made the first time they choose it, and it never shows up as a person to work with.
   const mine = partners.data?.find((p) => p.linkedUserId === meId);
   const ME = "__me__";
   const label = (p: { name: string; linkedUserId: string | null }) => (p.linkedUserId === meId ? `${p.name} (${t("me")})` : p.name);

@@ -10,7 +10,7 @@ import { loadWorkspaceMember } from "@/server/services/nodes/access";
 import { assertWorkspaceMember, fullName } from "./common";
 import { assertContactCapacity, contactWhere, createContactIn, createContactsBulk, priorityField } from "./contacts";
 import { assertGroup } from "./groups";
-import { contactScope, withScope } from "./scope";
+import { contactScope, withoutSelf, withScope } from "./scope";
 
 const DAY = 86_400_000;
 const text = (max: number) => z.string().trim().max(max).nullable().optional();
@@ -48,9 +48,9 @@ export async function listPeople(userId: string, workspaceId: string, f: z.infer
   if (f.group === "none") groupWhere = { groupId: null };
   else if (f.group) groupWhere = { groupId: { in: descendantIds(await db.contactGroup.findMany({ where: { workspaceId }, select: { id: true, parentId: true } }), f.group) } };
   const heldWhere: Prisma.ContactWhereInput = f.held === "none" ? { heldById: null } : f.held === "any" ? { heldById: { not: null } } : f.held ? { heldById: f.held } : {};
-  const where: Prisma.ContactWhereInput = withScope({ ...base, ...groupWhere, ...heldWhere, ...(f.source ? { source: f.source } : {}), ...(f.priority ? { typeTag: f.priority } : {}), ...(f.due === "1" ? { nextStepAt: { lt: endOfToday }, stage: { notIn: ["DECLINED", "NO_REPLY"] } } : {}) }, scope);
+  const where: Prisma.ContactWhereInput = withoutSelf(withScope({ ...base, ...groupWhere, ...heldWhere, ...(f.source ? { source: f.source } : {}), ...(f.priority ? { typeTag: f.priority } : {}), ...(f.due === "1" ? { nextStepAt: { lt: endOfToday }, stage: { notIn: ["DECLINED", "NO_REPLY"] } } : {}) }, scope), userId);
   const [all, rows] = await Promise.all([
-    db.contact.count({ where: withScope({ workspaceId, node: { archivedAt: null } }, scope) }),
+    db.contact.count({ where: withoutSelf(withScope({ workspaceId, node: { archivedAt: null } }, scope), userId) }),
     db.contact.findMany({
       where,
       orderBy: [{ nextStepAt: { sort: "asc", nulls: "last" } }, { firstName: "asc" }],

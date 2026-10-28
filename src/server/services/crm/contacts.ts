@@ -9,7 +9,7 @@ import { parsePriority, PRIORITIES, STAGES, TEMPERATURES } from "@/modules/crm/p
 import { normalizeEmail, normalizePhone, uniqueNonNull } from "@/modules/crm/normalize";
 import { can } from "@/server/policies";
 import { loadWorkspaceMember, logActivity, type Tx } from "@/server/services/nodes/access";
-import { contactScope, contactVisible, withScope } from "./scope";
+import { contactScope, contactVisible, withoutSelf, withScope } from "./scope";
 import { deleteObject } from "@/server/storage";
 import { assertWorkspaceMember, fullName, invalid, loadCrmNode, pageArgs, toDate } from "./common";
 import { assertGroup } from "./groups";
@@ -367,7 +367,7 @@ export function contactWhere(workspaceId: string, f: Pick<z.infer<typeof listCon
 
 export async function listContacts(userId: string, workspaceId: string, f: z.infer<typeof listContactsSchema>) {
   const m = await loadWorkspaceMember(db, userId, workspaceId, "crm:read");
-  const where = withScope(contactWhere(workspaceId, f), await contactScope(db, m));
+  const where = withoutSelf(withScope(contactWhere(workspaceId, f), await contactScope(db, m)), userId);
   const { skip, take, page, pageSize } = pageArgs(f);
   const orderBy: Prisma.ContactOrderByWithRelationInput =
     f.sort === "createdAt" ? { node: { createdAt: f.dir } } : f.sort === "lastContactedAt" ? { lastContactedAt: { sort: f.dir, nulls: "last" } } : { firstName: f.dir };

@@ -17,13 +17,15 @@ export async function getNetwork(userId: string, workspaceId: string) {
       where,
       orderBy: [{ stage: "desc" }, { firstName: "asc" }],
       take: NETWORK_LIMIT,
-      select: { nodeId: true, firstName: true, lastName: true, stage: true, temperature: true, sponsorId: true, heldById: true, groupId: true, influence: true, country: true, typeTag: true },
+      select: { nodeId: true, linkedUserId: true, ownerId: true, firstName: true, lastName: true, stage: true, temperature: true, sponsorId: true, heldById: true, groupId: true, influence: true, country: true, typeTag: true },
     }),
     db.contactGroup.findMany({ where: { workspaceId }, select: { id: true, parentId: true, name: true, color: true, position: true } }),
     db.contact.count({ where }),
   ]);
   return {
     rootName: me?.name ?? me?.email ?? "",
+    // The person's own partner card is not drawn as a person: it is the middle of the map. People pointing at it hang from the middle.
+    selfId: rows.find((r) => r.linkedUserId === userId && r.ownerId === userId && r.stage === "PARTNER")?.nodeId ?? null,
     people: rows.map((r) => ({ id: r.nodeId, name: fullName(r.firstName, r.lastName), stage: r.stage, temperature: r.temperature, sponsorId: r.sponsorId, heldById: r.heldById, groupId: r.groupId, influence: r.influence, country: r.country, typeTag: r.typeTag })),
     groups,
     truncated: total > rows.length,

@@ -46,6 +46,14 @@ export async function contactScope(tx: Tx, m: Who, opts: { write?: boolean } = {
 }
 
 /** The same filter, joined to a query's own conditions. */
+/**
+ * A person's own partner card is a link to their account (so they can be named as a sponsor or as the partner who works with someone),
+ * not a person to work with: it stays out of their lists and boards, and on the network map it is the middle of the map.
+ */
+export function withoutSelf(where: Prisma.ContactWhereInput, userId: string): Prisma.ContactWhereInput {
+  return { AND: [where, { NOT: { linkedUserId: userId, ownerId: userId, stage: "PARTNER" } }] };
+}
+
 export function withScope(where: Prisma.ContactWhereInput, scope: Prisma.ContactWhereInput | null): Prisma.ContactWhereInput {
   return scope ? { AND: [where, scope] } : where;
 }

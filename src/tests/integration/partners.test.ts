@@ -11,7 +11,7 @@ vi.mock("@/server/db", () => ({
 vi.mock("@/server/storage", () => ({ deleteObject: vi.fn(), presignUpload: vi.fn(), presignDownload: vi.fn() }));
 
 import { createWorkspace } from "@/server/services/workspace";
-import { createContact, getContact, updateContact } from "@/server/services/crm/contacts";
+import { createContact, getContact, listContacts, updateContact } from "@/server/services/crm/contacts";
 import { ensureMyPartnerCard, listPeople } from "@/server/services/crm/people";
 import { getHandoffCard, listPartners, transferContacts } from "@/server/services/crm/partners";
 import { getNetwork } from "@/server/services/crm/network";
@@ -172,6 +172,16 @@ describe("my own partner card", () => {
     await updateContact(owner, p, { sponsorId: mine });
     await transferContacts(owner, ws.id, { ids: [p], toPartnerId: mine });
     expect(await getContact(owner, p)).toMatchObject({ sponsorId: mine, heldById: mine, ownerId: owner });
+  });
+
+  it("is only a link to the account: it is not in the person's lists, and the network names it as the middle of the map", async () => {
+    const mine = (await ensureMyPartnerCard(owner, ws.id)).id;
+    const { items } = await listPeople(owner, ws.id, { due: "0" });
+    expect(items.some((i) => i.id === mine)).toBe(false);
+    expect((await listContacts(owner, ws.id, { page: 1, pageSize: 100, sort: "firstName", dir: "asc", noTouchDays: undefined } as never)).items.some((i) => i.id === mine)).toBe(false);
+    expect((await getNetwork(owner, ws.id)).selfId).toBe(mine);
+    // another member's card of the same kind is a person like any other
+    expect((await listPartners(owner, ws.id)).items.some((i) => i.id === mine)).toBe(true); // still there to be picked as a sponsor
   });
 
   it("is refused to a member without CRM access", async () => {
