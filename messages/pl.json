@@ -1678,7 +1678,7 @@
     "back": "Wróć do listy",
     "titleLabel": "Tytuł",
     "titlePlaceholder": "Tytuł",
-    "linkTitlePlaceholder": "Czym jest ten link",
+    "linkTitlePlaceholder": "Na przykład: Prezentacja dla nowych osób",
     "urlLabel": "Adres internetowy",
     "openLink": "Otwórz {host}",
     "badUrl": "To nie jest adres internetowy",
@@ -1694,7 +1694,9 @@
     "deleteConfirm": "Usunąć tę notatkę? Tego nie można cofnąć.",
     "notFound": "Tej notatki już nie ma.",
     "limit": "Możesz mieć do 500 notatek i linków.",
-    "failed": "Coś poszło nie tak. Spróbuj ponownie."
+    "failed": "Coś poszło nie tak. Spróbuj ponownie.",
+    "linkNameLabel": "Nazwa linku",
+    "linkNameHint": "Napisz własnymi słowami, aby wiedzieć, co kryje się pod linkiem. Sam adres zostaje bez zmian."
   },
   "start": {
     "title": "Start",

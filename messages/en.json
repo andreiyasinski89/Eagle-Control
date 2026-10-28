@@ -1678,7 +1678,7 @@
     "back": "Back to the list",
     "titleLabel": "Title",
     "titlePlaceholder": "Title",
-    "linkTitlePlaceholder": "What this link is",
+    "linkTitlePlaceholder": "For example: Presentation for newcomers",
     "urlLabel": "Web address",
     "openLink": "Open {host}",
     "badUrl": "Not a web address",
@@ -1694,7 +1694,9 @@
     "deleteConfirm": "Delete this note? This cannot be undone.",
     "notFound": "This note is not there any more.",
     "limit": "You can keep up to 500 notes and links.",
-    "failed": "Something went wrong. Try again."
+    "failed": "Something went wrong. Try again.",
+    "linkNameLabel": "Name of the link",
+    "linkNameHint": "Write it in your own words, so you know what is behind the link. The address stays as it is."
   },
   "start": {
     "title": "Getting started",

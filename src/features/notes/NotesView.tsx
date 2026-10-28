@@ -122,7 +122,7 @@ export function NotesView({ workspaceId }: { workspaceId: string }) {
                     <span className="min-w-0 flex-1 truncate font-medium">{n.title || (n.kind === "LINK" && n.url ? hostOf(n.url) : t("untitled"))}</span>
                     {n.pinned && <Pin className="size-3.5 shrink-0 text-primary" aria-label={t("pinned")} />}
                   </span>
-                  <span className="line-clamp-2 text-xs text-muted-foreground">{n.preview || (n.kind === "LINK" && n.url ? hostOf(n.url) : "")}</span>
+                  <span className="line-clamp-2 text-xs text-muted-foreground">{n.kind === "LINK" && n.url ? [hostOf(n.url), n.preview].filter(Boolean).join(" · ") : n.preview}</span>
                 </button>
               </li>
             ))}
@@ -222,7 +222,11 @@ function Editor({ noteId, workspaceId, onBack, onGone }: { noteId: string; works
         <button type="button" onClick={() => void flush().then(onBack)} className="rounded-md p-1.5 hover:bg-muted md:hidden" aria-label={t("back")}>
           <ArrowLeft className="size-4" />
         </button>
-        <Input value={title} maxLength={200} placeholder={isLink ? t("linkTitlePlaceholder") : t("titlePlaceholder")} aria-label={t("titleLabel")} onChange={(e) => (setTitle(e.target.value), change({ title: e.target.value }))} className="border-transparent px-1 text-lg font-semibold shadow-none focus-visible:border-border" data-testid="note-title" />
+        {isLink ? (
+          <h2 className="min-w-0 flex-1 truncate px-1 text-lg font-semibold">{title.trim() || (open ? hostOf(open) : t("untitled"))}</h2>
+        ) : (
+          <Input value={title} maxLength={200} placeholder={t("titlePlaceholder")} aria-label={t("titleLabel")} onChange={(e) => (setTitle(e.target.value), change({ title: e.target.value }))} className="border-transparent px-1 text-lg font-semibold shadow-none focus-visible:border-border" data-testid="note-title" />
+        )}
         <button type="button" aria-pressed={pinned} aria-label={pinned ? t("unpin") : t("pin")} title={pinned ? t("unpin") : t("pin")} data-testid="note-pin" className={cn("rounded-md p-2 hover:bg-muted", pinned ? "text-primary" : "text-muted-foreground")} onClick={() => (setPinned(!pinned), change({ pinned: !pinned }))}>
           {pinned ? <PinOff className="size-4" /> : <Pin className="size-4" />}
         </button>
@@ -230,6 +234,14 @@ function Editor({ noteId, workspaceId, onBack, onGone }: { noteId: string; works
           <Trash2 className="size-4" />
         </button>
       </div>
+
+      {isLink && (
+        <label className="flex flex-col gap-1 text-sm">
+          <span className="font-medium">{t("linkNameLabel")}</span>
+          <Input value={title} maxLength={200} autoFocus={!title} placeholder={t("linkTitlePlaceholder")} aria-label={t("linkNameLabel")} onChange={(e) => (setTitle(e.target.value), change({ title: e.target.value }))} data-testid="note-title" />
+          <span className="text-xs text-muted-foreground">{t("linkNameHint")}</span>
+        </label>
+      )}
 
       {isLink && (
         <div className="flex items-center gap-2">
