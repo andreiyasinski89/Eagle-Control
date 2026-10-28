@@ -1174,7 +1174,13 @@
     "unitHours": "Hours",
     "unitLabel": "Unit",
     "unitDefault": "Unit of estimates in this project",
-    "unitHint": "A story point is 10 minutes. Optional: tasks without an estimate count as one working day."
+    "unitHint": "A story point is 10 minutes. Optional: tasks without an estimate count as one working day.",
+    "zoomFit": "Whole period",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "hideDone": "Hide finished",
+    "todayLabel": "Today",
+    "allDoneHidden": "All the tasks with dates are finished and hidden ({n}). Press “Hide finished” to see them."
   },
   "reports": {
     "title": "Reports",

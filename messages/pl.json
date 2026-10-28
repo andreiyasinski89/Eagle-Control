@@ -1174,7 +1174,13 @@
     "unitHours": "Godziny",
     "unitLabel": "Jednostka",
     "unitDefault": "Jednostka estymacji w tym projekcie",
-    "unitHint": "Story point to 10 minut. Opcjonalnie: zadanie bez estymacji liczy się jako jeden dzień roboczy."
+    "unitHint": "Story point to 10 minut. Opcjonalnie: zadanie bez estymacji liczy się jako jeden dzień roboczy.",
+    "zoomFit": "Cały okres",
+    "zoomIn": "Powiększ",
+    "zoomOut": "Pomniejsz",
+    "hideDone": "Ukryj zakończone",
+    "todayLabel": "Dziś",
+    "allDoneHidden": "Wszystkie zadania z datami są zakończone i ukryte ({n}). Naciśnij „Ukryj zakończone”, aby je zobaczyć."
   },
   "reports": {
     "title": "Raporty",
