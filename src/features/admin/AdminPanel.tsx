@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api, ApiFailure } from "@/features/mindmap/api";
 import { Link } from "@/i18n/navigation";
+import { StepUp } from "./StepUp";
 import { cn } from "@/lib/utils";
 
 type Plan = "FREE" | "PRO" | "ENTERPRISE";
@@ -60,6 +61,7 @@ interface Detail {
  */
 export function AdminPanel() {
   const t = useTranslations("admin");
+  const tr = useTranslations("roles");
   const locale = useLocale();
   const qc = useQueryClient();
   const [q, setQ] = useState("");
@@ -75,7 +77,16 @@ export function AdminPanel() {
     void qc.invalidateQueries({ queryKey: ["admin-users"] });
     void qc.invalidateQueries({ queryKey: ["admin-user"] });
   };
-  const fail = (e: unknown) => setError(e instanceof ApiFailure ? e.message : t("error"));
+  // A dangerous act refused for want of the code from the mailbox: say so and open the box for it.
+  const [needStep, setNeedStep] = useState(0);
+  const fail = (e: unknown) => {
+    if (e instanceof ApiFailure && e.code === "step_up_required") {
+      setNeedStep((n) => n + 1);
+      setError(t("stepUpNeeded"));
+      return;
+    }
+    setError(e instanceof ApiFailure ? e.message : t("error"));
+  };
   const suspend = useMutation({ mutationFn: (v: { id: string; suspended: boolean }) => api.post(`/api/v1/admin/users/${v.id}/suspend`, { suspended: v.suspended }), onSuccess: () => (setError(null), refresh()), onError: fail });
   const role = useMutation({ mutationFn: (v: { id: string; userId: string; role?: string; crmLevel?: string }) => api.patch(`/api/v1/admin/workspaces/${v.id}/members/${v.userId}`, { role: v.role, crmLevel: v.crmLevel }), onSuccess: () => (setError(null), refresh()), onError: fail });
   const [eraseText, setEraseText] = useState("");
@@ -115,6 +126,7 @@ export function AdminPanel() {
           <Input className="w-64 pl-8" placeholder={t("search")} aria-label={t("search")} value={q} onChange={(e) => (setQ(e.target.value), setPage(1))} data-testid="admin-search" />
         </div>
       </header>
+      <StepUp prompt={needStep} />
       {error && (
         <p role="alert" className="text-sm text-danger">
           {error}
@@ -160,7 +172,7 @@ export function AdminPanel() {
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 font-medium">
                           <span className="truncate">{u.name ?? u.email}</span>
-                          {u.isSuperAdmin && <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] text-primary">{t("owner")}</span>}
+                          {u.isSuperAdmin && <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] text-primary" title={t("platformOwnerHint")}>{t("platformOwner")}</span>}
                           {u.suspended && <span className="rounded-full bg-[var(--health-red)]/15 px-2 py-0.5 text-[11px] text-[var(--health-red)]">{t("suspended")}</span>}
                         </div>
                         {u.name && <div className="truncate text-xs text-muted-foreground">{u.email}</div>}
@@ -242,12 +254,12 @@ export function AdminPanel() {
                         <div className="flex items-center gap-2">
                           <span className="min-w-0 flex-1 truncate font-medium">{w.name}</span>
                           {w.role === "OWNER" ? (
-                            <span className="rounded-full bg-muted px-2 py-0.5 text-xs">{w.role}</span>
+                            <span className="rounded-full bg-muted px-2 py-0.5 text-xs" title={t("workspaceOwnerHint")}>{t("workspaceOwner")}</span>
                           ) : (
                             <select className="h-8 rounded-md border border-border bg-card px-2 text-sm" value={w.role} disabled={role.isPending} aria-label={`${t("role")}: ${w.name}`} data-testid="admin-role" onChange={(e) => role.mutate({ id: w.id, userId: d.id, role: e.target.value })}>
                               {["ADMIN", "MEMBER", "GUEST", "CLIENT"].map((r) => (
                                 <option key={r} value={r}>
-                                  {r}
+                                  {tr(r)}
                                 </option>
                               ))}
                             </select>

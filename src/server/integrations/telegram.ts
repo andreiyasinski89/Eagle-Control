@@ -79,16 +79,9 @@ export async function telegramStatus(userId: string, workspaceId: string) {
 
 /**
  * Tells Telegram to send the bot's messages to this installation, with the secret that later proves a call is Telegram's.
- * Replaces the one-time `setWebhook` command by hand. Safe to repeat; owners and admins only. The bot is shared by the
- * whole installation, so this only ever sets the one address it must have.
+ * Replaces the one-time `setWebhook` command by hand. Safe to repeat. The bot is shared by the whole installation, so this is the
+ * platform owner's act and nobody else's: whoever calls it must already have been checked as the platform owner.
  */
-export async function registerTelegramWebhook(userId: string, workspaceId: string): Promise<{ url: string }> {
-  await loadWorkspaceMember(db, userId, workspaceId, "member:invite");
-  await requireIntegrations(workspaceId);
-  return setTelegramWebhook();
-}
-
-/** The same, without a workspace: for the platform owner's setup page. */
 export async function setTelegramWebhook(): Promise<{ url: string }> {
   const { TELEGRAM_BOT_TOKEN: token, TELEGRAM_WEBHOOK_SECRET: secret } = env();
   if (!token || !secret) throw notConfigured("Telegram");

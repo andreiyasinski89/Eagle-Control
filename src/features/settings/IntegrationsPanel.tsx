@@ -234,7 +234,7 @@ export function IntegrationsPanel({ workspaceId, banner }: { workspaceId: string
             {tg.webhook && !tg.webhook.ok && (
               <div role="status" data-testid="telegram-webhook-missing" className="flex flex-col gap-2 rounded-md bg-muted p-3 text-sm">
                 <span>{t("telegram.botNotConnected")}</span>
-                {data.canManageSlack ? (
+                {data.platformAdmin ? (
                   <Button size="sm" className="self-start" onClick={() => run(() => api.post(`${base}/telegram/webhook`))}>
                     {t("telegram.connectBot")}
                   </Button>

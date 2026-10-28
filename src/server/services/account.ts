@@ -23,7 +23,7 @@ const EXPORT_ROWS = 20_000;
 
 // ── one-time codes for sensitive actions ───────────────────────────────────
 
-export type Sensitive = "export" | "delete";
+export type Sensitive = "export" | "delete" | "admin";
 
 const hashCode = (userId: string, action: Sensitive, code: string) => sha256(`${userId}:${action}:${code}`);
 
@@ -44,7 +44,7 @@ export async function sendChallenge(userId: string, action: Sensitive, now = new
   const code = String(randomInt(100_000, 1_000_000));
   const expiresAt = new Date(now.getTime() + CHALLENGE_TTL_MS);
   await db.accountChallenge.create({ data: { userId, action, codeHash: hashCode(userId, action, code), expiresAt } });
-  const what = action === "export" ? "download a copy of your MeetOwl data" : "delete your MeetOwl account";
+  const what = action === "export" ? "download a copy of your MeetOwl data" : action === "admin" ? "confirm sensitive actions in the MeetOwl platform admin for 10 minutes" : "delete your MeetOwl account";
   await sendMail({
     to: u.email,
     subject: `Your MeetOwl confirmation code: ${code}`,
