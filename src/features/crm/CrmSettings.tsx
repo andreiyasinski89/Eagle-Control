@@ -1,6 +1,7 @@
 "use client";
 
 import { OnboardingPlanPanel } from "./OnboardingPlanPanel";
+import { RankPlanPanel } from "./RankPlanPanel";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
@@ -190,6 +191,7 @@ export function CrmSettings({ workspaceId }: { workspaceId: string }) {
       <h1 className="text-2xl font-semibold">{t("crmSettings")}</h1>
       <PrivacyPanel workspaceId={workspaceId} />
       <OnboardingPlanPanel workspaceId={workspaceId} />
+      <RankPlanPanel workspaceId={workspaceId} />
       {error && (
         <p role="alert" className="text-sm text-danger">
           {error}

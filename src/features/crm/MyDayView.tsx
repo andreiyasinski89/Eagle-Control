@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { shortDate } from "./format";
 import type { DealCardDto } from "./types";
 import { OnboardingCard } from "@/features/start/OnboardingCard";
+import { RankWidget } from "./RankWidget";
 
 interface AgileTask {
   id: string;
@@ -392,6 +393,7 @@ export function MyDayView({ workspaceId, slug, workspaceName, userName }: { work
         </p>
       </div>
       <OnboardingCard workspaceId={workspaceId} slug={slug} />
+      <RankWidget workspaceId={workspaceId} slug={slug} />
       {isLoading && (
         <div className="flex flex-col gap-4" data-testid="myday-loading">
           <div className="grid gap-3 sm:grid-cols-3">

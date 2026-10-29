@@ -227,3 +227,7 @@
 | 222 | The mentor is whoever presses "Start onboarding"; a checkpoint is a second task for them | Nobody has to be set up beforehand, and the mentor's checks sit in their own task list. |
 | 223 | Onboarding needs a partner with an account; no project is made for one without | A task must belong to a person who can open it; for the others the first step is the invitation. |
 | 224 | A project already started keeps its steps when the plan changes | The newcomer's list must not move under their feet. |
+| 225 | The ladder of ranks is written by the workspace leaders; each criterion is counted by the platform or filled in by hand | The names and conditions differ by company, and the platform cannot see everything (e.g. volume). |
+| 226 | A hand-filled number keeps the day it was set and the widget shows its age | An old number must not look like a fresh one. |
+| 227 | The platform only says the conditions are met; the rank itself is confirmed by the leader | The company, not the app, awards a rank. |
+| 228 | "Clients" counts the person's own clients; the team numbers need their own partner card | Without a card there is no tree to count from. |

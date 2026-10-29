@@ -82,6 +82,28 @@ export async function createDemoCrm(userId: string, workspaceId: string, people:
   await work(pavel, "Contact P1", [11]);
   await work(ola, "Contact L1", [2]);
 
+  // A ladder of ranks for the rank tracker: the first is held, the second is the aim.
+  const target = new Date(Date.now() + 21 * DAY).toISOString().slice(0, 10);
+  await db.workspace.update({
+    where: { id: workspaceId },
+    data: {
+      rankPlan: [
+        { id: "r1", name: "Starter", criteria: [{ id: "c1", label: "Clients", target: 3, auto: "clients" }] },
+        {
+          id: "r2",
+          name: "Builder",
+          criteria: [
+            { id: "c2", label: "Partners in the first line", target: 4, auto: "partnersFirstLine" },
+            { id: "c3", label: "People in the line", target: 12, auto: "teamSize" },
+            { id: "c4", label: "Group volume", target: 1000, auto: null },
+          ],
+        },
+        { id: "r3", name: "Leader", criteria: [{ id: "c5", label: "People in the line", target: 40, auto: "teamSize" }] },
+      ],
+    },
+  });
+  await db.membership.update({ where: { userId_workspaceId: { userId, workspaceId } }, data: { rankState: { currentRankId: "r1", targetDate: target, manual: { c4: { value: 350, at: ago(4).toISOString() } } } } });
+
   if (projectId) {
     await db.nodeLink.create({ data: { fromNodeId: launch.id, toNodeId: projectId, kind: "DEAL_PROJECT" } });
     const project = await db.node.findUniqueOrThrow({ where: { id: projectId }, select: { data: true } });

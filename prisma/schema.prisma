@@ -273,6 +273,8 @@ model Workspace {
   teamHeat       Json           @default("{}")
   /// The steps of the first 30 days of a new partner (see modules/crm/onboarding-plan.ts); null means the default plan.
   onboardingPlan Json?
+  /// The ladder of ranks the leaders defined (see modules/crm/ranks); null means none yet.
+  rankPlan       Json?
 
   memberships      Membership[]
   invitations      Invitation[]
@@ -316,6 +318,8 @@ model Membership {
   teamScope   CrmScope? // what the member's teams grant (the best of them); kept in step by the team service
   /// How this member's touch queue behaves (days until the next touch after each result); see modules/crm/touch.
   touchSettings Json?
+  /// The person's place on the rank ladder: current rank, target day, values counted by hand (see modules/crm/ranks).
+  rankState     Json?
   hourlyRate  Decimal? @db.Decimal(10, 2)
   createdAt   DateTime @default(now())
 

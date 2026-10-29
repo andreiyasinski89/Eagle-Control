@@ -438,3 +438,12 @@
 - **Progress** (done of the newcomer's tasks) shows on the partner's card ("onboarding 40%") and in the panel with the next step and a link to the project. A newcomer whose onboarding started more than the "newcomer" days ago (7 by default) and is not finished turns **red** on the map.
 - **The newcomer's own view:** a "First 30 days" card at the top of the Start page, with the percent, the next step and a button into the project.
 - Tests: 8 for the plan rules, 7 on a real database (who may change the plan, the checks of an account and a partner, who gets which task, no second project, progress, the red colour, the leader's own plan).
+
+## 0.42.0 — Block E: the rank tracker
+
+- **Migration 0034 (additive):** `Workspace.rankPlan` (the ladder) and `Membership.rankState` (each person's place on it).
+- **The ladder is the leaders' to write:** CRM settings → "Ranks of the team": ranks from the lowest to the highest (move up and down), each with criteria (a name and a number needed). A criterion is **counted by the platform** (my clients; partners of my first line; everybody in my line; new partners this month) or **filled in by hand** by each person. Owners and admins change it, everybody sees it.
+- **The widget on My day:** "Starter → Builder", the overall percent, a bar for each criterion with the value and the target, and for hand-filled ones the date they were last set ("updated 4 days ago") with a field to update them. A target day with the countdown ("21 days") and, for what is left, **what each day has to bring** ("0.3 a day to make it"); a past target day says how long ago it passed. When every condition is met the widget says so and to confirm the rank with the leader. A link leads on to the norms of the day.
+- **Each person sets** their own current rank, the day they aim for and their hand-filled numbers; nobody else's are touched. Until a ladder exists only owners and admins see a pointer to set it up.
+- The demo workspace has a ladder of three ranks.
+- Tests: 9 for the rules (cleaning, the next rank, counted and hand-filled values, per-day need, after the target day, the top), 5 on a real database (who writes the ladder, the counts from the team, each person's own state, refusals).
