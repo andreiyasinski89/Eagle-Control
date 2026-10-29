@@ -55,6 +55,7 @@ export interface ContactDetail {
   nextStepAt: string | null;
   typeTag: string | null;
   country: string | null;
+  city?: string | null;
   sponsorName: string | null;
   groupId: string | null;
   sponsorId: string | null;
@@ -232,7 +233,7 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
           temperatureManualUntil={c.temperatureManualUntil ?? null}
           disabled={dis}
           workspaceId={workspaceId}
-          value={{ stage: c.stage, declineReason: c.declineReason, temperature: c.temperature, interests: c.interests, source: c.source, influence: c.influence, nextStep: c.nextStep, nextStepAt: c.nextStepAt, typeTag: c.typeTag, country: c.country, sponsorName: c.sponsorName, groupId: c.groupId }}
+          value={{ stage: c.stage, declineReason: c.declineReason, temperature: c.temperature, interests: c.interests, source: c.source, influence: c.influence, nextStep: c.nextStep, nextStepAt: c.nextStepAt, typeTag: c.typeTag, country: c.country, city: c.city ?? null, sponsorName: c.sponsorName, groupId: c.groupId }}
           onChange={(patchBody) => patch.mutate(patchBody)}
         />
       </Section>

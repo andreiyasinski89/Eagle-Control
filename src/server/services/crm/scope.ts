@@ -54,6 +54,14 @@ export async function contactScope(tx: Tx, m: Who, opts: { write?: boolean } = {
   return { OR: or };
 }
 
+/**
+ * The people whose turn it is before `dayEnd`: those whose next step is due, and those who said no or went quiet and whose day to come back has come.
+ * The ones out of the funnel stay out of it, whatever old date they carry, until their own day.
+ */
+export const dueBefore = (dayEnd: Date): Prisma.ContactWhereInput => ({
+  OR: [{ nextStepAt: { lt: dayEnd }, stage: { notIn: ["DECLINED", "NO_REPLY"] } }, { stage: { in: ["DECLINED", "NO_REPLY"] }, returnAt: { lt: dayEnd } }],
+});
+
 /** The same filter, joined to a query's own conditions. */
 /**
  * A person's own partner card is a link to their account (so they can be named as a sponsor or as the partner who works with someone),

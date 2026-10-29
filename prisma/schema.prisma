@@ -310,6 +310,8 @@ model Membership {
   crmAccess   Boolean  @default(false) // separate flag: who may see deal amounts / CRM
   crmScope    CrmScope @default(ALL) // with crmAccess: whose people the member sees (owners and admins always see all)
   teamScope   CrmScope? // what the member's teams grant (the best of them); kept in step by the team service
+  /// How this member's touch queue behaves (days until the next touch after each result); see modules/crm/touch.
+  touchSettings Json?
   hourlyRate  Decimal? @db.Decimal(10, 2)
   createdAt   DateTime @default(now())
 
@@ -649,6 +651,9 @@ model Contact {
   /// The letter the team uses for the kind of person ("П" or "Б"); kept as typed.
   typeTag        String?
   country        String?
+  city           String?
+  /// For someone who said no or went quiet: the day to come back to them. Until then they are not in the queue.
+  returnAt       DateTime?
   /// Whose link or invitation the person came through, until partners have cards of their own.
   sponsorName    String?
   /// The one group (or subgroup) the person is listed in, e.g. "Cold market / Gym".
@@ -681,6 +686,7 @@ model Contact {
   @@index([workspaceId, groupId])
   @@index([workspaceId, sponsorId])
   @@index([workspaceId, temperature])
+  @@index([workspaceId, returnAt])
   @@index([workspaceId, heldById])
   @@index([emails], type: Gin)
   @@index([workspaceId])
@@ -772,6 +778,10 @@ model Script {
   /// The funnel stage the text is for; null = for any moment.
   stage       PersonStage?
   body        String       @db.Text
+  /// The kind of moment: FIRST_TOUCH, REMINDER, AFTER_PRESENTATION or RETURN; null = any.
+  situation   String?
+  /// Whose it is: a person's own script; null = the team's, made by an owner or admin and open to everybody.
+  ownerId     String?
   position    Int          @default(0)
   createdById String?
   createdAt   DateTime     @default(now())
@@ -779,6 +789,7 @@ model Script {
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@index([workspaceId, stage])
+  @@index([workspaceId, ownerId])
 }
 
 /// What to do next, and in how many days, when a person moves into a stage: the next step fills itself in.

@@ -42,7 +42,13 @@ export function progress(count: number, goal: number | undefined): number | null
 /** The date a next step falls on `afterDays` from today, in the form the card keeps it (a day at midnight UTC). */
 export const stepDate = (today: string, afterDays: number): string => `${addDays(today, Math.max(0, afterDays))}T00:00:00.000Z`;
 
-/** A script with the person's name in it: {name} is the first name, {full_name} the whole name, {my_name} yours. */
-export function fillScript(body: string, v: { name: string; fullName: string; myName: string }): string {
-  return body.replace(/\{(name|full_name|my_name)\}/g, (_, k: string) => (k === "name" ? v.name : k === "full_name" ? v.fullName : v.myName));
+/**
+ * A script with the person's details in it: {name} (or {имя}) is the first name, {full_name} ({полное_имя}) the whole name, {my_name} ({моё_имя})
+ * yours, {city} ({город}) the person's city, {link} ({личная_ссылка}) your personal link. A city or a link that is not known stays as it is,
+ * so whoever sends the text sees what is left to fill in.
+ */
+export function fillScript(body: string, v: { name: string; fullName: string; myName: string; city?: string | null; link?: string | null }): string {
+  const own: Record<string, string> = { name: v.name, имя: v.name, full_name: v.fullName, полное_имя: v.fullName, my_name: v.myName, моё_имя: v.myName, мое_имя: v.myName };
+  const maybe: Record<string, string | null | undefined> = { city: v.city, город: v.city, link: v.link, личная_ссылка: v.link };
+  return body.replace(/\{([^{}\s]+)\}/g, (m, k: string) => (k in own ? (own[k] as string) : k in maybe ? ((maybe[k] as string | null | undefined) || m) : m));
 }

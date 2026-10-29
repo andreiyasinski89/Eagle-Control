@@ -11,13 +11,17 @@ export interface ScriptDto {
   stage: string | null;
   body: string;
   position: number;
+  situation: string | null;
+  /** A script of the whole team (changed by its leaders), or the member's own. */
+  shared: boolean;
+  mine: boolean;
 }
 
 export function useScripts(workspaceId: string) {
   return useQuery({ queryKey: ["scripts", workspaceId], staleTime: 30_000, queryFn: async () => (await api.get<{ items: ScriptDto[] }>(`/api/v1/workspaces/${workspaceId}/scripts`)).items });
 }
 
-/** Fills a script for one person: {name}, {full_name} and {my_name}. */
+/** Fills a script for one person: the names (and, in the queue, the city and the personal link). */
 export function useScriptFiller(workspaceId: string, meId: string) {
   const members = useMembers(workspaceId);
   const myName = members.data?.find((m) => m.id === meId)?.name ?? "";

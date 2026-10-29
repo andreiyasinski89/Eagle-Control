@@ -43,6 +43,7 @@ export const contactFieldsSchema = z.object({
   nextStepAt: z.string().datetime().nullable().optional(),
   typeTag: priorityField,
   country: text(80),
+  city: text(80),
   sponsorName: text(120),
   groupId: z.string().nullable().optional(),
   sponsorId: z.string().nullable().optional(),
@@ -103,6 +104,7 @@ export interface Funnel {
   nextStepAt?: string | null;
   typeTag?: string | null;
   country?: string | null;
+  city?: string | null;
   sponsorName?: string | null;
   groupId?: string | null;
   sponsorId?: string | null;
@@ -132,6 +134,7 @@ function funnelData(f: Funnel): Partial<Prisma.ContactUncheckedCreateInput> {
   if (f.nextStepAt !== undefined) out.nextStepAt = f.nextStepAt ? new Date(f.nextStepAt) : null;
   if (f.typeTag !== undefined) out.typeTag = f.typeTag ? (parsePriority(f.typeTag) ?? blank(f.typeTag) ?? null) : null;
   if (f.country !== undefined) out.country = blank(f.country) ?? null;
+  if (f.city !== undefined) out.city = blank(f.city) ?? null;
   if (f.sponsorName !== undefined) out.sponsorName = blank(f.sponsorName) ?? null;
   if (f.groupId !== undefined) out.groupId = f.groupId;
   if (f.sponsorId !== undefined) out.sponsorId = f.sponsorId;
@@ -467,6 +470,7 @@ export async function getContactIn(tx: Tx, userId: string, contactId: string) {
     nextStepAt: c.nextStepAt,
     typeTag: c.typeTag,
     country: c.country,
+    city: c.city,
     sponsorName: c.sponsorName,
     groupId: c.groupId,
     sponsorId: c.sponsorId,

@@ -20,5 +20,7 @@ export async function crmContext(slug: string, full = false) {
     canErase: can(membership, "crm:erase"),
     canManageLeads: can(membership, "leadform:manage"),
     canManagePipelines: can(membership, "pipeline:manage"),
+    /** Owners and admins: they make the scripts of the whole team. */
+    canLead: can(membership, "workspace:update"),
   };
 }

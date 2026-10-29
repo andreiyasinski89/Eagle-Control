@@ -17,6 +17,7 @@ export function CrmTabs({ slug, full = true }: { slug: string; full?: boolean })
   const base = `/w/${slug}/crm`;
   const tabs = [
     { href: `${base}/day`, label: t("tabDay") },
+    { href: `${base}/touches`, label: t("tabTouches") },
     { href: `${base}/people`, label: t("tabPeople") },
     { href: `${base}/team`, label: t("tabTeam") },
     { href: `${base}/team-activity`, label: t("tabTeamActivity") },

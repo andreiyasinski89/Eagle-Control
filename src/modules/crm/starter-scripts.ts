@@ -1,4 +1,5 @@
 import type { Stage } from "./people";
+import type { Situation } from "./touch";
 
 /**
  * Ready texts for the messages of a person who builds a team: one or more for every stage of the funnel and a few for any moment.
@@ -385,5 +386,12 @@ const UK: StarterScript[] = [
 ];
 
 export const STARTER_SCRIPTS: Record<StarterLocale, StarterScript[]> = { ru: RU, en: EN, pl: PL, uk: UK };
+
+/**
+ * The moment each ready-made script is for, by its place in the set (the sets are the same in every language, in the same order):
+ * a first touch to a new name, a reminder after silence, words after a presentation, a return to someone who went quiet or said no.
+ */
+const SITUATION_OF: (Situation | null)[] = ["FIRST_TOUCH", "FIRST_TOUCH", null, null, null, "REMINDER", null, "AFTER_PRESENTATION", "AFTER_PRESENTATION", null, null, null, null, null, "RETURN", "REMINDER", null, null];
+export const starterSituation = (index: number): Situation | null => SITUATION_OF[index] ?? null;
 
 export const starterLocale = (l: string | null | undefined): StarterLocale => (l === "ru" || l === "pl" || l === "uk" ? l : "en");

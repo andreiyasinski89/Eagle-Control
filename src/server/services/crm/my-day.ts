@@ -5,7 +5,7 @@ import { isValidTimeZone, todayIn, zonedToUtc } from "@/modules/views/tz";
 import { can } from "@/server/policies";
 import { loadWorkspaceMember } from "@/server/services/nodes/access";
 import { fullName, NO_TOUCH_DAYS } from "./common";
-import { contactScope, withScope } from "./scope";
+import { contactScope, dueBefore, withScope } from "./scope";
 import { toCard } from "./deals";
 
 const DAY = 86_400_000;
@@ -120,7 +120,7 @@ export async function getMyDay(userId: string, workspaceId: string, now = new Da
   const mine = { workspaceId, ownerId: userId, node: { archivedAt: null } } as const;
   const [dueRows, reachedRows] = await Promise.all([
     db.contact.findMany({
-      where: withScope({ ...mine, nextStepAt: { lt: dayTo }, stage: { notIn: ["DECLINED", "NO_REPLY"] } }, scope),
+      where: withScope({ ...mine, ...dueBefore(dayTo) }, scope),
       orderBy: [{ nextStepAt: { sort: "asc", nulls: "last" } }, { firstName: "asc" }],
       take: 200,
     }),

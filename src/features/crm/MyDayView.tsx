@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, CalendarClock, Check, CheckSquare, ChevronRight, Clock, Handshake, Mail, MessageCircle, Phone, Timer, User, UserX, Users } from "lucide-react";
+import { AlertTriangle, CalendarClock, Check, CheckSquare, ChevronRight, Clock, Handshake, Mail, MessageCircle, Phone, Send, Timer, User, UserX, Users } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -294,6 +294,7 @@ function CrmDayCard({ title, hint, items, planned, done, base, tz, locale, onDon
 
 export function MyDayView({ workspaceId, slug, workspaceName, userName }: { workspaceId: string; slug: string; workspaceName: string; userName: string | null }) {
   const t = useTranslations("myday");
+  const tt = useTranslations("touches");
   const tc = useTranslations("crm");
   const locale = useLocale();
   const qc = useQueryClient();
@@ -401,6 +402,14 @@ export function MyDayView({ workspaceId, slug, workspaceName, userName }: { work
           <Skeleton className="h-32 rounded-2xl" />
           <Skeleton className="h-24 rounded-2xl" />
         </div>
+      )}
+      {data?.crm && data.contactsDue.length > 0 && (
+        <Button asChild size="md" className="min-h-12 w-full justify-center gap-2 text-base" data-testid="start-touches">
+          <Link href={`${base}/crm/touches`}>
+            <Send className="size-5" />
+            {tt("startN", { n: data.contactsDue.length })}
+          </Link>
+        </Button>
       )}
       {data && (
         <div className="grid gap-3 sm:grid-cols-3">

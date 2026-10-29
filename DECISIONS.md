@@ -210,4 +210,11 @@
 | 206 | A hand-set temperature holds 14 days; clearing it gives the decision back at once | The person who knows the contact is right in the short run; after two weeks the facts should decide again. |
 | 207 | Replies, agreed meetings and price questions come from the result of a touch (`outcome`, `signals`), which the touch queue will record; until then the rules rest on the stage, the touches, meetings held and silence | We count what is known; a reply is not guessed from a message that was only sent. |
 | 208 | The nightly job and the admin button share one function; there is no separate migration script | Cooling needs a daily pass anyway, and one button covers the existing people. |
+| 209 | The queue holds only the people the member keeps (owner), among those they may see | Touching is the keeper's work; with private contacts nobody writes to another person's people. |
+| 210 | Who said no or went quiet leaves the queue until their own day (`returnAt`), kept apart from `nextStepAt` | Old dates on people out of the funnel would otherwise flood the queue the day this ships. |
+| 211 | Three touches in a row without an answer = the "no reply" stage, back in 30 days; the number and the 30 days are fixed, the days after a reply, no reply and a no are the member's own settings | The rule the team asked for, with the three numbers they asked to be able to change. |
+| 212 | The result goes through the same door as every other edit of a person (stage event, guards, temperature) and a touch is a `MESSAGE` activity with an `outcome` | One history, one place where the rules live; reports and the temperature read it. |
+| 213 | The "+1 temperature" after a reply comes from the rules (a reply adds points), and a temperature set by hand keeps holding for its 14 days | A second, parallel way to change the temperature would fight the rules and the hand-set value. |
+| 214 | Telegram gets the chat link and the text in the clipboard; WhatsApp gets the text in the link | Telegram's chat link has no text parameter; the clipboard is the way that always works. |
+| 215 | Scripts: the team's are made and changed by owners and admins; everyone's own are private; a member copies a team script to change it | The leader's wording stays the leader's, and each person can still say it in their own words. |
 

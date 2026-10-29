@@ -21,6 +21,7 @@ export interface FunnelValues {
   nextStepAt: string | null;
   typeTag: string | null;
   country: string | null;
+  city?: string | null;
   sponsorName: string | null;
   groupId: string | null;
   declineReason: string | null;
@@ -109,6 +110,11 @@ export function FunnelFields({ value, disabled, workspaceId, onChange, temperatu
           <Input disabled={disabled} defaultValue={value.country ?? ""} key={`c${value.country}`} maxLength={80} onBlur={(e) => e.target.value !== (value.country ?? "") && onChange({ country: e.target.value.trim() || null })} />
         </FormField>
       </div>
+      {value.city !== undefined && (
+        <FormField label={t("field.city")}>
+          <Input disabled={disabled} defaultValue={value.city ?? ""} key={`ci${value.city}`} maxLength={80} onBlur={(e) => e.target.value !== (value.city ?? "") && onChange({ city: e.target.value.trim() || null })} />
+        </FormField>
+      )}
 
       <div className="flex flex-col gap-1 text-sm">
           <span className="font-medium">{t("field.typeTag")}</span>
