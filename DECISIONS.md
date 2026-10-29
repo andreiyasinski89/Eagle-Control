@@ -246,3 +246,5 @@
 | 241 | The link `/m/<key>` is public but unguessable and rate-limited; deleting the material kills it | The people it is sent to have no account. |
 | 242 | The QR code is put on the picture in the browser, from the member's own link, through a same-origin copy of the picture | The server never holds anybody's personal pictures, and no image service sees the links. |
 | 243 | The leader marks which pictures take a QR code and where; the member only presses the button | Placing it by hand on each picture would not be done. |
+| 244 | The speed promises are kept by a test on the in-memory database with a one-second limit for the touch queue | A promise that nobody measures is forgotten; the in-memory database is the slower one, so a pass is a safe bet. |
+| 245 | The end-to-end test signs in through the demo button and works through the API for the steps that are not the point | It stays short (10 seconds) and does not break on small changes of the screens. |

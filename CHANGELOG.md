@@ -484,3 +484,9 @@
 - **Pictures for stories with the owner's own QR code:** the leader marks a picture ("everybody may put their QR code on it": the corner and the width), and each member gets **"With my QR (PNG)"**: the picture with their personal link's QR in that place, made in the browser.
 - The demo workspace has four materials.
 - Tests: 8 for the rules (the QR place, links, kinds) and 8 on a real database (who shares, who sees what, link or file, the way a file is read and given out, the QR place on pictures only, who changes or deletes, the file removed with the material).
+
+## 0.47.0 — Final checks for the ambassador work (A to K)
+
+- **Speed measured** (test database in memory, slower than a real Postgres): the touch queue with 1000 people opens in about 50 ms; the team map of 300 partners builds in about 90 ms at the default three levels and about 800 ms with all six levels at once; My day 55 ms and the people board 200 ms on the same data. The test (`performance.test.ts`) fails if the queue takes a second or more.
+- **End-to-end test** (Playwright, `e2e/ambassador.spec.ts`): a lead arrives through the webhook with a label, a repeat with the Telegram name typed another way is recognised, the person is in the queue with "reply within the hour", the touch "Meeting set" is recorded, and the meeting is counted in the plan of the day. Runs against the demo (`APP_URL=http://localhost:3100 PW_CHANNEL=chrome npx playwright test e2e/ambassador.spec.ts`); `PW_CHANNEL` uses the browser already on the machine.
+- README: the section "Для амбассадоров: как начать за 5 минут". `docs/CHANGES-FOR-TEAM.ru.md`: the list of changes for the team in plain words.
