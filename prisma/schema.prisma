@@ -164,6 +164,8 @@ model User {
   image               String? // Auth.js OAuth avatar; `avatar` is user-chosen
   timezone            String            @default("UTC")
   locale              String            @default("en")
+  /// "simple" or "advanced" (see modules/ui-mode.ts); null means the default for the person.
+  uiMode              String?
   skills              String[]
   createdAt           DateTime          @default(now())
   /// Set when the account was erased; the row stays as an anonymous "Deleted user" so work they authored keeps its structure.

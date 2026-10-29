@@ -233,6 +233,9 @@ export function TeamMap({ workspaceId, slug, canWrite, canExport, canErase, canL
             </span>
             <p className="font-medium">{t("teamEmptyTitle")}</p>
             <p className="max-w-md text-sm text-muted-foreground">{t("teamEmpty")}</p>
+            <Link href={`/w/${slug}/crm/people`} className="inline-flex min-h-11 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground" data-testid="team-map-empty-cta">
+              {t("teamEmptyCta")}
+            </Link>
           </div>
         ) : (
           <TreeMap key={`${depth}-${JSON.stringify(filters)}-${Object.keys(branches).join(",")}`} nodes={nodes} heatmap onOpen={(n) => n.id !== ME && n.kind === "partner" && setSelected(n.id)} />

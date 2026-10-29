@@ -31,7 +31,7 @@ export function ViewSwitcher() {
   return (
     <div className="ml-auto flex min-w-0 max-w-full gap-1 overflow-x-auto rounded-xl border border-border bg-background p-1 text-sm" role="tablist" aria-label={t("switcher")}>
       {VIEW_KINDS.map((v) => (
-        <button key={v} role="tab" aria-selected={view === v} data-testid={`view-${v}`} onClick={() => setView(v)} className={cn("shrink-0 whitespace-nowrap rounded-lg px-3 py-1", view === v ? "bg-muted font-medium" : "text-muted-foreground hover:text-foreground")}>
+        <button key={v} data-advanced={v === "timeline" ? "" : undefined} role="tab" aria-selected={view === v} data-testid={`view-${v}`} onClick={() => setView(v)} className={cn("shrink-0 whitespace-nowrap rounded-lg px-3 py-1", view === v ? "bg-muted font-medium" : "text-muted-foreground hover:text-foreground")}>
           {t(`kind.${v}`)}
         </button>
       ))}

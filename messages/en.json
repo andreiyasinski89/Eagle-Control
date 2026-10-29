@@ -1049,7 +1049,8 @@
       "partnersFirstLine": "Counted: partners in my first line",
       "teamSize": "Counted: everybody in my line",
       "invitesMonth": "Counted: new partners this month"
-    }
+    },
+    "teamEmptyCta": "Open People"
   },
   "myday": {
     "title": "My day",
@@ -1105,7 +1106,11 @@
     "openDayPlan": "Plan of the day",
     "contactStep": "Contact",
     "stepDone": "Step done",
-    "showingOnly": "Showing only: {what}."
+    "showingOnly": "Showing only: {what}.",
+    "quickContact": "+ Contact",
+    "quickMeeting": "+ Meeting",
+    "teamQuiet": "{n} in your team went quiet: see who",
+    "teamAllWell": "Your team is at work. Open the activity"
   },
   "notifications": {
     "title": "Notifications",
@@ -1759,7 +1764,15 @@
     "tzNow": "It is {time} for you now ({offset}).",
     "tzSaved": "Saved. The calendar now uses this zone.",
     "deleteWaitEmail": "The button turns on when you type your address ({email}) in the field above, exactly. Then a code comes to your e-mail.",
-    "deleteWaitHandOver": "First hand over the workspaces you own (listed above); then the button turns on."
+    "deleteWaitHandOver": "First hand over the workspaces you own (listed above); then the button turns on.",
+    "uiModeTitle": "How the app looks",
+    "uiModeHint": "The same data in both modes: only the words and the fields change.",
+    "uiModeSimple": "Simple mode",
+    "uiModeSimpleHint": "Goal, week, action and step instead of epic, sprint, task and subtask. No estimates, dependencies, timeline or sprint charts. A home page with quick actions.",
+    "uiModeAdvanced": "Advanced mode",
+    "uiModeAdvancedHint": "All the tools of a project team: estimates, dependencies, the timeline, burndown and velocity.",
+    "uiModeSaved": "Saved.",
+    "uiModeFailed": "Could not save. Try again."
   },
   "legal": {
     "back": "Back to sign in",

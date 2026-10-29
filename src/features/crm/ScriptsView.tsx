@@ -78,7 +78,17 @@ export function ScriptsView({ workspaceId, canWrite, canLead = false }: { worksp
             {starterNote}
           </p>
         )}
-        {scripts.data && scripts.data.length === 0 && <p className="rounded-xl border border-dashed border-border p-6 text-sm text-muted-foreground">{t("scriptsEmpty")}</p>}
+        {scripts.data && scripts.data.length === 0 && (
+          <div className="flex flex-col items-start gap-3 rounded-xl border border-dashed border-border p-6" data-testid="scripts-empty">
+            <p className="text-sm text-muted-foreground">{t("scriptsEmpty")}</p>
+            {canWrite && (
+              <Button size="sm" className="min-h-11" disabled={starter.isPending} onClick={() => starter.mutate()} data-testid="scripts-empty-cta">
+                <Sparkles className="size-4" />
+                {t("starterAdd")}
+              </Button>
+            )}
+          </div>
+        )}
         {copied && (
           <p role="status" className="max-w-2xl rounded-lg border border-border bg-card p-3 text-sm" data-testid="script-copied">
             {copied}

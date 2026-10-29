@@ -266,6 +266,7 @@ function DrawerBody({ node, isRoot, close }: { node: ClientNode; isRoot: boolean
               <Input type="date" disabled={!canWrite} value={dateValue(node.dueDate)} min={dateValue(node.startDate) || undefined} onChange={(e) => void save({ dueDate: toIsoDay(e.target.value) })} />
             </Field>
             {isTask && (
+              <div data-advanced className="contents">
               <Field label={t("estimation")}>
                 <div className="flex gap-2">
                   <Input
@@ -296,8 +297,10 @@ function DrawerBody({ node, isRoot, close }: { node: ClientNode; isRoot: boolean
                   </select>
                 </div>
               </Field>
+              </div>
             )}
             {node.type === "PROJECT" && (
+              <div data-advanced className="contents">
               <Field label={t("projectUnit")}>
                 <select className={selectCls} disabled={!canWrite} value={node.estimationUnit ?? "HOURS"} onChange={(e) => void save({ estimationUnit: e.target.value as "HOURS" | "STORY_POINTS" })} data-testid="project-unit">
                   <option value="STORY_POINTS">{t("unitStoryPoints")}</option>
@@ -305,6 +308,7 @@ function DrawerBody({ node, isRoot, close }: { node: ClientNode; isRoot: boolean
                 </select>
                 <span className="text-xs text-muted-foreground">{t("estimationUnitHint")}</span>
               </Field>
+              </div>
             )}
             {node.type === "TASK" && hasKids && (
               <Field label={t("progressMode")}>
@@ -376,7 +380,11 @@ function DrawerBody({ node, isRoot, close }: { node: ClientNode; isRoot: boolean
       </Section>
 
       {workspaceId && detail && <TagsSection node={node} workspaceId={workspaceId} current={detail.tags} canWrite={canWrite} onChange={refresh} />}
-      {detail && countable && <LinksSection node={node} detail={detail} canWrite={canWrite} onChange={() => { refresh(); void reload(); }} />}
+      {detail && countable && (
+        <div data-advanced className="contents">
+          <LinksSection node={node} detail={detail} canWrite={canWrite} onChange={() => { refresh(); void reload(); }} />
+        </div>
+      )}
 
       {(node.type === "TASK" || node.type === "SUBTASK") && (
         <Section title={t("time")}>

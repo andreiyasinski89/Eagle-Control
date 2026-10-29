@@ -42,7 +42,7 @@ export function SprintSummary({ detail }: { detail: NodeDetail }) {
       </div>
 
       {detail.burndown && (
-        <div>
+        <div data-advanced>
           <div className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">{td("burndown")}</div>
           <div className="h-40" data-testid="burndown">
             <ResponsiveContainer width="100%" height="100%">

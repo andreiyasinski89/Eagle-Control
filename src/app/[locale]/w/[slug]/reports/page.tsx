@@ -1,3 +1,4 @@
+import { getUiMode } from "@/server/services/ui-mode";
 import { ReportsView } from "@/features/reports/ReportsView";
 import { hasFeature } from "@/modules/plans";
 import { auth } from "@/server/auth";
@@ -13,7 +14,8 @@ export default async function ReportsPage({ params }: { params: Promise<{ slug: 
   const userId = session?.user?.id ?? "";
   const workspace = await db.workspace.findUniqueOrThrow({ where: { slug }, select: { id: true, plan: true } });
   const membership = await db.membership.findUniqueOrThrow({ where: { userId_workspaceId: { userId, workspaceId: workspace.id } } });
-  const canSeeAgile = membership.role !== "CLIENT";
+  // The sprint charts (velocity, burndown) are for agile teams: the simple mode leaves them out.
+  const canSeeAgile = membership.role !== "CLIENT" && (await getUiMode(userId)).mode !== "simple";
   const projects = canSeeAgile ? await listProjects(userId, workspace.id) : [];
   return (
     <ReportsView

@@ -447,3 +447,12 @@
 - **Each person sets** their own current rank, the day they aim for and their hand-filled numbers; nobody else's are touched. Until a ladder exists only owners and admins see a pointer to set it up.
 - The demo workspace has a ladder of three ranks.
 - Tests: 9 for the rules (cleaning, the next rank, counted and hand-filled values, per-day need, after the target day, the top), 5 on a real database (who writes the ladder, the counts from the team, each person's own state, refusals).
+
+## 0.43.0 — Block G: the simple mode
+
+- **Migration 0035 (additive):** `User.uiMode`.
+- **A switch in the account** ("How the app looks"): **Simple** or **Advanced** mode. Somebody who came through a platform invitation starts in the simple mode; everybody else in the advanced one; the person's own choice always wins and works on every device.
+- **A layer over the same data:** in the simple mode epic is a **Goal**, sprint a **Week**, task an **Action**, subtask a **Step** (in all four languages, in the menu, the map, the drawer, My actions). Nothing in the data changes. The estimate and its unit, dependencies, the Timeline view, the burndown and the agile reports are hidden.
+- **The simple home page:** the "Start touches" button, the rank widget, **+ Contact** and **+ Meeting** at the top (they open the usual forms right there), and a line about the team ("2 in your team went quiet") when there are partners.
+- **Empty screens** tell what to do and give one button: scripts (add the starter scripts), the team and the team map (open People).
+- Tests: 6 (the default mode, the overlay does not touch the original, the replaced lines exist in every language with the same placeholders).

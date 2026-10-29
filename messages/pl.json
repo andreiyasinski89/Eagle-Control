@@ -1049,7 +1049,8 @@
       "partnersFirstLine": "Liczone: partnerzy mojej pierwszej linii",
       "teamSize": "Liczone: wszyscy w mojej linii",
       "invitesMonth": "Liczone: nowi partnerzy w miesiącu"
-    }
+    },
+    "teamEmptyCta": "Otwórz „Ludzie”"
   },
   "myday": {
     "title": "Mój dzień",
@@ -1105,7 +1106,11 @@
     "openDayPlan": "Plan dnia",
     "contactStep": "Kontakt",
     "stepDone": "Krok wykonany",
-    "showingOnly": "Pokazano tylko: {what}."
+    "showingOnly": "Pokazano tylko: {what}.",
+    "quickContact": "+ Kontakt",
+    "quickMeeting": "+ Spotkanie",
+    "teamQuiet": "W Twoim zespole zamilkło: {n}. Zobacz, kto",
+    "teamAllWell": "Zespół pracuje. Otwórz aktywność"
   },
   "notifications": {
     "title": "Powiadomienia",
@@ -1759,7 +1764,15 @@
     "tzNow": "U Ciebie jest teraz {time} ({offset}).",
     "tzSaved": "Zapisano. Kalendarz używa teraz tej strefy.",
     "deleteWaitEmail": "Przycisk włączy się, gdy wpiszesz swój adres ({email}) w polu powyżej, dokładnie tak samo. Potem na e-mail przyjdzie kod.",
-    "deleteWaitHandOver": "Najpierw przekaż przestrzenie, których jesteś właścicielem (wymienione powyżej); wtedy przycisk się włączy."
+    "deleteWaitHandOver": "Najpierw przekaż przestrzenie, których jesteś właścicielem (wymienione powyżej); wtedy przycisk się włączy.",
+    "uiModeTitle": "Jak wygląda aplikacja",
+    "uiModeHint": "W obu trybach te same dane: zmieniają się tylko słowa i pola.",
+    "uiModeSimple": "Tryb prosty",
+    "uiModeSimpleHint": "Cel, tydzień, działanie i krok zamiast epiku, sprintu, zadania i podzadania. Bez estymacji, zależności, osi czasu i wykresów sprintu. Strona główna z szybkimi akcjami.",
+    "uiModeAdvanced": "Tryb zaawansowany",
+    "uiModeAdvancedHint": "Wszystkie narzędzia zespołu projektowego: estymacje, zależności, oś czasu, burndown i velocity.",
+    "uiModeSaved": "Zapisano.",
+    "uiModeFailed": "Nie udało się zapisać. Spróbuj ponownie."
   },
   "legal": {
     "back": "Wróć do logowania",

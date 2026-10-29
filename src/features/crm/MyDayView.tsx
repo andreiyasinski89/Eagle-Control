@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, CalendarClock, Check, CheckSquare, ChevronRight, Clock, Handshake, Mail, MessageCircle, Phone, Send, Timer, User, UserX, Users } from "lucide-react";
+import { AlertTriangle, CalendarClock, CalendarPlus, UserPlus, Check, CheckSquare, ChevronRight, Clock, Handshake, Mail, MessageCircle, Phone, Send, Timer, User, UserX, Users } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,6 +15,8 @@ import { shortDate } from "./format";
 import type { DealCardDto } from "./types";
 import { OnboardingCard } from "@/features/start/OnboardingCard";
 import { RankWidget } from "./RankWidget";
+import { AddPeopleDialog } from "./AddPeopleDialog";
+import { NewEventDialog } from "@/features/views/NewEventDialog";
 
 interface AgileTask {
   id: string;
@@ -293,12 +295,15 @@ function CrmDayCard({ title, hint, items, planned, done, base, tz, locale, onDon
   );
 }
 
-export function MyDayView({ workspaceId, slug, workspaceName, userName }: { workspaceId: string; slug: string; workspaceName: string; userName: string | null }) {
+export function MyDayView({ workspaceId, slug, workspaceName, userName, simple = false, meId = "" }: { workspaceId: string; slug: string; workspaceName: string; userName: string | null; simple?: boolean; meId?: string }) {
   const t = useTranslations("myday");
   const tt = useTranslations("touches");
   const tc = useTranslations("crm");
   const locale = useLocale();
   const qc = useQueryClient();
+  const [addingPerson, setAddingPerson] = useState(false);
+  const [addingMeeting, setAddingMeeting] = useState(false);
+  const team = useQuery({ queryKey: ["team-activity", workspaceId, 7], enabled: simple, staleTime: 30_000, queryFn: () => api.get<{ totals: { partners: number; invitees: number; quiet: number } }>(`/api/v1/workspaces/${workspaceId}/team-activity?days=7`) });
   const { tz } = useTimeZone();
   const [focus, setFocus] = useState<Focus | null>(null);
   // The part of the day is the person's own clock, known only after mount; until then a neutral greeting keeps server and browser identical.
@@ -392,8 +397,27 @@ export function MyDayView({ workspaceId, slug, workspaceName, userName }: { work
           {workspaceName} · {data ? new Date(data.date).toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }) : ""}
         </p>
       </div>
+      {simple && (
+        <div className="grid grid-cols-2 gap-2" data-testid="quick-actions">
+          <Button type="button" variant="outline" className="min-h-12 justify-center gap-2" onClick={() => setAddingPerson(true)} data-testid="quick-contact">
+            <UserPlus className="size-5" />
+            {t("quickContact")}
+          </Button>
+          <Button type="button" variant="outline" className="min-h-12 justify-center gap-2" onClick={() => setAddingMeeting(true)} data-testid="quick-meeting">
+            <CalendarPlus className="size-5" />
+            {t("quickMeeting")}
+          </Button>
+        </div>
+      )}
       <OnboardingCard workspaceId={workspaceId} slug={slug} />
       <RankWidget workspaceId={workspaceId} slug={slug} />
+      {simple && team.data && team.data.totals.partners + team.data.totals.invitees > 0 && (
+        <Link href={`${base}/crm/team-activity`} className="flex min-h-12 items-center gap-3 rounded-2xl border border-border bg-card p-3 text-sm hover:border-primary" data-testid="team-glance">
+          <Users className="size-5 text-primary" aria-hidden />
+          <span className="min-w-0 flex-1">{team.data.totals.quiet > 0 ? t("teamQuiet", { n: team.data.totals.quiet }) : t("teamAllWell")}</span>
+          <ChevronRight className="size-4 text-muted-foreground" aria-hidden />
+        </Link>
+      )}
       {isLoading && (
         <div className="flex flex-col gap-4" data-testid="myday-loading">
           <div className="grid gap-3 sm:grid-cols-3">
@@ -445,6 +469,8 @@ export function MyDayView({ workspaceId, slug, workspaceName, userName }: { work
           </Button>
         </div>
       )}
+      {simple && meId && <AddPeopleDialog open={addingPerson} onClose={() => setAddingPerson(false)} workspaceId={workspaceId} meId={meId} defaultGroup="" onAdded={() => void qc.invalidateQueries({ queryKey: ["my-day", workspaceId] })} />}
+      {simple && <NewEventDialog open={addingMeeting} onClose={() => setAddingMeeting(false)} workspaceId={workspaceId} day={data?.date ?? new Date().toISOString().slice(0, 10)} />}
       <div id="myday-lists" className="-mb-3 scroll-mt-20" aria-hidden />
       {data && (
         <>

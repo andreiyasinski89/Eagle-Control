@@ -97,3 +97,8 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* The simple mode hides what only an agile team needs (estimates, dependencies, the timeline, sprint charts). The data stays; this is only a layer. */
+[data-ui-mode="simple"] [data-advanced] {
+  display: none !important;
+}

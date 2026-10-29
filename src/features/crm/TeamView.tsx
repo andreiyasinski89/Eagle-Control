@@ -6,6 +6,7 @@ import { UserCheck, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { groupTree, type GroupNode } from "@/modules/crm/groups";
 import { cn } from "@/lib/utils";
+import { Link } from "@/i18n/navigation";
 import { ContactDrawer } from "./ContactDrawer";
 import { ReferralCard } from "./ReferralCard";
 import { usePartners, type PartnerDto } from "./usePartners";
@@ -93,6 +94,9 @@ export function TeamView({ workspaceId, slug, canWrite, canExport, canErase, meI
           </span>
           <p className="font-medium">{t("teamEmptyTitle")}</p>
           <p className="max-w-md text-sm text-muted-foreground">{t("teamEmpty")}</p>
+          <Link href={`/w/${slug}/crm/people`} className="inline-flex min-h-11 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground" data-testid="team-empty-cta">
+            {t("teamEmptyCta")}
+          </Link>
         </div>
       )}
       {data && data.length > 0 && <ul className="flex flex-col gap-1.5">{tree.map(row)}</ul>}

@@ -231,3 +231,6 @@
 | 226 | A hand-filled number keeps the day it was set and the widget shows its age | An old number must not look like a fresh one. |
 | 227 | The platform only says the conditions are met; the rank itself is confirmed by the leader | The company, not the app, awards a rank. |
 | 228 | "Clients" counts the person's own clients; the team numbers need their own partner card | Without a card there is no tree to count from. |
+| 229 | The simple mode is a display layer: words replaced by a message overlay, advanced fields hidden by one CSS rule (`data-advanced`) | The data is the same for everybody, so a team with both kinds of people keeps working together. |
+| 230 | The default is simple only for people who came through a platform invitation | There is no "ambassador" role to ask about; an invitation is the sign of a newcomer of someone's team. |
+| 231 | The overlay messages are sent to the browser only for people in the simple mode | The advanced mode pays nothing for it. |
