@@ -271,6 +271,8 @@ model Workspace {
   contactPrivacy ContactPrivacy @default(PRIVATE)
   /// Thresholds of the team map colours (see modules/crm/team-tree.ts); empty means the defaults.
   teamHeat       Json           @default("{}")
+  /// The steps of the first 30 days of a new partner (see modules/crm/onboarding-plan.ts); null means the default plan.
+  onboardingPlan Json?
 
   memberships      Membership[]
   invitations      Invitation[]

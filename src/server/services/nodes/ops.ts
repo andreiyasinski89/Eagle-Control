@@ -450,6 +450,8 @@ export interface CreateProjectInput {
   template?: BuiltInTemplateKey;
   /** A workspace-defined template (wins over `template`). */
   templateId?: string;
+  /** A tree built by the caller (wins over both): used by the first 30 days of a partner. */
+  structure?: TemplateNode;
   estimationUnit?: "HOURS" | "STORY_POINTS";
   /** Set when the project grows out of a won deal. */
   dealId?: string;
@@ -465,6 +467,7 @@ interface ResolvedTemplate {
 export const workspaceTemplateSchema = z.object({ defaultDurationDays: z.number().int().min(1).max(3650).default(60), root: templateNodeSchema });
 
 async function resolveTemplate(tx: Tx, workspaceId: string, input: CreateProjectInput): Promise<ResolvedTemplate> {
+  if (input.structure) return { key: "custom", structure: input.structure, defaultDurationDays: 30 };
   if (input.templateId) {
     const row = await tx.projectTemplate.findFirst({ where: { id: input.templateId, OR: [{ workspaceId }, { workspaceId: null }] } });
     if (!row) throw notFound("template");

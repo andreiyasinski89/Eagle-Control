@@ -12,6 +12,7 @@ import { Link } from "@/i18n/navigation";
 import { api } from "@/features/mindmap/api";
 import type { Block } from "@/modules/onboarding/steps";
 import { cn } from "@/lib/utils";
+import { MyOnboardingCard } from "./MyOnboardingCard";
 import { useOnboarding, type GoalDto, type OnboardingData, type StartStep } from "./useOnboarding";
 
 const num = (v: string): number | null => (v.trim() === "" ? null : Math.max(0, Math.min(100_000, Math.round(Number(v)) || 0)));
@@ -61,6 +62,8 @@ export function StartView({ workspaceId, slug }: { workspaceId: string; slug: st
           </button>
         </div>
       </header>
+
+      <MyOnboardingCard workspaceId={workspaceId} slug={slug} />
 
       <DreamCard workspaceId={workspaceId} data={data} onSaved={refresh} />
 

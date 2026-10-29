@@ -223,3 +223,7 @@
 | 218 | The thresholds (3 / 7 / 7 days) are per workspace and changed by owners and admins | The leader of a team knows the pace of the business; one number for everybody would be wrong somewhere. |
 | 219 | The map carries only numbers of a partner's work, never their people, and follows the contact privacy of the workspace | Block H: a partner's contacts are theirs. |
 | 220 | Deeper lines load on a click (3 levels per click, 400 partners at most per answer) | A big team stays fast and readable. |
+| 221 | The onboarding plan is a simple list of steps kept in the workspace (not a project template) | A leader edits a list in one place; a template needed a whole project to be rebuilt and saved each time. |
+| 222 | The mentor is whoever presses "Start onboarding"; a checkpoint is a second task for them | Nobody has to be set up beforehand, and the mentor's checks sit in their own task list. |
+| 223 | Onboarding needs a partner with an account; no project is made for one without | A task must belong to a person who can open it; for the others the first step is the invitation. |
+| 224 | A project already started keeps its steps when the plan changes | The newcomer's list must not move under their feet. |

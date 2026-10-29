@@ -5,6 +5,8 @@ import { can } from "@/server/policies";
 import { latest } from "@/modules/crm/team-activity";
 import { cleanHeat, DEFAULT_DEPTH, heatOf, MAX_DEPTH, sliceTree, type Heat, type HeatSettings } from "@/modules/crm/team-tree";
 import { loadWorkspaceMember, logActivity } from "@/server/services/nodes/access";
+import type { OnboardingProgress } from "@/modules/crm/onboarding-plan";
+import { onboardingProgress } from "./partner-onboarding";
 import { fullName } from "./common";
 import { contactScope, withScope } from "./scope";
 
@@ -38,6 +40,8 @@ export interface TeamTreeNode {
   team: number;
   /** Partners hang below that the answer did not include. */
   hasMore: boolean;
+  /** The first 30 days started for this partner, when there are some. */
+  onboarding: OnboardingProgress | null;
   /** How to write to the partner, when the card has it: only for those the asker may see. */
   telegram: string | null;
   whatsapp: string | null;
@@ -122,6 +126,7 @@ export async function getTeamTree(userId: string, workspaceId: string, f: z.infe
   const accounts = shown.map((s) => by.get(s.node.id)?.linkedUserId).filter((x): x is string => !!x);
   const logs = accounts.length ? await db.activityLog.groupBy({ by: ["actorId"], where: { workspaceId, actorId: { in: accounts } }, _max: { createdAt: true } }) : [];
   const lastLog = new Map(logs.map((l) => [l.actorId, l._max.createdAt]));
+  const onboarding = await onboardingProgress(workspaceId, shown.map((s) => ({ id: s.node.id, linkedUserId: by.get(s.node.id)?.linkedUserId ?? null })));
   const invited = new Map(children.map((c) => [c.sponsorId as string, c._count._all]));
   const kids = new Map<string | null, string[]>();
   for (const a of all) kids.set(a.parentId, [...(kids.get(a.parentId) ?? []), a.id]);
@@ -140,7 +145,8 @@ export async function getTeamTree(userId: string, workspaceId: string, f: z.infe
       country: r.country,
       since: r.stageChangedAt,
       hasAccount: !!r.linkedUserId,
-      heat: heatOf(lastAt, r.stageChangedAt, now, heat),
+      heat: heatOf(lastAt, r.stageChangedAt, now, heat, onboarding.get(node.id) ? { startedAt: new Date(onboarding.get(node.id)!.startedAt), finished: onboarding.get(node.id)!.finished } : null),
+      onboarding: onboarding.get(node.id) ?? null,
       lastAt,
       touches7: mine.filter((a) => a.type !== "MEETING").length,
       meetings7: mine.filter((a) => a.type === "MEETING").length,

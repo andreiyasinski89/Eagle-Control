@@ -1,5 +1,6 @@
 "use client";
 
+import { OnboardingPlanPanel } from "./OnboardingPlanPanel";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
@@ -188,6 +189,7 @@ export function CrmSettings({ workspaceId }: { workspaceId: string }) {
     <div className="mx-auto flex max-w-3xl flex-col gap-4 p-6">
       <h1 className="text-2xl font-semibold">{t("crmSettings")}</h1>
       <PrivacyPanel workspaceId={workspaceId} />
+      <OnboardingPlanPanel workspaceId={workspaceId} />
       {error && (
         <p role="alert" className="text-sm text-danger">
           {error}

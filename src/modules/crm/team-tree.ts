@@ -23,9 +23,13 @@ export function cleanHeat(raw: unknown): HeatSettings {
   return { greenDays, yellowDays, newcomerDays: whole(r.newcomerDays, DEFAULT_HEAT.newcomerDays, 1, 90) };
 }
 
-/** The colour of a partner by the last sign of work (null when there never was one) and the day they joined. */
-export function heatOf(lastAt: Date | null, since: Date, now: Date, s: HeatSettings = DEFAULT_HEAT): Heat {
+/**
+ * The colour of a partner by the last sign of work (null when there never was one) and the day they joined.
+ * A newcomer whose first 30 days were started more than `newcomerDays` ago and are not finished is red, whatever else they did.
+ */
+export function heatOf(lastAt: Date | null, since: Date, now: Date, s: HeatSettings = DEFAULT_HEAT, onboarding: { startedAt: Date; finished: boolean } | null = null): Heat {
   const day = 86_400_000;
+  if (onboarding && !onboarding.finished && (now.getTime() - onboarding.startedAt.getTime()) / day > s.newcomerDays) return "red";
   if (!lastAt) return (now.getTime() - since.getTime()) / day > s.newcomerDays ? "red" : "yellow";
   const days = (now.getTime() - lastAt.getTime()) / day;
   return days <= s.greenDays ? "green" : days <= s.yellowDays ? "yellow" : "red";

@@ -3,13 +3,15 @@
 import { useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarPlus, ExternalLink, MessageCircle, Settings2, X } from "lucide-react";
+import { CalendarPlus, ExternalLink, GraduationCap, MessageCircle, Settings2, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { selectClass } from "@/components/ui/modal";
 import { Skeleton } from "@/components/ui/skeleton";
-import { api } from "@/features/mindmap/api";
+import { api, ApiFailure } from "@/features/mindmap/api";
+import type { OnboardingProgress } from "@/modules/crm/onboarding-plan";
+import { Link } from "@/i18n/navigation";
 import { DEFAULT_DEPTH, filterTree, MAX_DEPTH, NO_MAP_FILTERS, type Heat, type HeatSettings, type MapFilters } from "@/modules/crm/team-tree";
 import { cn } from "@/lib/utils";
 import { ContactDrawer } from "./ContactDrawer";
@@ -32,6 +34,7 @@ interface TeamNode {
   invited: number;
   team: number;
   hasMore: boolean;
+  onboarding: OnboardingProgress | null;
   telegram: string | null;
   whatsapp: string | null;
   phone: string | null;
@@ -78,6 +81,7 @@ export function TeamMap({ workspaceId, slug, canWrite, canExport, canErase, canL
   const [loadingBranch, setLoadingBranch] = useState<string | null>(null);
   const [planning, setPlanning] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [startError, setStartError] = useState<string | null>(null);
   const { data, isLoading, isError } = useQuery({ queryKey: ["team-tree", workspaceId, depth], staleTime: 15_000, queryFn: () => api.get<TeamTreeData>(`/api/v1/workspaces/${workspaceId}/team-tree?depth=${depth}`) });
 
   const setParam = (name: string, value: string | null) => {
@@ -119,7 +123,7 @@ export function TeamMap({ workspaceId, slug, canWrite, canExport, canErase, canL
       position: i,
       kind: "partner",
       title: n.name,
-      subtitle: [n.city || n.country, t("teamMapSince", { date: date(n.since) })].filter(Boolean).join(" · "),
+      subtitle: [n.city || n.country, t("teamMapSince", { date: date(n.since) }), n.onboarding ? t("onbShort", { n: n.onboarding.percent }) : null].filter(Boolean).join(" · "),
       detail: n.hasMore ? t("teamMapDetailMore", { touches: n.touches7, meetings: n.meetings7, n: n.team }) : t("teamMapDetail", { touches: n.touches7, meetings: n.meetings7, invited: n.invited }),
       health: HEAT_KEY[n.heat],
       warning: n.heat === "red",
@@ -131,6 +135,16 @@ export function TeamMap({ workspaceId, slug, canWrite, canExport, canErase, canL
 
   const sel = selected ? all.find((n) => n.id === selected) : undefined;
   const link = sel ? writeLink(sel) : null;
+
+  const startOnboarding = useMutation({
+    mutationFn: (id: string) => api.post(`/api/v1/workspaces/${workspaceId}/partners/${id}/onboarding`, { locale }),
+    onSuccess: () => {
+      setStartError(null);
+      void qc.invalidateQueries({ queryKey: ["team-tree"] });
+      setBranches({});
+    },
+    onError: (e) => setStartError(e instanceof ApiFailure ? (e.code === "plan_limit" ? t("planLimit") : e.message) : t("error")),
+  });
 
   const openBranch = async (id: string) => {
     setLoadingBranch(id);
@@ -253,7 +267,35 @@ export function TeamMap({ workspaceId, slug, canWrite, canExport, canErase, canL
               </div>
             ))}
           </dl>
+          {sel.onboarding && (
+            <div className="flex flex-col gap-1.5 rounded-lg border border-border p-3" data-testid="team-panel-onboarding">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <GraduationCap className="size-4" aria-hidden />
+                {t("onbTitle")}
+                <span className="ml-auto tabular-nums">{sel.onboarding.percent}%</span>
+              </div>
+              <span className="h-2 overflow-hidden rounded-full bg-muted" aria-hidden>
+                <span className="block h-full rounded-full bg-primary" style={{ width: `${sel.onboarding.percent}%` }} />
+              </span>
+              <p className="text-xs text-muted-foreground">{sel.onboarding.finished ? t("onbFinished") : t("onbNext", { title: sel.onboarding.next ?? "—", done: sel.onboarding.done, total: sel.onboarding.total })}</p>
+              <Link href={`/w/${slug}/projects/p/${sel.onboarding.projectId}`} className="text-xs text-primary hover:underline" data-testid="team-panel-onboarding-open">
+                {t("onbOpen")}
+              </Link>
+            </div>
+          )}
           <div className="flex flex-col gap-2">
+            {canWrite && !sel.onboarding && sel.hasAccount && (
+              <Button type="button" className="min-h-11" disabled={startOnboarding.isPending} onClick={() => startOnboarding.mutate(sel.id)} data-testid="team-panel-onboard">
+                <GraduationCap className="size-4" />
+                {t("onbStart")}
+              </Button>
+            )}
+            {canWrite && !sel.onboarding && !sel.hasAccount && <p className="text-xs text-muted-foreground">{t("onbNoAccount")}</p>}
+            {startError && (
+              <p role="alert" className="text-xs text-danger">
+                {startError}
+              </p>
+            )}
             {link && (
               <a href={link} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground" data-testid="team-panel-write">
                 <MessageCircle className="size-4" />

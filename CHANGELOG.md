@@ -428,3 +428,13 @@
 - The demo workspace now has a small team (8 partners, three colours).
 - Not yet in the panel (they come with blocks F and E): onboarding progress and rank progress.
 - Tests: 9 for the rules (colours, thresholds, slicing the tree, filters), 6 on a real database (levels, branch on request, the numbers, colours moved by the thresholds and who may change them, privacy).
+
+## 0.41.0 — Block F: the first 30 days of a new partner in one click
+
+- **Migration 0033 (additive):** `Workspace.onboardingPlan` (the leader's steps; empty means the standard plan).
+- **"Start onboarding"** in the partner's panel on the "My team" map: one project "First 30 days: Name" with a task for each step, assigned to the newcomer and dated from today. A step with a checkpoint also gives the mentor (who pressed the button) a task of their own to check it. Pressing it twice returns the same project. It needs a partner who has an account on the platform; for one without, the panel says to invite them first.
+- **The standard plan** (in ru/en/pl/uk): get to know the product, register and fill in the profile, a warm list of at least 50 names, the first 10 touches by the scripts, the first presentation with the mentor, the first invitation, and a review of each of the four weeks.
+- **The leader's own plan:** CRM settings → "Onboarding of a new partner": rename, add or remove steps, set the day and length, mark which ones the mentor checks; owners and admins change it, everybody sees it, and "Back to the standard plan" resets it. Onboardings already started keep their steps.
+- **Progress** (done of the newcomer's tasks) shows on the partner's card ("onboarding 40%") and in the panel with the next step and a link to the project. A newcomer whose onboarding started more than the "newcomer" days ago (7 by default) and is not finished turns **red** on the map.
+- **The newcomer's own view:** a "First 30 days" card at the top of the Start page, with the percent, the next step and a button into the project.
+- Tests: 8 for the plan rules, 7 on a real database (who may change the plan, the checks of an account and a partner, who gets which task, no second project, progress, the red colour, the leader's own plan).

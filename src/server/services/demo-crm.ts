@@ -74,7 +74,7 @@ export async function createDemoCrm(userId: string, workspaceId: string, people:
   const nina = await partner("Nina", "Wrona", { sponsorId: marta, city: "Warsaw", since: 60 });
   const pavel = await partner("Pavel", "Sidor", { sponsorId: marta, city: "Gdańsk", since: 45 });
   const ola = await partner("Ola", "Maj", { sponsorId: nina, city: "Warsaw", since: 30 });
-  await partner("Vika", "Rey", { sponsorId: me, city: "Krakow", since: 12 });
+  await partner("Vika", "Rey", { sponsorId: me, city: "Krakow", since: 12, linkedUserId: people.b });
   await partner("Igor", "Lis", { sponsorId: ola, city: "Warsaw", since: 5 });
   await work(marta, "Contact M1", [1, 2, 3, 4]);
   await work(oleg, "Contact O1", [5, 6]);
