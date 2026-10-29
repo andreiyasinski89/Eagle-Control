@@ -218,3 +218,8 @@
 | 214 | Telegram gets the chat link and the text in the clipboard; WhatsApp gets the text in the link | Telegram's chat link has no text parameter; the clipboard is the way that always works. |
 | 215 | Scripts: the team's are made and changed by owners and admins; everyone's own are private; a member copies a team script to change it | The leader's wording stays the leader's, and each person can still say it in their own words. |
 
+| 216 | The "My team" map is a new tab; the Team list and the Network map stay as they are | They answer other questions (who is whose / the whole network); the map answers "who works and who went quiet". |
+| 217 | A partner's colour comes from the last sign of work (a move or finished call among the people they hold, the last contact, the last action in the workspace); a newcomer with nothing at all turns red after 7 days | The same signs the Team activity screen already uses, so the two never disagree. |
+| 218 | The thresholds (3 / 7 / 7 days) are per workspace and changed by owners and admins | The leader of a team knows the pace of the business; one number for everybody would be wrong somewhere. |
+| 219 | The map carries only numbers of a partner's work, never their people, and follows the contact privacy of the workspace | Block H: a partner's contacts are theirs. |
+| 220 | Deeper lines load on a click (3 levels per click, 400 partners at most per answer) | A big team stays fast and readable. |

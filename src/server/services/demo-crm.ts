@@ -55,6 +55,33 @@ export async function createDemoCrm(userId: string, workspaceId: string, people:
   await db.deal.update({ where: { nodeId: app.id }, data: { lastActivityAt: ago(25), stageEnteredAt: ago(34) } });
   await db.contact.update({ where: { nodeId: piotr.id }, data: { lastContactedAt: ago(45) } });
 
+  // A small team for the "My team" map: the person's own card, a line of partners at different pace and a newcomer who has not started.
+  const partner = async (firstName: string, lastName: string, data: { sponsorId?: string; city: string; since: number; linkedUserId?: string; telegram?: string }) => {
+    const c = await createContact(userId, workspaceId, { firstName, lastName, emails: [], phones: [], messengers: data.telegram ? { telegram: data.telegram } : {}, allowDuplicate: true, consentGiven: true });
+    await db.contact.update({ where: { nodeId: c.id }, data: { stage: "PARTNER", stageChangedAt: ago(data.since), sponsorId: data.sponsorId ?? null, city: data.city, country: "PL", linkedUserId: data.linkedUserId ?? null } });
+    return c.id;
+  };
+  const work = async (partnerId: string, name: string, days: number[]) => {
+    const held = await createContact(userId, workspaceId, { firstName: name, emails: [], phones: [], messengers: {}, allowDuplicate: true, consentGiven: true });
+    await db.contact.update({ where: { nodeId: held.id }, data: { heldById: partnerId } });
+    // The card was just made, but the work behind it is as old as the days given.
+    await db.contactStageEvent.updateMany({ where: { contactNodeId: held.id }, data: { at: ago(Math.min(...days)) } });
+    for (const d of days) await db.crmActivity.create({ data: { workspaceId, type: d % 2 ? "CALL" : "MEETING", subject: "Demo", ownerId: userId, contactId: held.id, completedAt: ago(d) } });
+  };
+  const me = await partner("You", "Leader", { city: "Warsaw", since: 200, linkedUserId: userId });
+  const marta = await partner("Marta", "Zielińska", { sponsorId: me, city: "Warsaw", since: 120, telegram: "@marta_z" });
+  const oleg = await partner("Oleg", "Koval", { sponsorId: me, city: "Krakow", since: 90 });
+  const nina = await partner("Nina", "Wrona", { sponsorId: marta, city: "Warsaw", since: 60 });
+  const pavel = await partner("Pavel", "Sidor", { sponsorId: marta, city: "Gdańsk", since: 45 });
+  const ola = await partner("Ola", "Maj", { sponsorId: nina, city: "Warsaw", since: 30 });
+  await partner("Vika", "Rey", { sponsorId: me, city: "Krakow", since: 12 });
+  await partner("Igor", "Lis", { sponsorId: ola, city: "Warsaw", since: 5 });
+  await work(marta, "Contact M1", [1, 2, 3, 4]);
+  await work(oleg, "Contact O1", [5, 6]);
+  await work(nina, "Contact N1", [1, 3]);
+  await work(pavel, "Contact P1", [11]);
+  await work(ola, "Contact L1", [2]);
+
   if (projectId) {
     await db.nodeLink.create({ data: { fromNodeId: launch.id, toNodeId: projectId, kind: "DEAL_PROJECT" } });
     const project = await db.node.findUniqueOrThrow({ where: { id: projectId }, select: { data: true } });

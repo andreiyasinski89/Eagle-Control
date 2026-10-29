@@ -269,6 +269,8 @@ model Workspace {
   createdAt DateTime @default(now())
   /// See ContactPrivacy: who sees other people's contacts.
   contactPrivacy ContactPrivacy @default(PRIVATE)
+  /// Thresholds of the team map colours (see modules/crm/team-tree.ts); empty means the defaults.
+  teamHeat       Json           @default("{}")
 
   memberships      Membership[]
   invitations      Invitation[]

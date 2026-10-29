@@ -416,3 +416,15 @@
 - **Script variables:** `{name}`/`{имя}`, `{full_name}`, `{my_name}`, and new `{city}`/`{город}` and `{link}`/`{личная_ссылка}` (your personal invitation link); a city or link that is not known stays in the text to be filled by hand. A person has a **City** field.
 - Tests: 14 for the rules, 14 for the queue on a real database (the order, the card, the scripts, every answer, the quiet stage and its return, a no and its return, privacy, the settings, the plan of the day), 6 for the script library.
 
+
+## 0.40.0 — Block D: "My team" map
+
+- **Migration 0032 (additive):** `Workspace.teamHeat` (the thresholds of the colours).
+- **A new CRM tab, "My team":** the partners as a mind map with you in the middle. The first 3 levels are open (1 to 6 by choice); a deeper line opens by a click on its partner ("Open their line"), loaded branch by branch (up to 400 partners per answer).
+- **Each card:** name, city, the date the person became a partner, and the numbers of the last 7 days (touches, meetings, partners invited personally; the size of the line when it is cut off). Numbers only: nothing of the partner's people is shown. What you see follows the contact privacy of the workspace.
+- **Colours:** green when there was a sign of work in the last 3 days, yellow up to 7, red after; a newcomer with no work at all 7 days after joining is red. Owners and admins change the days ("Colour thresholds"); the change is written to the log.
+- **Filters:** by level, by city and by colour (with the number of partners in each colour); a match keeps its way up to you so the map does not fall apart.
+- **Panel of a partner** (a bottom sheet on the phone): colour and last action, four numbers, **Write** (Telegram, WhatsApp or phone from the card), **Plan a call** (the usual planning dialog), **Open their line**, **Open the card**.
+- The demo workspace now has a small team (8 partners, three colours).
+- Not yet in the panel (they come with blocks F and E): onboarding progress and rank progress.
+- Tests: 9 for the rules (colours, thresholds, slicing the tree, filters), 6 on a real database (levels, branch on request, the numbers, colours moved by the thresholds and who may change them, privacy).

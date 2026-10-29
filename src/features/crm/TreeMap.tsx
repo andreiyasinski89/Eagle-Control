@@ -22,6 +22,8 @@ export interface TreeMapNode {
   /** The edge from the parent is a link, not parenthood (drawn dashed). */
   linked?: boolean;
   warning?: boolean;
+  /** A second small line under the subtitle (numbers of the week). */
+  detail?: string;
   closed?: boolean;
   /** A colour for the left edge of the card (a funnel stage, a group); wins over the health colour. */
   accent?: string | null;
@@ -73,6 +75,7 @@ const Card = memo(function Card({ data }: NodeProps<CardNode>) {
         {node.warning && <span title="At risk" className="ml-auto text-[var(--health-red)]">⚠</span>}
       </div>
       {node.subtitle && <div className="mt-0.5 truncate text-xs text-muted-foreground">{node.subtitle}</div>}
+      {node.detail && <div className="truncate text-xs tabular-nums text-muted-foreground">{node.detail}</div>}
       {typeof node.progress === "number" && (
         <div className="absolute inset-x-3 bottom-1.5 h-1 overflow-hidden rounded-full bg-muted" aria-hidden>
           <div className="h-full rounded-full" style={{ width: `${node.progress}%`, background: color(node.health) }} />
@@ -127,7 +130,7 @@ function Inner({ nodes, heatmap, onOpen }: { nodes: TreeMapNode[]; heatmap: bool
     >
       <Background gap={24} size={1} />
       <Controls showInteractive={false} position="bottom-left" />
-      <MiniMap pannable zoomable position="bottom-right" nodeColor={(n) => color((n as CardNode).data.node.health)} />
+      <MiniMap className="!hidden sm:!block" pannable zoomable position="bottom-right" nodeColor={(n) => color((n as CardNode).data.node.health)} />
     </ReactFlow>
   );
 }
