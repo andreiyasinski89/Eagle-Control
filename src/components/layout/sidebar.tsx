@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Check, ChevronsUpDown, LogOut, Menu, Plus, Settings, ShieldCheck, User, X } from "lucide-react";
 import { signOut } from "next-auth/react";
@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl";
 import { DropdownContent, DropdownItem, DropdownLabel, DropdownMenu, DropdownSeparator, DropdownTrigger } from "@/components/ui/dropdown";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
+import { OPEN_MENU_EVENT } from "./bottom-nav";
 import { initialsOf, navGroups } from "./nav";
 
 export interface ShellProps {
@@ -173,13 +174,19 @@ export function Sidebar(props: ShellProps) {
 export function MobileNav(props: ShellProps) {
   const t = useTranslations("shell");
   const [open, setOpen] = useState(false);
+  // The "More" button of the bottom bar opens the same menu.
+  useEffect(() => {
+    const show = () => setOpen(true);
+    window.addEventListener(OPEN_MENU_EVENT, show);
+    return () => window.removeEventListener(OPEN_MENU_EVENT, show);
+  }, []);
   return (
     <>
       <button
         type="button"
         aria-label={t("menu")}
         onClick={() => setOpen(true)}
-        className="grid size-9 place-items-center rounded-lg hover:bg-muted md:hidden"
+        className="grid size-11 place-items-center rounded-lg hover:bg-muted md:hidden"
         data-testid="mobile-menu"
       >
         <Menu className="size-5" />
@@ -195,9 +202,9 @@ export function MobileNav(props: ShellProps) {
                   type="button"
                   aria-label={t("close")}
                   onClick={() => setOpen(false)}
-                  className="grid size-8 place-items-center rounded-lg hover:bg-muted"
+                  className="grid size-11 place-items-center rounded-lg hover:bg-muted"
                 >
-                  <X className="size-4" />
+                  <X className="size-5" />
                 </button>
               </div>
               <div className="min-h-0 flex-1">

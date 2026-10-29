@@ -102,3 +102,15 @@ body {
 [data-ui-mode="simple"] [data-advanced] {
   display: none !important;
 }
+
+/* On a phone every button and field is at least 44 px tall, so a thumb can hit it. The map canvas and the bottom bar keep their own sizes. */
+@media (max-width: 767px) {
+  button:not(.react-flow *):not([data-compact]),
+  select:not(.react-flow *),
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(.react-flow *) {
+    min-height: 44px;
+  }
+  button[aria-label]:not(.react-flow *):not([data-compact]) {
+    min-width: 44px;
+  }
+}

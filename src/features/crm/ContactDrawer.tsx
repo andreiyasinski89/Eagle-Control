@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { FormField, Modal, selectClass } from "@/components/ui/modal";
 import { Link } from "@/i18n/navigation";
 import { Attachments } from "@/features/drawer/Attachments";
+import { VoiceNote } from "./VoiceNote";
 import { Comments } from "@/features/drawer/Comments";
 import type { NodeDetail } from "@/features/drawer/types";
 import { api, ApiFailure } from "@/features/mindmap/api";
@@ -205,22 +206,23 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
 
       {canWrite && (
         <div className="flex flex-wrap gap-2 px-4 pb-3">
-          <Button size="sm" onClick={() => setPlanning(true)} data-testid="plan-contact">
+          <Button size="sm" className="min-h-11 md:min-h-8" onClick={() => setPlanning(true)} data-testid="plan-contact">
             <CalendarPlus className="size-4" />
             {t("planContact")}
           </Button>
-          <Button size="sm" variant="outline" onClick={() => setActivity("CALL")}>
+          <Button size="sm" variant="outline" className="min-h-11 md:min-h-8" onClick={() => setActivity("CALL")}>
             <Phone className="size-4" />
             {t("logCall")}
           </Button>
-          <Button size="sm" variant="outline" onClick={() => setActivity("EMAIL")}>
+          <Button size="sm" variant="outline" className="min-h-11 md:min-h-8" onClick={() => setActivity("EMAIL")}>
             <Mail className="size-4" />
             {t("logEmail")}
           </Button>
-          <Button size="sm" variant="outline" onClick={() => setActivity("NOTE")}>
+          <Button size="sm" variant="outline" className="min-h-11 md:min-h-8" onClick={() => setActivity("NOTE")}>
             <StickyNote className="size-4" />
             {t("addNote")}
           </Button>
+          <VoiceNote workspaceId={workspaceId} contactId={contactId} companyId={c.companyId} onSaved={refresh} />
         </div>
       )}
 

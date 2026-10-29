@@ -11,7 +11,7 @@ export function Topbar({ current, shell }: { current: { id: string; slug: string
     <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border bg-background/85 px-3 backdrop-blur md:px-5">
       <MobileNav {...shell} />
       <SearchButton />
-      <div className="ml-auto flex items-center gap-1.5">
+      <div className="ml-auto flex shrink-0 items-center gap-1.5">
         <TimerChip workspaceId={current.id} />
         <NotificationBell workspaceId={current.id} slug={current.slug} />
         <LocaleSwitcher />

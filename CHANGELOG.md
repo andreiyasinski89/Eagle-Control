@@ -456,3 +456,12 @@
 - **The simple home page:** the "Start touches" button, the rank widget, **+ Contact** and **+ Meeting** at the top (they open the usual forms right there), and a line about the team ("2 in your team went quiet") when there are partners.
 - **Empty screens** tell what to do and give one button: scripts (add the starter scripts), the team and the team map (open People).
 - Tests: 6 (the default mode, the overlay does not touch the original, the replaced lines exist in every language with the same placeholders).
+
+## 0.44.0 — Block I: the phone
+
+- **Install and offline:** the manifest is completed (id, scope, portrait, shortcuts) and a **service worker** keeps the shell (scripts, styles, icons) so the app opens fast; without a network a page of its own ("No connection", with a Retry button) is shown. The worker never touches `/api` or other sites and stores nothing private; it runs in production only.
+- **Bottom bar on a phone:** Day, Touches, Contacts, Team and More (opens the usual menu), with a round **+** above it. Hidden from tablet width up and for those without the CRM.
+- **Quick add of a person:** a name and a phone *or* a Telegram name, nothing else; it tells at once if somebody with this phone or Telegram is already there (with "Add anyway"), and offers "Add one more" or "Open the card".
+- **Voice note** on a person's card: press, talk, stop. The recording is kept as an attachment of the card; where the browser can write speech down (Chrome, Edge, Safari) the words become a note that can be corrected before saving. The connected AI works with text only, so the writing-down is done by the browser itself, with nothing sent to our server.
+- **Thumb size:** on a phone every button and field is at least 44 px (the map canvas excepted); the card drawer already covers the whole screen. The top bar no longer pushes the page wider than the screen (it was 423 px on a 375 px phone).
+- Tests: 5 (the manifest, the worker never caches the API, the offline page exists).

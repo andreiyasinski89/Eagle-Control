@@ -2,6 +2,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
 import { UiModeAttr } from "@/components/layout/ui-mode-attr";
+import { BottomNav } from "@/components/layout/bottom-nav";
 import { overlayMessages, SIMPLE_TERMS } from "@/modules/ui-mode";
 import { getUiMode } from "@/server/services/ui-mode";
 import { CommandPalette } from "@/components/layout/command-palette";
@@ -52,9 +53,10 @@ export default async function WorkspaceLayout({
           <DeletionBanner userId={userId} />
           <TrialBanner workspaceId={membership.workspace.id} slug={slug} isOwner={membership.role === "OWNER"} />
           <Topbar current={membership.workspace} shell={shell} />
-          <main className="min-w-0 flex-1">{children}</main>
+          <main className={shell.showCrm ? "min-w-0 flex-1 pb-20 md:pb-0" : "min-w-0 flex-1"}>{children}</main>
         </div>
       </div>
+      {shell.showCrm && <BottomNav slug={slug} workspaceId={membership.workspace.id} />}
       <CommandPalette workspaceId={membership.workspace.id} {...shell} />
     </QueryProvider>
   );

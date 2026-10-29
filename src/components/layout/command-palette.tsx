@@ -30,7 +30,7 @@ export function SearchButton() {
     <button
       type="button"
       onClick={() => window.dispatchEvent(new Event(OPEN_EVENT))}
-      className="flex h-9 w-full max-w-sm items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm text-muted-foreground hover:bg-muted"
+      className="flex h-11 min-w-0 w-full max-w-sm items-center gap-2 md:h-9 rounded-lg border border-border bg-card px-3 text-sm text-muted-foreground hover:bg-muted"
       data-testid="search-button"
     >
       <Search className="size-4" />

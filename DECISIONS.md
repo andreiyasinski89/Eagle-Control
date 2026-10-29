@@ -234,3 +234,7 @@
 | 229 | The simple mode is a display layer: words replaced by a message overlay, advanced fields hidden by one CSS rule (`data-advanced`) | The data is the same for everybody, so a team with both kinds of people keeps working together. |
 | 230 | The default is simple only for people who came through a platform invitation | There is no "ambassador" role to ask about; an invitation is the sign of a newcomer of someone's team. |
 | 231 | The overlay messages are sent to the browser only for people in the simple mode | The advanced mode pays nothing for it. |
+| 232 | The service worker caches only built files and icons and shows an offline page; pages and the API always go to the network | Everything personal stays fresh and nothing private lands in a cache on a shared phone. |
+| 233 | A voice note is written down by the browser's own speech recognition, not by our AI | The connected AI takes text only; the browser's recognition costs nothing and sends nothing to us. Where it is missing, the note is the recording. |
+| 234 | The quick form asks for a name and a phone or Telegram name, and warns about a person already in the list | A list built on the spot must not fill with doubles. |
+| 235 | One CSS rule makes every button and field 44 px tall on a phone | Cheaper and safer than touching hundreds of places one by one. |

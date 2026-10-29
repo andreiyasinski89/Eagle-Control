@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MeetOwl</title>
+    <style>
+      body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; box-sizing: border-box; font-family: system-ui, sans-serif; background: #f8fafc; color: #0f172a; text-align: center; }
+      @media (prefers-color-scheme: dark) { body { background: #0b0b12; color: #e5e7eb; } }
+      main { max-width: 360px; }
+      .owl { font-size: 48px; }
+      button { min-height: 48px; padding: 0 24px; border: 0; border-radius: 12px; background: #7c3aed; color: #fff; font-size: 16px; }
+      p { line-height: 1.5; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="owl" aria-hidden="true">🦉</div>
+      <h1>Нет сети · No connection</h1>
+      <p>Нет подключения к интернету. Проверьте связь и попробуйте снова.<br />There is no internet connection. Check it and try again.</p>
+      <button onclick="location.reload()">Повторить · Retry</button>
+    </main>
+  </body>
+</html>
