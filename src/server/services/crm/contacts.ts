@@ -7,6 +7,7 @@ import { checkLimit } from "@/modules/plans";
 import { contactKeys, findDuplicateGroups } from "@/modules/crm/dedupe";
 import { DECLINE_REASONS } from "@/modules/crm/decline";
 import { parsePriority, PRIORITIES, STAGES, TEMPERATURES, type Stage } from "@/modules/crm/people";
+import { normalizeTelegram } from "@/modules/account/profile";
 import { normalizeEmail, normalizePhone, uniqueNonNull } from "@/modules/crm/normalize";
 import { can } from "@/server/policies";
 import { loadWorkspaceMember, logActivity, type Tx } from "@/server/services/nodes/access";
@@ -62,16 +63,19 @@ export function phoneKeys(list: readonly string[]): string[] {
 }
 
 /** Active contacts that share an e-mail or phone with the given ones. */
-export async function findContactMatches(tx: Tx, workspaceId: string, emails: readonly string[], phones: readonly string[], ignoreId?: string) {
+export async function findContactMatches(tx: Tx, workspaceId: string, emails: readonly string[], phones: readonly string[], ignoreId?: string, telegram?: string | null) {
   const e = cleanEmails(emails);
   const p = phoneKeys(phones);
-  if (e.length === 0 && p.length === 0) return [];
+  const tg = telegram ? (normalizeTelegram(telegram)?.toLowerCase() ?? null) : null;
+  if (e.length === 0 && p.length === 0 && !tg) return [];
+  // The same Telegram name, however it was typed (@Name, name, t.me/name).
+  const byTg = tg ? (await tx.$queryRaw<{ nodeId: string }[]>`SELECT c."nodeId" FROM "Contact" c JOIN "Node" n ON n.id = c."nodeId" WHERE c."workspaceId" = ${workspaceId} AND n."archivedAt" IS NULL AND lower(replace(c.messengers->>'telegram', '@', '')) = ${tg}`).map((r) => r.nodeId) : [];
   const rows = await tx.contact.findMany({
     where: {
       workspaceId,
       node: { archivedAt: null },
       ...(ignoreId ? { nodeId: { not: ignoreId } } : {}),
-      OR: [...(e.length ? [{ emails: { hasSome: e } }] : []), ...(p.length ? [{ phonesNorm: { hasSome: p } }] : [])],
+      OR: [...(e.length ? [{ emails: { hasSome: e } }] : []), ...(p.length ? [{ phonesNorm: { hasSome: p } }] : []), ...(byTg.length ? [{ nodeId: { in: byTg } }] : [])],
     },
     select: { nodeId: true, firstName: true, lastName: true, emails: true },
   });
@@ -253,7 +257,7 @@ export async function createContact(userId: string, workspaceId: string, input: 
     await loadWorkspaceMember(tx, userId, workspaceId, "crm:write");
     await assertContactCapacity(tx, workspaceId, 1);
     if (!input.allowDuplicate) {
-      const matches = await findContactMatches(tx, workspaceId, input.emails, input.phones);
+      const matches = await findContactMatches(tx, workspaceId, input.emails, input.phones, undefined, input.messengers?.telegram);
       if (matches.length) throw new ApiError(409, "duplicate_contact", "This person may already exist", { candidates: matches });
     }
     const { id } = await createContactIn(tx, userId, workspaceId, input);

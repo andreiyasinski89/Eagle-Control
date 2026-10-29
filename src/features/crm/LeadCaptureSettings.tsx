@@ -10,7 +10,7 @@ import { FormField, Modal, selectClass, textareaClass } from "@/components/ui/mo
 import { api, ApiFailure } from "@/features/mindmap/api";
 import { useMembers, usePipelines } from "./hooks";
 
-const FIELD_KEYS = ["name", "email", "phone", "company", "message", "amount"] as const;
+const FIELD_KEYS = ["name", "email", "phone", "telegram", "company", "message", "amount"] as const;
 type FieldKey = (typeof FIELD_KEYS)[number];
 
 interface FormDto {

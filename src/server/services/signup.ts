@@ -88,7 +88,11 @@ export async function getOrCreateReferralLink(userId: string, workspaceId: strin
   }
   if (!link) throw new ApiError(500, "link_failed", "The link could not be made");
   const joined = await db.referralJoin.count({ where: { linkId: link.id } });
-  return { code: link.code, url: `${env().APP_URL}/r/${link.code}`, joined };
+  // The link for clients and acquaintances: the workspace's first open lead form with the person's own label on it.
+  const form = await db.leadForm.findFirst({ where: { workspaceId, enabled: true }, orderBy: { id: "asc" }, select: { publicKey: true } });
+  const me = await db.user.findUnique({ where: { id: userId }, select: { name: true, firstName: true, lastName: true, email: true } });
+  const name = [me?.firstName, me?.lastName].filter(Boolean).join(" ") || me?.name?.trim() || me?.email.split("@")[0] || "";
+  return { code: link.code, url: `${env().APP_URL}/r/${link.code}`, leadUrl: form ? `${env().APP_URL}/f/${form.publicKey}?ref=${link.code}` : null, name, joined };
 }
 
 /** Who a code belongs to, for the sentence "invited by …" on the sign-up page. Nothing else about the person is given out. */

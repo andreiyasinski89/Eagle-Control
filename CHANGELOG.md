@@ -465,3 +465,12 @@
 - **Voice note** on a person's card: press, talk, stop. The recording is kept as an attachment of the card; where the browser can write speech down (Chrome, Edge, Safari) the words become a note that can be corrected before saving. The connected AI works with text only, so the writing-down is done by the browser itself, with nothing sent to our server.
 - **Thumb size:** on a phone every button and field is at least 44 px (the map canvas excepted); the card drawer already covers the whole screen. The top bar no longer pushes the page wider than the screen (it was 423 px on a 375 px phone).
 - Tests: 5 (the manifest, the worker never caches the API, the offline page exists).
+
+## 0.45.0 — Block J: leads through a personal link
+
+- **Two personal links with a QR code each**, on the Team page: **for clients and acquaintances** (the workspace's first open lead form with the person's own label, `/f/<form>?ref=<code>`) and **an invitation to the team** (`/r/<code>`). The QR is drawn in the browser (no service, no library) with the person's name under it, and **Download PNG** saves it. The label (`ref`) is shown with the words to give to outside forms.
+- **A lead through a link or a form with `ref`** (Marquiz, Tilda, Make or the hosted form) belongs to that member: a person in the funnel at "New lead", with the source, the Telegram name and **the answers of the quiz in the note**; no deal is made. A wrong or missing label sends it to the leader of the workspace as before.
+- **The member is told** (a notification; Telegram if the bot is connected) and the person stands at the head of today's touches with the line **"New: reply within the hour"** (in the language of the member), unless a nearer step is already planned.
+- **Doubles:** a person is recognised by phone, e-mail and now by **Telegram name** however it is typed (`@name`, `name`, `t.me/name`); the same goes for the quick form, the hand-made card and the lead intake. A repeat of a lead adds to the same person and tells the member; a retry with the same key makes nothing twice.
+- A **Telegram** field can be put on a lead form; a lead with only a Telegram name is accepted.
+- Tests: 8 (the QR code: sizes, finder patterns, timing lines; the intake) and 7 on a real database (the owner by the label, the note, no deal, the notification and the queue, privacy, no label or a wrong one, doubles by every way). The codes were also read back with an independent decoder (OpenCV) in five sizes, all correct.

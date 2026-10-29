@@ -2096,7 +2096,15 @@
     "hint": "Send it to people you know. Whoever creates an account through it appears in your people as a new lead, and you get a notification.",
     "copy": "Copy",
     "copied": "Copied",
-    "joined": "Joined through your link: {n}"
+    "joined": "Joined through your link: {n}",
+    "kindLabel": "Which link",
+    "kindClients": "For clients and acquaintances",
+    "kindInvite": "Invite to the team",
+    "noForm": "There is no open lead form yet, so this link falls back to the team invitation. Ask the owner to make a form in Settings → Lead capture.",
+    "label": "Your label for outside forms (Marquiz, Tilda, Make): send it in the field “ref” = {code}. Such a lead comes to you.",
+    "qrAlt": "The QR code of the link",
+    "qrDownload": "Download PNG",
+    "qrTooLong": "The link is too long for a QR code."
   },
   "admin": {
     "title": "Platform admin",

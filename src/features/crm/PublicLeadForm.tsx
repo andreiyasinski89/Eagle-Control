@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-type Field = { key: "name" | "email" | "phone" | "company" | "message" | "amount"; label: string; required: boolean };
+type Field = { key: "name" | "email" | "phone" | "telegram" | "company" | "message" | "amount"; label: string; required: boolean };
 interface Config {
   title: string;
   submitLabel: string;
@@ -22,7 +22,7 @@ const TEXT = {
 const INPUT = "w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-primary";
 
 /** The hosted lead form (also embeddable as an iframe). It tells the parent page its height so no scrollbar appears. */
-export function PublicLeadForm({ formKey, config, sent, lang }: { formKey: string; config: Config; sent: boolean; lang: keyof typeof TEXT }) {
+export function PublicLeadForm({ formKey, config, sent, lang, refCode = null }: { formKey: string; config: Config; sent: boolean; lang: keyof typeof TEXT; refCode?: string | null }) {
   const tx = TEXT[lang];
   const root = useRef<HTMLDivElement>(null);
   const [values, setValues] = useState<Record<string, string>>({});
@@ -46,7 +46,7 @@ export function PublicLeadForm({ formKey, config, sent, lang }: { formKey: strin
     setError(null);
     const hp = (new FormData(e.currentTarget).get("hp") as string) ?? "";
     try {
-      const res = await fetch(`/api/public/leads/${formKey}`, { method: "POST", headers: { "content-type": "application/json", "idempotency-key": crypto.randomUUID() }, body: JSON.stringify({ ...values, consent, hp }) });
+      const res = await fetch(`/api/public/leads/${formKey}`, { method: "POST", headers: { "content-type": "application/json", "idempotency-key": crypto.randomUUID() }, body: JSON.stringify({ ...values, consent, hp, ...(refCode ? { ref: refCode } : {}) }) });
       if (!res.ok) {
         setError(res.status === 429 ? tx.limit : res.status === 422 || res.status === 400 ? tx.invalid : tx.error);
         setState("idle");

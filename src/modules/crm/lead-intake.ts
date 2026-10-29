@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { splitFullName } from "./csv";
+import { normalizeTelegram } from "@/modules/account/profile";
 import { normalizeEmail, normalizePhone } from "./normalize";
 
 export interface LeadInput {
@@ -7,6 +8,10 @@ export interface LeadInput {
   lastName: string | null;
   email: string | null;
   phone: string | null;
+  /** A Telegram name without the @, lower-cased. */
+  telegram: string | null;
+  /** The label of the person whose link the lead came through (their referral code). */
+  ref: string | null;
   company: string | null;
   website: string | null;
   message: string | null;
@@ -32,6 +37,8 @@ const ALIASES: Record<string, string[]> = {
   lastName: ["lastname", "lname", "surname", "фамилия", "nazwisko"],
   email: ["email", "mail", "emailaddress", "почта", "youremail"],
   phone: ["phone", "tel", "telephone", "mobile", "телефон", "telefon", "phonenumber"],
+  telegram: ["telegram", "tg", "telegramusername", "telegramnick", "телеграм", "тг"],
+  ref: ["ref", "referral", "refcode", "referralcode", "utmref", "метка", "реф"],
   company: ["company", "companyname", "organization", "organisation", "компания", "firma"],
   website: ["website", "site", "url", "сайт"],
   message: ["message", "comment", "comments", "text", "details", "description", "сообщение", "комментарий", "wiadomosc", "textarea"],
@@ -80,7 +87,10 @@ export function parseLead(raw: unknown): LeadInput {
   if (rawEmail && !email) throw new LeadRejected("invalid_email");
   const phoneRaw = str(pick("phone"));
   const phone = normalizePhone(phoneRaw) ? phoneRaw : null;
-  if (!email && !phone) throw new LeadRejected("no_contact_method");
+  const tgRaw = str(pick("telegram"));
+  const telegram = tgRaw ? (normalizeTelegram(tgRaw)?.toLowerCase() ?? null) : null;
+  const ref = str(pick("ref"));
+  if (!email && !phone && !telegram) throw new LeadRejected("no_contact_method");
 
   let firstName = str(pick("firstName"));
   let lastName = str(pick("lastName"));
@@ -106,10 +116,12 @@ export function parseLead(raw: unknown): LeadInput {
   }
 
   return {
-    firstName: firstName ?? email?.split("@")[0] ?? phone ?? "Lead",
+    firstName: firstName ?? email?.split("@")[0] ?? phone ?? (telegram ? `@${telegram}` : "Lead"),
     lastName: lastName ?? null,
     email,
     phone,
+    telegram,
+    ref: ref ? ref.slice(0, 40) : null,
     company,
     website,
     message,

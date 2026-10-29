@@ -2096,7 +2096,15 @@
     "hint": "Wyślij go znajomym. Każdy, kto utworzy konto przez niego, pojawi się u Ciebie wśród ludzi jako nowy lead, a Ty dostaniesz powiadomienie.",
     "copy": "Kopiuj",
     "copied": "Skopiowano",
-    "joined": "Zarejestrowali się przez Twój link: {n}"
+    "joined": "Zarejestrowali się przez Twój link: {n}",
+    "kindLabel": "Który link",
+    "kindClients": "Dla klientów i znajomych",
+    "kindInvite": "Zaproszenie do zespołu",
+    "noForm": "Nie ma jeszcze otwartego formularza zgłoszeń, więc link prowadzi do zaproszenia do zespołu. Poproś właściciela o formularz w Ustawienia → Przyjmowanie zgłoszeń.",
+    "label": "Twoja etykieta dla zewnętrznych formularzy (Marquiz, Tilda, Make): przekaż ją w polu „ref” = {code}. Takie zgłoszenie trafi do Ciebie.",
+    "qrAlt": "Kod QR linku",
+    "qrDownload": "Pobierz PNG",
+    "qrTooLong": "Link jest za długi na kod QR."
   },
   "admin": {
     "title": "Administracja platformy",

@@ -6,6 +6,7 @@ import type { Prisma } from "@prisma/client";
 import { db } from "@/server/db";
 import { ApiError, notFound } from "@/server/http/errors";
 import { LeadRejected, leadNote, parseLead, type LeadInput } from "@/modules/crm/lead-intake";
+import { answerSoon } from "@/modules/crm/lead-queue";
 import { normalizeDomain } from "@/modules/crm/normalize";
 import { loadWorkspaceMember, type Tx } from "@/server/services/nodes/access";
 import { notify } from "../notify";
@@ -26,7 +27,7 @@ export const normalizeOrigin = (u: string): string => {
   }
 };
 
-export const FORM_FIELDS = ["name", "email", "phone", "company", "message", "amount"] as const;
+export const FORM_FIELDS = ["name", "email", "phone", "telegram", "company", "message", "amount"] as const;
 
 export const leadFormConfigSchema = z.object({
   title: z.string().trim().max(120).default("Contact us"),
@@ -193,6 +194,22 @@ async function pickActor(tx: Tx, workspaceId: string, ownerId?: string | null): 
   return owner.userId;
 }
 
+/** The member whose referral code the lead carries (a link or a QR of theirs), when they still belong to the workspace and are not a client. */
+async function ownerOfRef(tx: Tx, workspaceId: string, code: string): Promise<string | null> {
+  const link = await tx.referralLink.findFirst({ where: { code, workspaceId }, select: { userId: true } });
+  if (!link) return null;
+  const m = await tx.membership.findUnique({ where: { userId_workspaceId: { userId: link.userId, workspaceId } } });
+  return m && m.role !== "CLIENT" ? link.userId : null;
+}
+
+/** Puts the person at the head of today's touches with a reminder to answer within the hour, unless a nearer step is already planned. */
+async function markForReply(tx: Tx, contactId: string, actor: string, now: Date) {
+  const c = await tx.contact.findUniqueOrThrow({ where: { nodeId: contactId }, select: { nextStepAt: true } });
+  if (c.nextStepAt && c.nextStepAt <= now) return;
+  const u = await tx.user.findUnique({ where: { id: actor }, select: { locale: true } });
+  await tx.contact.update({ where: { nodeId: contactId }, data: { nextStep: answerSoon(u?.locale), nextStepAt: now } });
+}
+
 async function findCompany(tx: Tx, workspaceId: string, lead: LeadInput): Promise<string | null> {
   const domain = normalizeDomain(lead.website);
   const row = await tx.company.findFirst({
@@ -233,12 +250,15 @@ export async function ingestLead(opts: IngestOptions, raw: unknown): Promise<Ing
 
   try {
     const out = await db.$transaction(async (tx) => {
-      const actor = await pickActor(tx, opts.workspaceId, opts.ownerId);
+      // A lead that came through somebody's own link belongs to them and is a person to talk to, not a deal; without a label it goes to the leader.
+      const refOwner = lead.ref ? await ownerOfRef(tx, opts.workspaceId, lead.ref) : null;
+      const actor = refOwner ?? (await pickActor(tx, opts.workspaceId, opts.ownerId));
       const now = new Date();
 
-      let contactId = (await findContactMatches(tx, opts.workspaceId, lead.email ? [lead.email] : [], lead.phone ? [lead.phone] : []))[0]?.id ?? null;
-      let companyId = await findCompany(tx, opts.workspaceId, lead);
-      if (!companyId && lead.company) {
+      let contactId = (await findContactMatches(tx, opts.workspaceId, lead.email ? [lead.email] : [], lead.phone ? [lead.phone] : [], undefined, lead.telegram))[0]?.id ?? null;
+      const existed = !!contactId;
+      let companyId = refOwner ? null : await findCompany(tx, opts.workspaceId, lead);
+      if (!companyId && lead.company && !refOwner) {
         companyId = (await createCompanyIn(tx, actor, opts.workspaceId, { legalName: lead.company, website: lead.website, source: opts.sourceLabel, lifecycleStage: "LEAD" })).id;
       }
       if (!contactId) {
@@ -249,9 +269,10 @@ export async function ingestLead(opts: IngestOptions, raw: unknown): Promise<Ing
             lastName: lead.lastName,
             emails: lead.email ? [lead.email] : [],
             phones: lead.phone ? [lead.phone] : [],
-            messengers: {},
+            messengers: lead.telegram ? { telegram: `@${lead.telegram}` } : {},
             companyId,
             source: opts.sourceLabel,
+            ownerId: actor,
             consentGiven: lead.consent,
             consentSource: opts.source,
           })
@@ -267,6 +288,17 @@ export async function ingestLead(opts: IngestOptions, raw: unknown): Promise<Ing
           await tx.node.update({ where: { id: contactId }, data: { parentId: companyId, rootId: companyId } });
         }
         companyId ??= c.companyId;
+      }
+
+      await markForReply(tx, contactId, actor, now);
+
+      if (refOwner) {
+        await createActivityIn(tx, actor, opts.workspaceId, { type: "MESSAGE", subject: `Inquiry via ${opts.sourceLabel}`, body: leadNote(lead) || null, contactId, companyId: null, dealId: null, completed: true, ownerId: actor });
+        const who = fullName(lead.firstName, lead.lastName);
+        const personal: IngestResult["status"] = existed ? "duplicate" : "created";
+        await notify({ userId: actor, workspaceId: opts.workspaceId, kind: "lead", title: personal === "created" ? `New lead: ${who}` : `Repeat inquiry from ${who}`, body: opts.sourceLabel, url: "/crm/touches", payload: { contactId, source: opts.sourceLabel, status: personal } }, tx);
+        await tx.leadIngest.create({ data: { workspaceId: opts.workspaceId, source: opts.source, idempotencyKey: key, ipHash: opts.ipHash ?? null, status: personal, contactId, dealId: null, payload: raw as Prisma.InputJsonValue } });
+        return { status: personal, contactId, dealId: null, companyId: null };
       }
 
       const pipeline = opts.pipelineId ? await tx.pipeline.findFirst({ where: { id: opts.pipelineId, workspaceId: opts.workspaceId } }) : null;

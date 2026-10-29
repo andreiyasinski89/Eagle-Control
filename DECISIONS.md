@@ -238,3 +238,7 @@
 | 233 | A voice note is written down by the browser's own speech recognition, not by our AI | The connected AI takes text only; the browser's recognition costs nothing and sends nothing to us. Where it is missing, the note is the recording. |
 | 234 | The quick form asks for a name and a phone or Telegram name, and warns about a person already in the list | A list built on the spot must not fill with doubles. |
 | 235 | One CSS rule makes every button and field 44 px tall on a phone | Cheaper and safer than touching hundreds of places one by one. |
+| 236 | The QR encoder is our own small module (byte mode, level M, up to 106 bytes), checked against an independent decoder | A new dependency would change the lock file and the deploy; a link needs 33 to 37 modules only. |
+| 237 | A lead with a valid label is a person of that member, without a deal; without one the old path (contact and deal for the leader) stays | Ambassadors work with people, companies with deals; the existing form users lose nothing. |
+| 238 | A new lead is put into today's touches by a next step "reply within the hour", not by a separate list | One queue to work through, and a nearer planned step is never overwritten. |
+| 239 | Telegram names are compared lower-cased without "@" and links | The same person is typed three ways; the double must be found in all of them. |
