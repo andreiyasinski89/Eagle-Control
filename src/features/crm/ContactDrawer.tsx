@@ -10,6 +10,8 @@ import { FormField, Modal, selectClass } from "@/components/ui/modal";
 import { Link } from "@/i18n/navigation";
 import { Attachments } from "@/features/drawer/Attachments";
 import { VoiceNote } from "./VoiceNote";
+import { SendMaterial } from "./SendMaterial";
+import { copyToClipboard } from "./useScripts";
 import { Comments } from "@/features/drawer/Comments";
 import type { NodeDetail } from "@/features/drawer/types";
 import { api, ApiFailure } from "@/features/mindmap/api";
@@ -95,6 +97,7 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
   const companies = useCompanyOptions(workspaceId);
   const [activity, setActivity] = useState<ActivityDto["type"] | null>(null);
   const [planning, setPlanning] = useState(false);
+  const [materialNote, setMaterialNote] = useState<string | null>(null);
   const { tz } = useTimeZone();
   const [erasing, setErasing] = useState(false);
   const [confirm, setConfirm] = useState("");
@@ -242,6 +245,16 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
 
       <Section title={t("scriptsSection")}>
         <ScriptPicker workspaceId={workspaceId} meId={meId} stage={c.stage} fullName={c.name} />
+        {canWrite && (
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <SendMaterial workspaceId={workspaceId} onPick={async (line) => setMaterialNote((await copyToClipboard(line)) ? t("materialCopied") : t("materialCopyFailed"))} />
+            {materialNote && (
+              <span role="status" className="text-xs text-muted-foreground" data-testid="material-note">
+                {materialNote}
+              </span>
+            )}
+          </div>
+        )}
       </Section>
 
       {(upcoming.length > 0 || canWrite) && (

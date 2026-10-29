@@ -27,6 +27,7 @@ export function CrmTabs({ slug, full = true }: { slug: string; full?: boolean })
     { href: `${base}/contacts`, label: t("tabContacts") },
     ...(full ? [{ href: `${base}/activities`, label: t("tabActivities") }] : []),
     { href: `${base}/scripts`, label: t("tabScripts") },
+    { href: `${base}/materials`, label: t("tabMaterials") },
   ];
   return (
     <nav aria-label="CRM" className="flex gap-1 overflow-x-auto border-b border-border bg-card px-4">

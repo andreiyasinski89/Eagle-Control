@@ -25,9 +25,9 @@ export async function presignUpload(key: string, contentType: string, size?: num
   return getSignedUrl(s3, new PutObjectCommand({ Bucket: bucket, Key: key, ContentType: contentType, ...(size ? { ContentLength: size } : {}) }), { expiresIn });
 }
 
-export async function presignDownload(key: string, fileName: string, expiresIn = 300): Promise<string> {
+export async function presignDownload(key: string, fileName: string, expiresIn = 300, inline = false): Promise<string> {
   const { s3, bucket } = client();
-  const disposition = `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`;
+  const disposition = `${inline ? "inline" : "attachment"}; filename*=UTF-8''${encodeURIComponent(fileName)}`;
   return getSignedUrl(
     s3,
     new GetObjectCommand({ Bucket: bucket, Key: key, ResponseContentDisposition: disposition }),

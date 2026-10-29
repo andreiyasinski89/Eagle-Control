@@ -474,3 +474,13 @@
 - **Doubles:** a person is recognised by phone, e-mail and now by **Telegram name** however it is typed (`@name`, `name`, `t.me/name`); the same goes for the quick form, the hand-made card and the lead intake. A repeat of a lead adds to the same person and tells the member; a retry with the same key makes nothing twice.
 - A **Telegram** field can be put on a lead form; a lead with only a Telegram name is accepted.
 - Tests: 8 (the QR code: sizes, finder patterns, timing lines; the intake) and 7 on a real database (the owner by the label, the note, no deal, the notification and the queue, privacy, no label or a wrong one, doubles by every way). The codes were also read back with an independent decoder (OpenCV) in five sizes, all correct.
+
+## 0.46.0 — Block K: the library of materials
+
+- **Migration 0036 (additive):** the `Material` table.
+- **A new CRM tab, "Materials":** presentations, videos (links), pictures for stories, PDFs and others, each with a **kind, a language (RU / PL / EN / DE / UA) and a category**; filters by all three. A material is a link or an uploaded file (up to 25 MB, kept in the same storage as attachments).
+- **Shared and own:** owners and admins add materials **for the whole team** (everybody sees and sends them, only the leaders change them); every member can add their own, which only they see. The kind is guessed from the link or the file.
+- **Send material:** a button in a person's card (the line "Title: link" is copied, ready for any chat) and in the touch queue (the line is added to the text of the message), the person's language first. For an uploaded file the link is ours (`/m/<key>`): it opens the file in the browser without a sign-in, and it is hard to guess; a deleted material stops working.
+- **Pictures for stories with the owner's own QR code:** the leader marks a picture ("everybody may put their QR code on it": the corner and the width), and each member gets **"With my QR (PNG)"**: the picture with their personal link's QR in that place, made in the browser.
+- The demo workspace has four materials.
+- Tests: 8 for the rules (the QR place, links, kinds) and 8 on a real database (who shares, who sees what, link or file, the way a file is read and given out, the QR place on pictures only, who changes or deletes, the file removed with the material).

@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import type { Prisma } from "@prisma/client";
 import { db } from "@/server/db";
 import { createActivity } from "./crm/activities";
@@ -103,6 +104,14 @@ export async function createDemoCrm(userId: string, workspaceId: string, people:
     },
   });
   await db.membership.update({ where: { userId_workspaceId: { userId, workspaceId } }, data: { rankState: { currentRankId: "r1", targetDate: target, manual: { c4: { value: 350, at: ago(4).toISOString() } } } } });
+
+  // A few materials for the library, shared by the leader.
+  const material = (title: string, kind: string, lang: string, category: string, url: string) =>
+    db.material.create({ data: { workspaceId, title, kind, lang, category, url, ownerId: null, shareKey: randomBytes(12).toString("base64url"), createdById: userId } });
+  await material("Знакомство с компанией", "VIDEO", "ru", "Знакомство", "https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+  await material("Company presentation", "PRESENTATION", "en", "Знакомство", "https://example.com/presentation-en");
+  await material("Prezentacja produktu", "PRESENTATION", "pl", "Продукт", "https://example.com/prezentacja-pl");
+  await material("Каталог продуктов", "PDF", "ru", "Продукт", "https://example.com/catalog-ru.pdf");
 
   if (projectId) {
     await db.nodeLink.create({ data: { fromNodeId: launch.id, toNodeId: projectId, kind: "DEAL_PROJECT" } });

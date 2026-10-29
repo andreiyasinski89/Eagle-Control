@@ -287,6 +287,7 @@ model Workspace {
   tags             Tag[]
   contactGroups    ContactGroup[]
   scripts          Script[]
+  materials        Material[]
   stageRules       StageRule[]
   networkGoals     NetworkGoal[]
   notes            Note[]
@@ -1476,4 +1477,34 @@ model SignInAttempt {
   @@index([at])
   @@index([ipHash, at])
   @@index([mailHash, at])
+}
+
+/// The library of materials: presentations, videos (links), pictures for stories and PDFs, shared by the leaders or an ambassador's own.
+model Material {
+  id          String   @id @default(cuid())
+  workspaceId String
+  title       String
+  /// PRESENTATION, VIDEO, IMAGE, PDF or OTHER (see modules/crm/materials.ts).
+  kind        String
+  /// ru, pl, en, de or uk.
+  lang        String
+  category    String?
+  /// An outside link (a video, a presentation); null when the material is an uploaded file.
+  url         String?
+  fileKey     String?
+  fileName    String?
+  mime        String?
+  size        Int?
+  /// Where the owner's QR code goes on a picture for stories: {corner, size in percent}; null = none.
+  qr          Json?
+  /// Whose it is: a member's own material; null = shared by the leaders with the whole team.
+  ownerId     String?
+  /// The unguessable part of the link given to the people the material is sent to.
+  shareKey    String   @unique
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, ownerId])
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { SendMaterial } from "./SendMaterial";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, ClipboardCopy, MessageCircle, Send, Settings, SkipForward, X } from "lucide-react";
@@ -139,6 +140,7 @@ export function TouchQueue({ workspaceId, slug }: { workspaceId: string; slug: s
 
       {current ? (
         <TouchCard
+          workspaceId={workspaceId}
           key={current.id}
           item={current}
           data={data}
@@ -170,7 +172,7 @@ function Empty({ slug }: { slug: string }) {
   );
 }
 
-function TouchCard({ item, data, slug, onDone, onSkip }: { item: QItem; data: QData; slug: string; onDone: (o: TouchOutcome) => void; onSkip: () => void }) {
+function TouchCard({ workspaceId, item, data, slug, onDone, onSkip }: { workspaceId: string; item: QItem; data: QData; slug: string; onDone: (o: TouchOutcome) => void; onSkip: () => void }) {
   const t = useTranslations("touches");
   const qc = useQueryClient();
   const tc = useTranslations("crm");
@@ -287,6 +289,7 @@ function TouchCard({ item, data, slug, onDone, onSkip }: { item: QItem; data: QD
         {candidates.length === 0 && <p className="text-xs text-muted-foreground">{t("noScript")}</p>}
         <textarea className="min-h-36 w-full rounded-md border border-border bg-background p-3 text-sm" value={text} onChange={(e) => setText(e.target.value)} maxLength={4000} aria-label={t("scriptTitle")} data-testid="touch-text" />
         <p className="text-xs text-muted-foreground">{t("scriptHint")}</p>
+        <SendMaterial workspaceId={workspaceId} className="w-fit" onPick={(line) => setText((cur) => `${cur.trimEnd()}${cur.trim() ? "\n\n" : ""}${line}`.slice(0, 4000))} />
         <div className="grid grid-cols-3 gap-2">
           <Button type="button" variant="outline" className="min-h-11 flex-col gap-0.5 px-1 text-xs" disabled={!item.telegram || !text.trim()} title={item.telegram ? undefined : t("noTelegram")} onClick={() => void send("telegram")} data-testid="touch-telegram">
             <Send className="size-4" />

@@ -242,3 +242,7 @@
 | 237 | A lead with a valid label is a person of that member, without a deal; without one the old path (contact and deal for the leader) stays | Ambassadors work with people, companies with deals; the existing form users lose nothing. |
 | 238 | A new lead is put into today's touches by a next step "reply within the hour", not by a separate list | One queue to work through, and a nearer planned step is never overwritten. |
 | 239 | Telegram names are compared lower-cased without "@" and links | The same person is typed three ways; the double must be found in all of them. |
+| 240 | A material is a link or one file, with a link of ours (`/m/<key>`) for files | A presigned storage address expires in minutes; a message needs a link that works for days. |
+| 241 | The link `/m/<key>` is public but unguessable and rate-limited; deleting the material kills it | The people it is sent to have no account. |
+| 242 | The QR code is put on the picture in the browser, from the member's own link, through a same-origin copy of the picture | The server never holds anybody's personal pictures, and no image service sees the links. |
+| 243 | The leader marks which pictures take a QR code and where; the member only presses the button | Placing it by hand on each picture would not be done. |
