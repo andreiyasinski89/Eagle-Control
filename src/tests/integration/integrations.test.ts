@@ -373,7 +373,7 @@ describe("Google Calendar", () => {
   const makeEvent = async (title = "Planning", extra: Record<string, unknown> = {}) => {
     const n = (await transact(owner, (ctx) => createNode(ctx, { parentId: sprintId, type: "EVENT", title }))).result;
     await transact(owner, (ctx) => patchNode(ctx, n.id, { data: { startsAt: "2026-11-02T10:00:00.000Z", endsAt: "2026-11-02T11:00:00.000Z", attendeeIds: [owner, member], ...extra } }));
-    await new Promise((r) => setTimeout(r, 120)); // the push runs after commit, in the background
+    await new Promise((r) => setTimeout(r, 600)); // the push runs after commit, in the background
     return n.id;
   };
   const answerWrites = () => {

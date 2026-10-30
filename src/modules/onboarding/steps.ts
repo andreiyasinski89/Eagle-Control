@@ -31,6 +31,7 @@ export interface StepDef {
   /** Not needed to finish: a step for those who want to go further. */
   optional?: boolean;
   /** The part of the app where the step is done, relative to the workspace (a CRM step is hidden from people without CRM access). */
+  /** A page of the workspace (`/tasks`), or `/account`: the person's own page, outside any workspace (the time zone lives there). */
   path: string;
   crm?: boolean;
   done: (f: Facts) => boolean;
@@ -45,7 +46,7 @@ export const LIST_STARTED = 25;
 const capped = (value: number, goal: number) => ({ value: Math.min(value, goal), goal });
 
 export const STEPS: StepDef[] = [
-  { id: "profile", block: "platform", article: "app-tour", path: "/settings", done: (f) => f.timezoneSet },
+  { id: "profile", block: "platform", article: "app-tour", path: "/account", done: (f) => f.timezoneSet },
   { id: "firstTask", block: "platform", article: "tasks", path: "/tasks", done: (f) => f.tasksCreated >= 1 },
   { id: "timer", block: "platform", article: "timer", path: "/time", done: (f) => f.timeEntries >= 1 },
   { id: "notes", block: "platform", article: "notes", path: "/notes", done: (f) => f.notes >= 1 },
@@ -135,3 +136,6 @@ export function dreamDistance(goal: Goal, have: { clients: number; partners: num
 }
 
 export const defaultTargetDate = (today: string) => addDays(today, 365);
+
+/** Where a step's "Open" button goes: the workspace's own page, or the account page that stands outside the workspace. */
+export const stepHref = (slug: string, path: string): string => (path.startsWith("/account") ? path : `/w/${slug}${path}`);

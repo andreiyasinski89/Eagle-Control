@@ -1,5 +1,6 @@
+import { existsSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { dreamDistance, evaluate, STEPS, type Facts } from "@/modules/onboarding/steps";
+import { dreamDistance, evaluate, STEPS, stepHref, type Facts } from "@/modules/onboarding/steps";
 
 const none: Facts = { timezoneSet: false, tasksCreated: 0, timeEntries: 0, notes: 0, hasDream: false, people: 0, peopleMoved: 0, nextSteps: 0, scripts: 0, rules: 0, weekGoals: false, stepsClosed: 0, groups: 0, partners: 0, invited: 0 };
 
@@ -76,5 +77,21 @@ describe("the distance to the dream", () => {
   });
   it("no targets: no percent", () => {
     expect(dreamDistance({ targetClients: null, targetPartners: null, targetDate: "2027-01-01" }, { clients: 1, partners: 1 }, "2026-10-27").percent).toBeNull();
+  });
+});
+
+describe("where the buttons lead", () => {
+  // A 404 on "Open" once reached a user: the profile step pointed at /settings, which has no page of its own.
+  const exists = (path: string) => existsSync(path);
+  it("every step opens a page that exists, and the card on the home page uses the same address", () => {
+    for (const s of STEPS) {
+      const href = stepHref("demo", s.path);
+      const dir = href.startsWith("/account") ? "src/app/[locale]/account" : `src/app/[locale]/w/[slug]${href.replace("/w/demo", "")}`;
+      expect(exists(`${dir}/page.tsx`), `${s.id} → ${href}`).toBe(true);
+    }
+  });
+  it("sends the profile step to the account page, outside the workspace", () => {
+    expect(stepHref("acme", "/account")).toBe("/account");
+    expect(stepHref("acme", "/tasks")).toBe("/w/acme/tasks");
   });
 });

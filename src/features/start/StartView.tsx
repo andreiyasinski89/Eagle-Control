@@ -10,7 +10,7 @@ import { FormField, textareaClass } from "@/components/ui/modal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "@/i18n/navigation";
 import { api } from "@/features/mindmap/api";
-import type { Block } from "@/modules/onboarding/steps";
+import { stepHref, type Block } from "@/modules/onboarding/steps";
 import { cn } from "@/lib/utils";
 import { MyOnboardingCard } from "./MyOnboardingCard";
 import { useOnboarding, type GoalDto, type OnboardingData, type StartStep } from "./useOnboarding";
@@ -122,7 +122,7 @@ function StepCard({ step, slug, isNext, onSkip }: { step: StartStep; slug: strin
         <div className="flex flex-wrap items-center gap-2 pl-9">
           {!skipped && (
             <Button asChild size="sm" variant={isNext ? "primary" : "outline"}>
-              <Link href={`/w/${slug}${step.path}`}>
+              <Link href={stepHref(slug, step.path)}>
                 {t("open")}
                 <ArrowRight className="size-4" />
               </Link>

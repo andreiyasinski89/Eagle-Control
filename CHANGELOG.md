@@ -490,3 +490,12 @@
 - **Speed measured** (test database in memory, slower than a real Postgres): the touch queue with 1000 people opens in about 50 ms; the team map of 300 partners builds in about 90 ms at the default three levels and about 800 ms with all six levels at once; My day 55 ms and the people board 200 ms on the same data. The test (`performance.test.ts`) fails if the queue takes a second or more.
 - **End-to-end test** (Playwright, `e2e/ambassador.spec.ts`): a lead arrives through the webhook with a label, a repeat with the Telegram name typed another way is recognised, the person is in the queue with "reply within the hour", the touch "Meeting set" is recorded, and the meeting is counted in the plan of the day. Runs against the demo (`APP_URL=http://localhost:3100 PW_CHANNEL=chrome npx playwright test e2e/ambassador.spec.ts`); `PW_CHANNEL` uses the browser already on the machine.
 - README: the section "Для амбассадоров: как начать за 5 минут". `docs/CHANGES-FOR-TEAM.ru.md`: the list of changes for the team in plain words.
+
+## 0.47.1 — The microphone for voice notes
+
+- The security header `Permissions-Policy` forbade the microphone on every page, so a voice note could not record in production. It now allows the microphone for our own pages only (`microphone=(self)`); the camera, location and payment stay forbidden.
+
+## 0.47.2 — The "Open" button of the profile step gave a 404
+
+- The step "Profile and time zone" on the Start page (and the card on the home page) led to `/w/<workspace>/settings`, which has no page of its own, so it showed a 404. It now opens **your account page**, where the time zone is set. Every other step already opened a page that exists.
+- A test now checks that **every step of the Start page opens a page that exists**, so the same mistake cannot come back unnoticed.

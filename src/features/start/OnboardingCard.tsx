@@ -4,6 +4,7 @@ import { ArrowRight, Rocket } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
+import { stepHref } from "@/modules/onboarding/steps";
 import { useOnboarding } from "./useOnboarding";
 
 /** A line at the top of My day while getting started is not finished: how far, what is next, and where to do it. */
@@ -29,7 +30,7 @@ export function OnboardingCard({ workspaceId, slug }: { workspaceId: string; slu
       </div>
       {next && (
         <Button asChild size="sm" variant="outline">
-          <Link href={`/w/${slug}${next.path}`}>
+          <Link href={stepHref(slug, next.path)}>
             {t("open")}
             <ArrowRight className="size-4" />
           </Link>
