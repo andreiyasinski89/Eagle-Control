@@ -56,7 +56,7 @@ describe("scripts", () => {
     const first = await addStarterScripts(owner, ws.id, "ru");
     expect(first.added).toBeGreaterThan(9);
     expect(first.skipped).toBe(0);
-    const items = (await listScripts(owner, ws.id)).items;
+    const items = (await listScripts(owner, ws.id, "ru")).items;
     expect(items).toHaveLength(before + first.added);
     expect(items.some((s) => s.stage === "NO_REPLY" && /[а-я]/i.test(s.body))).toBe(true);
     // pressed again, or changed by hand: nothing is duplicated, and a deleted one comes back
@@ -64,8 +64,8 @@ describe("scripts", () => {
     const gone = items.find((s) => s.stage === "DECLINED")!;
     await deleteScript(owner, gone.id);
     expect(await addStarterScripts(owner, ws.id, "ru")).toMatchObject({ added: 1 });
-    // another language is another set
-    expect((await addStarterScripts(owner, ws.id, "en")).added).toBeGreaterThan(9);
+    // another language is the same set, shown in that language: nothing more is added
+    expect((await addStarterScripts(owner, ws.id, "en")).added).toBe(0);
     await expect(addStarterScripts(outsider, ws.id, "ru")).rejects.toBeTruthy();
   });
   it("is closed to strangers", async () => {

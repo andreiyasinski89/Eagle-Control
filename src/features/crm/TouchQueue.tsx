@@ -97,8 +97,9 @@ export function scriptsFor(item: Pick<QItem, "stage" | "situation">, scripts: re
 export function TouchQueue({ workspaceId, slug }: { workspaceId: string; slug: string }) {
   const t = useTranslations("touches");
   const qc = useQueryClient();
-  const key = ["touch-queue", workspaceId];
-  const q = useQuery({ queryKey: key, staleTime: 0, refetchOnWindowFocus: false, queryFn: () => api.get<QData>(`/api/v1/workspaces/${workspaceId}/touch-queue`) });
+  const locale = useLocale();
+  const key = ["touch-queue", workspaceId, locale];
+  const q = useQuery({ queryKey: key, staleTime: 0, refetchOnWindowFocus: false, queryFn: () => api.get<QData>(`/api/v1/workspaces/${workspaceId}/touch-queue?locale=${locale}`) });
   const [session, setSession] = useState<{ ids: string[]; total: number; done: Done[]; skipped: string[] } | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
 

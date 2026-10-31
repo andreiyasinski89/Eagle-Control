@@ -533,3 +533,11 @@
 - **The history starts when this goes live**: what was planned in the past cannot be restored (deadlines move), so nothing is guessed. The demo workspace has four months of sample days.
 - For the nightly job on Vercel set `CRON_SECRET` (the schedule is in `vercel.json`); without it the days are still kept at every look and closed at the next one.
 - Tests: 10 for the rules (the spans, the weeks, the averages, the trend), 11 on a real database (saving, closing, the nightly job, every period, privacy).
+
+## 0.51.0 — Informal ready-made scripts that follow the language
+
+- All 18 ready-made scripts rewritten in a relaxed, friendly tone ("ty", short sentences) in Russian, English, Polish and Ukrainian; same stages and order in every language.
+- A ready-made script is stored with a key (`Script.starterKey`, migration 0038) and shows in the language of the screen until somebody edits it. Any edit (text, stage or moment) freezes it: what the person saw becomes its own words and it never changes again.
+- Scripts from the first, formal edition that nobody edited are recognised by their exact words and join the new set; edited ones stay as they are.
+- Pressing "add ready-made scripts" no longer adds a second set in another language; it only brings back what is missing. A copy of a ready-made script is the member's own, fixed, in their language.
+- The language is passed by the screen (`?locale=`); without it the saved profile language, then English. The touch queue and the script list both use it. A "Ready-made · follows your language" mark and a hint in the editor tell which is which.

@@ -11,6 +11,8 @@ vi.mock("@/server/db", () => ({
 vi.mock("@/server/storage", () => ({ deleteObject: vi.fn(), presignUpload: vi.fn(), presignDownload: vi.fn() }));
 
 import { createWorkspace } from "@/server/services/workspace";
+import { STARTER_SCRIPTS } from "@/modules/crm/starter-scripts";
+import { LEGACY_STARTERS } from "@/modules/crm/starter-scripts-legacy";
 import { addStarterScripts, copyScript, createScript, deleteScript, listScripts, updateScript } from "@/server/services/crm/scripts";
 
 let close: () => Promise<void>;
@@ -74,28 +76,75 @@ describe("scripts of the team and scripts of one's own", () => {
 });
 
 describe("the ready-made scripts", () => {
+  const team = async (locale: string) => (await listScripts(owner, ws.id, locale)).items.filter((s) => s.shared && s.original);
+
   it("a leader adds them for the team, with the moment each is for; pressing again adds nothing", async () => {
     const first = await addStarterScripts(owner, ws.id, "ru");
-    expect(first.added).toBeGreaterThan(10);
-    const rows = await raw.script.findMany({ where: { workspaceId: ws.id, ownerId: null } });
-    expect(rows.find((s) => s.title === "Первое сообщение знакомому")).toMatchObject({ situation: "FIRST_TOUCH", stage: "NEW" });
-    expect(rows.find((s) => s.title === "Мягкое напоминание")?.situation).toBe("REMINDER");
-    expect(rows.find((s) => s.title === "После презентации: спросить впечатление")?.situation).toBe("AFTER_PRESENTATION");
-    expect(rows.find((s) => s.title === "Вернуться через несколько месяцев")?.situation).toBe("RETURN");
+    expect(first.added).toBe(STARTER_SCRIPTS.ru.length);
+    const rows = await raw.script.findMany({ where: { workspaceId: ws.id, ownerId: null, starterKey: { not: null } } });
+    expect(rows.find((s) => s.starterKey === "s0")).toMatchObject({ situation: "FIRST_TOUCH", stage: "NEW", title: STARTER_SCRIPTS.ru[0]!.title });
+    expect(rows.find((s) => s.starterKey === "s15")?.situation).toBe("REMINDER");
+    expect(rows.find((s) => s.starterKey === "s7")?.situation).toBe("AFTER_PRESENTATION");
+    expect(rows.find((s) => s.starterKey === "s14")?.situation).toBe("RETURN");
     expect(await addStarterScripts(owner, ws.id, "ru")).toMatchObject({ added: 0 });
+    expect(await addStarterScripts(owner, ws.id, "en")).toMatchObject({ added: 0 }); // the same scripts, only in another language
   });
 
-  it("a member who presses the button gets the ones the team does not have yet, as their own, and nobody else sees them", async () => {
-    const r = await addStarterScripts(anna, ws.id, "en");
-    expect(r.added).toBeGreaterThan(10); // the team's are in Russian; the English titles are new
-    expect(await raw.script.count({ where: { workspaceId: ws.id, ownerId: anna, title: "First message to an acquaintance" } })).toBe(1);
-    expect((await titles(boris)).includes("First message to an acquaintance")).toBe(false);
+  it("they show in the language of the screen, for everybody, and nothing is added for a member who presses the button", async () => {
+    expect((await team("en"))[0]!.title).toBe(STARTER_SCRIPTS.en[0]!.title);
+    expect((await team("pl"))[0]!.body).toBe(STARTER_SCRIPTS.pl[0]!.body);
+    expect((await listScripts(boris, ws.id, "uk")).items.find((s) => s.original)?.title).toBe(STARTER_SCRIPTS.uk[0]!.title);
+    expect((await team("de")).length).toBe(STARTER_SCRIPTS.en.length); // an unknown language falls back to English
+    expect((await team("de"))[0]!.title).toBe(STARTER_SCRIPTS.en[0]!.title);
+    expect(await addStarterScripts(anna, ws.id, "en")).toMatchObject({ added: 0 });
   });
 
-  it("scripts added before the moments existed get theirs by title", async () => {
-    await raw.script.deleteMany({ where: { workspaceId: ws.id, title: "Мягкое напоминание" } });
-    await raw.script.create({ data: { workspaceId: ws.id, title: "Мягкое напоминание", stage: "NO_REPLY", body: "old", ownerId: null, situation: null } });
-    await addStarterScripts(owner, ws.id, "ru");
-    expect((await raw.script.findFirstOrThrow({ where: { workspaceId: ws.id, title: "Мягкое напоминание" } })).situation).toBe("REMINDER");
+  it("with no language asked, the one saved in the profile is used", async () => {
+    await raw.user.update({ where: { id: boris }, data: { locale: "pl" } });
+    expect((await listScripts(boris, ws.id)).items.find((s) => s.original)?.title).toBe(STARTER_SCRIPTS.pl[0]!.title);
+  });
+
+  it("an edit freezes the script as it was seen; it no longer follows the language", async () => {
+    const id = (await team("ru")).find((s) => s.title === STARTER_SCRIPTS.ru[1]!.title)!.id;
+    const edited = await updateScript(owner, id, { body: "Моё слово, {name}" }, "ru");
+    expect(edited).toMatchObject({ original: false, title: STARTER_SCRIPTS.ru[1]!.title, body: "Моё слово, {name}" });
+    expect((await raw.script.findUniqueOrThrow({ where: { id } })).starterKey).toBeNull();
+    const en = (await listScripts(owner, ws.id, "en")).items.find((s) => s.id === id)!;
+    expect(en).toMatchObject({ original: false, title: STARTER_SCRIPTS.ru[1]!.title, body: "Моё слово, {name}" });
+    // an untouched one keeps following
+    expect((await listScripts(owner, ws.id, "en")).items.find((s) => s.title === STARTER_SCRIPTS.en[0]!.title)?.original).toBe(true);
+    // pressing the button does not bring the edited one back
+    expect(await addStarterScripts(owner, ws.id, "en")).toMatchObject({ added: 0 });
+  });
+
+  it("changing only the moment also freezes it, and keeps the title the person saw", async () => {
+    const id = (await team("en")).find((s) => s.title === STARTER_SCRIPTS.en[2]!.title)!.id;
+    const r = await updateScript(owner, id, { situation: "REMINDER" }, "en");
+    expect(r).toMatchObject({ original: false, title: STARTER_SCRIPTS.en[2]!.title, body: STARTER_SCRIPTS.en[2]!.body, situation: "REMINDER" });
+  });
+
+  it("a copy of a ready-made script is the member's own words, in their language, fixed", async () => {
+    const src = (await team("ru")).find((s) => s.title === STARTER_SCRIPTS.ru[3]!.title)!;
+    const c = await copyScript(anna, src.id, "pl");
+    expect(c).toMatchObject({ shared: false, original: false, title: STARTER_SCRIPTS.pl[3]!.title, body: STARTER_SCRIPTS.pl[3]!.body });
+    expect((await raw.script.findUniqueOrThrow({ where: { id: c.id } })).starterKey).toBeNull();
+  });
+
+  it("scripts made in the first, formal edition and never edited join the set and follow the language; edited ones stay as they are", async () => {
+    const old = LEGACY_STARTERS.ru[16]!;
+    const untouched = await raw.script.create({ data: { workspaceId: ws.id, title: old.title, stage: old.stage, body: old.body, ownerId: anna, situation: null } });
+    const edited = await raw.script.create({ data: { workspaceId: ws.id, title: old.title, stage: old.stage, body: old.body + " (мои правки)", ownerId: anna, situation: null } });
+    const items = (await listScripts(anna, ws.id, "en")).items;
+    expect(items.find((s) => s.id === untouched.id)).toMatchObject({ original: true, title: STARTER_SCRIPTS.en[16]!.title });
+    expect(items.find((s) => s.id === edited.id)).toMatchObject({ original: false, title: old.title });
+    expect((await raw.script.findUniqueOrThrow({ where: { id: untouched.id } })).starterKey).toBe("s16");
+  });
+
+  it("the old formal title already in the workspace is not added a second time", async () => {
+    const ws2 = await createWorkspace(owner, "Beta");
+    const old = LEGACY_STARTERS.ru[0]!;
+    await raw.script.create({ data: { workspaceId: ws2.id, title: old.title, stage: old.stage, body: "my own", ownerId: null } });
+    const r = await addStarterScripts(owner, ws2.id, "ru");
+    expect(r.added).toBe(STARTER_SCRIPTS.ru.length - 1);
   });
 });

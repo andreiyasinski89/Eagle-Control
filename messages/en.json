@@ -1053,7 +1053,9 @@
     "teamEmptyCta": "Open People",
     "tabMaterials": "Materials",
     "materialCopied": "The link is copied: paste it into the chat.",
-    "materialCopyFailed": "Could not copy. Open Materials and copy the link there."
+    "materialCopyFailed": "Could not copy. Open Materials and copy the link there.",
+    "scriptOriginal": "Ready-made · follows your language",
+    "scriptFreezeHint": "This is a ready-made script and it follows the language of the screen. Once you save a change, it becomes your own and stays exactly as you wrote it."
   },
   "myday": {
     "title": "My day",

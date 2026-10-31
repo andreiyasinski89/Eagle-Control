@@ -41,7 +41,7 @@ export function ScriptsView({ workspaceId, canWrite, canLead = false }: { worksp
   const groups: (Stage | "any")[] = [...STAGES, "any"];
   const [copied, setCopied] = useState<string | null>(null);
   const copy = useMutation({
-    mutationFn: (id: string) => api.post(`/api/v1/scripts/${id}/copy`, {}),
+    mutationFn: (id: string) => api.post(`/api/v1/scripts/${id}/copy?locale=${locale}`, {}),
     onSuccess: () => {
       setCopied(t("scriptCopied"));
       void qc.invalidateQueries({ queryKey: ["scripts", workspaceId] });
@@ -121,6 +121,7 @@ export function ScriptsView({ workspaceId, canWrite, canLead = false }: { worksp
                             )}
                           </div>
                           {s.situation && <span className="w-fit rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">{t(`sit.${s.situation}`)}</span>}
+                          {s.original && <span className="w-fit rounded-full bg-primary/10 px-2 py-0.5 text-[11px] text-primary" data-testid="script-original">{t("scriptOriginal")}</span>}
                           <p className="line-clamp-4 whitespace-pre-line text-xs text-muted-foreground">{s.body}</p>
                           {canWrite && s.shared && (
                             <Button type="button" size="sm" variant="outline" className="mt-1 min-h-9 w-fit" disabled={copy.isPending} onClick={() => copy.mutate(s.id)} data-testid="script-copy">
@@ -149,6 +150,7 @@ function ScriptDialog({ workspaceId, script, canLead, onClose }: { workspaceId: 
   const t = useTranslations("crm");
   const tc = useTranslations("common");
   const qc = useQueryClient();
+  const locale = useLocale();
   const [title, setTitle] = useState(script?.title ?? "");
   const [stage, setStage] = useState<string>(script?.stage ?? "");
   const [body, setBody] = useState(script?.body ?? "");
@@ -164,7 +166,7 @@ function ScriptDialog({ workspaceId, script, canLead, onClose }: { workspaceId: 
   const save = useMutation({
     mutationFn: () => {
       const data = { title: title.trim(), stage: stage || null, situation: situation || null, body: body.trim() };
-      return script ? api.patch(`/api/v1/scripts/${script.id}`, data) : api.post(`/api/v1/workspaces/${workspaceId}/scripts`, { ...data, shared: canLead && shared });
+      return script ? api.patch(`/api/v1/scripts/${script.id}?locale=${locale}`, data) : api.post(`/api/v1/workspaces/${workspaceId}/scripts?locale=${locale}`, { ...data, shared: canLead && shared });
     },
     onSuccess: done,
     onError: fail,
@@ -180,6 +182,11 @@ function ScriptDialog({ workspaceId, script, canLead, onClose }: { workspaceId: 
           if (title.trim() && body.trim()) save.mutate();
         }}
       >
+        {script?.original && (
+          <p className="rounded-lg bg-primary/10 p-2 text-xs text-primary" data-testid="script-freeze-hint">
+            {t("scriptFreezeHint")}
+          </p>
+        )}
         <FormField label={t("scriptTitle")}>
           <Input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} autoFocus data-testid="script-title" />
         </FormField>

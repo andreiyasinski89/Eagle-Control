@@ -1053,7 +1053,9 @@
     "teamEmptyCta": "Otwórz „Ludzie”",
     "tabMaterials": "Materiały",
     "materialCopied": "Link skopiowany: wklej go do czatu.",
-    "materialCopyFailed": "Nie udało się skopiować. Otwórz „Materiały” i skopiuj link tam."
+    "materialCopyFailed": "Nie udało się skopiować. Otwórz „Materiały” i skopiuj link tam.",
+    "scriptOriginal": "Gotowy · zmienia się wraz z językiem",
+    "scriptFreezeHint": "To gotowy skrypt i dopasowuje się do języka interfejsu. Gdy zapiszesz zmianę, stanie się twój i zostanie dokładnie taki, jak go napiszesz."
   },
   "myday": {
     "title": "Mój dzień",

@@ -9,6 +9,7 @@ import { isValidTimeZone, todayIn, zonedParts, zonedToUtc } from "@/modules/view
 import { loadWorkspaceMember, type Tx } from "@/server/services/nodes/access";
 import { getOrCreateReferralLink } from "@/server/services/signup";
 import { invalid, loadCrmNode } from "./common";
+import { scriptLocale, shownText } from "./scripts";
 import { updateContactIn } from "./contacts";
 import { contactScope, dueBefore, withScope } from "./scope";
 import { refreshTemperature } from "./temperature";
@@ -53,7 +54,7 @@ const digits = (v: string | undefined | null) => ((v ?? "").replace(/\D/g, "").l
  * A card holds what is needed to write to the person without opening anything else: how they are, the last three things that happened,
  * how to reach them, and the words ready for this moment. Only the people the member keeps are in it.
  */
-export async function getTouchQueue(userId: string, workspaceId: string, now = new Date()) {
+export async function getTouchQueue(userId: string, workspaceId: string, now = new Date(), locale?: string | null) {
   const member = await loadWorkspaceMember(db, userId, workspaceId, "crm:read");
   const { tz, name: myName } = await zoneOf(userId);
   const today = todayIn(tz, now);
@@ -114,15 +115,16 @@ export async function getTouchQueue(userId: string, workspaceId: string, now = n
   const ordered = orderQueue(items.map((i) => ({ ...i, day: i.day })));
 
   const [scripts, link] = await Promise.all([
-    db.script.findMany({ where: { workspaceId, OR: [{ ownerId: null }, { ownerId: userId }] }, orderBy: [{ position: "asc" }, { createdAt: "asc" }], select: { id: true, title: true, stage: true, situation: true, body: true, ownerId: true } }),
+    db.script.findMany({ where: { workspaceId, OR: [{ ownerId: null }, { ownerId: userId }] }, orderBy: [{ position: "asc" }, { createdAt: "asc" }], select: { id: true, title: true, stage: true, situation: true, body: true, ownerId: true, starterKey: true } }),
     getOrCreateReferralLink(userId, workspaceId).then((l) => l.url).catch(() => null),
   ]);
+  const lang = await scriptLocale(userId, locale);
   return {
     date: today,
     total: ordered.length,
     truncated: rows.length >= QUEUE_LIMIT,
     items: ordered,
-    scripts: scripts.map((s) => ({ id: s.id, title: s.title, stage: s.stage, situation: s.situation, body: s.body, shared: s.ownerId === null })),
+    scripts: scripts.map((s) => ({ id: s.id, ...shownText(s, lang), stage: s.stage, situation: s.situation, shared: s.ownerId === null })),
     me: { name: myName, link },
     settings: cleanTouchSettings(member.touchSettings),
   };

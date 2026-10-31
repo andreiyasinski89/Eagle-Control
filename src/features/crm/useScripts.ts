@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useLocale } from "next-intl";
 import { api } from "@/features/mindmap/api";
 import { fillScript } from "@/modules/crm/tracker";
 import { useMembers } from "./hooks";
@@ -15,10 +16,13 @@ export interface ScriptDto {
   /** A script of the whole team (changed by its leaders), or the member's own. */
   shared: boolean;
   mine: boolean;
+  /** A ready-made text nobody has edited: it follows the language of the screen. Editing makes it the person's own, fixed. */
+  original: boolean;
 }
 
 export function useScripts(workspaceId: string) {
-  return useQuery({ queryKey: ["scripts", workspaceId], staleTime: 30_000, queryFn: async () => (await api.get<{ items: ScriptDto[] }>(`/api/v1/workspaces/${workspaceId}/scripts`)).items });
+  const locale = useLocale();
+  return useQuery({ queryKey: ["scripts", workspaceId, locale], staleTime: 30_000, queryFn: async () => (await api.get<{ items: ScriptDto[] }>(`/api/v1/workspaces/${workspaceId}/scripts?locale=${locale}`)).items });
 }
 
 /** Fills a script for one person: the names (and, in the queue, the city and the personal link). */

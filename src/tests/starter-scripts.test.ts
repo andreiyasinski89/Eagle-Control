@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { STAGES } from "@/modules/crm/people";
 import { fillScript } from "@/modules/crm/tracker";
-import { STARTER_SCRIPTS, starterLocale, type StarterLocale } from "@/modules/crm/starter-scripts";
+import { STARTER_SCRIPTS, starterKeyOf, starterLocale, starterSituation, starterText, type StarterLocale } from "@/modules/crm/starter-scripts";
 
 const LOCALES = Object.keys(STARTER_SCRIPTS) as StarterLocale[];
 
@@ -38,5 +38,26 @@ describe("ready-made scripts", () => {
     expect(starterLocale("uk")).toBe("uk");
     expect(starterLocale("de")).toBe("en");
     expect(starterLocale(null)).toBe("en");
+  });
+
+  it("every language has the same number of scripts, and a script is found by its key in any language", () => {
+    const n = STARTER_SCRIPTS.ru.length;
+    for (const l of LOCALES) expect(STARTER_SCRIPTS[l]).toHaveLength(n);
+    for (let i = 0; i < n; i++) for (const l of LOCALES) expect(starterText(l, starterKeyOf(i))).toBe(STARTER_SCRIPTS[l][i]);
+    expect(starterText("de", "s0")).toBe(STARTER_SCRIPTS.en[0]);
+    expect(starterText("ru", "s999")).toBeNull();
+    expect(starterText("ru", "nonsense")).toBeNull();
+  });
+
+  it("the moment of each script is the same in every language", () => {
+    expect(starterSituation(0)).toBe("FIRST_TOUCH");
+    expect(starterSituation(15)).toBe("REMINDER");
+    expect(starterSituation(2)).toBeNull();
+  });
+
+  it.each(LOCALES)("%s: the tone is informal (no formal address of the first edition)", (l) => {
+    const text = STARTER_SCRIPTS[l].map((x) => x.body).join("\n");
+    const formal: Record<StarterLocale, RegExp> = { ru: /(^|\s)(Здравствуйте|Вы|Вам|Ваш\S*|Вас)(\s|[,.!?])/, en: /\b(Dear|Kindly|Sincerely)\b/, pl: /\b(Szanown\S+|Pan|Pani|Państwo)\b/, uk: /(^|\s)(Ви|Вам|Ваш\S*|Вас)(\s|[,.!?])/ };
+    expect(text).not.toMatch(formal[l]);
   });
 });

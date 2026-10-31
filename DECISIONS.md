@@ -258,3 +258,6 @@
 | 253 | Yesterday is closed in the background at the next look, and by a nightly job; the job is optional | The first needs nothing set up; the second fills the days of people who did not open the app. |
 | 254 | The year and all time go by weeks, the week and 30 days by days | Three hundred and sixty-five points are not readable on a phone; a week's average is. |
 | 255 | The history is personal: a leader sees none of it | Nobody asked for the team's numbers, and a person's working days are theirs; it can be added on request. |
+| 256 | A ready-made script follows the language by a key until it is edited, then it is frozen | One set serves four languages and a translation fix reaches everybody who never touched a text; what a person changed is never overwritten. |
+| 257 | Old formal scripts are recognised by their exact words and moved to the new set | Nothing the person wrote is touched; a script with even one changed letter stays as it was. |
+| 258 | Pressing "add ready-made" does not add a second language set | The keys are the same in every language, so the same script is already there. |

@@ -794,6 +794,8 @@ model Script {
   situation   String?
   /// Whose it is: a person's own script; null = the team's, made by an owner or admin and open to everybody.
   ownerId     String?
+  /// Set while the script is still a ready-made one nobody has edited: its words then follow the language of the screen. Editing clears it.
+  starterKey  String?
   position    Int          @default(0)
   createdById String?
   createdAt   DateTime     @default(now())
