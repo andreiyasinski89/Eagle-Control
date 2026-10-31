@@ -1,9 +1,10 @@
 "use client";
 
 import { SendMaterial } from "./SendMaterial";
+import { MessengerButtons } from "./MessengerButtons";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, ClipboardCopy, MessageCircle, Send, Settings, SkipForward, X } from "lucide-react";
+import { Check, ClipboardCopy, Settings, SkipForward, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +48,8 @@ interface QItem {
   lastOutcome: string | null;
   telegram: string | null;
   whatsapp: string | null;
+  phones: string[];
+  messengers: Record<string, string>;
   recent: Recent[];
 }
 interface QScript {
@@ -182,7 +185,7 @@ function TouchCard({ workspaceId, item, data, slug, onDone, onSkip }: { workspac
   const fill = (body: string) => fillScript(body, { name: item.firstName, fullName: item.name, myName: data.me.name, city: item.city, link: data.me.link });
   const [scriptId, setScriptId] = useState<string | null>(candidates[0]?.id ?? null);
   const [text, setText] = useState(() => (candidates[0] ? fill(candidates[0].body) : ""));
-  const [channel, setChannel] = useState<"telegram" | "whatsapp" | "copy" | undefined>();
+  const [channel, setChannel] = useState<"telegram" | "whatsapp" | "instagram" | "copy" | undefined>();
   const [note, setNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [dialog, setDialog] = useState<"meeting" | "decline" | null>(null);
@@ -199,14 +202,9 @@ function TouchCard({ workspaceId, item, data, slug, onDone, onSkip }: { workspac
     setScriptId(s.id);
     setText(fill(s.body));
   };
-  async function send(kind: "telegram" | "whatsapp" | "copy") {
+  async function send(kind: "copy") {
     setChannel(kind);
-    const copied = await copyToClipboard(text);
-    if (kind === "copy") return say(copied ? t("copied") : t("copyFailed"));
-    if (kind === "telegram" && item.telegram) window.open(`https://t.me/${item.telegram}`, "_blank", "noopener,noreferrer");
-    if (kind === "whatsapp" && item.whatsapp) window.open(`https://wa.me/${item.whatsapp}?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
-    // Telegram cannot take a text in the link, so the text is in the clipboard; WhatsApp gets it in the link, and the copy is a spare.
-    say(!copied ? t("copyFailed") : kind === "telegram" ? `${t("copied")}. ${t("openedHint")}` : t("copied"));
+    say((await copyToClipboard(text)) ? t("copied") : t("copyFailed"));
   }
 
   const result = useMutation({
@@ -290,25 +288,11 @@ function TouchCard({ workspaceId, item, data, slug, onDone, onSkip }: { workspac
         <textarea className="min-h-36 w-full rounded-md border border-border bg-background p-3 text-sm" value={text} onChange={(e) => setText(e.target.value)} maxLength={4000} aria-label={t("scriptTitle")} data-testid="touch-text" />
         <p className="text-xs text-muted-foreground">{t("scriptHint")}</p>
         <SendMaterial workspaceId={workspaceId} className="w-fit" onPick={(line) => setText((cur) => `${cur.trimEnd()}${cur.trim() ? "\n\n" : ""}${line}`.slice(0, 4000))} />
-        <div className="grid grid-cols-3 gap-2">
-          <Button type="button" variant="outline" className="min-h-11 flex-col gap-0.5 px-1 text-xs" disabled={!item.telegram || !text.trim()} title={item.telegram ? undefined : t("noTelegram")} onClick={() => void send("telegram")} data-testid="touch-telegram">
-            <Send className="size-4" />
-            {t("telegram")}
-          </Button>
-          <Button type="button" variant="outline" className="min-h-11 flex-col gap-0.5 px-1 text-xs" disabled={!item.whatsapp || !text.trim()} title={item.whatsapp ? undefined : t("noWhatsapp")} onClick={() => void send("whatsapp")} data-testid="touch-whatsapp">
-            <MessageCircle className="size-4" />
-            {t("whatsapp")}
-          </Button>
-          <Button type="button" variant="outline" className="min-h-11 flex-col gap-0.5 px-1 text-xs" disabled={!text.trim()} onClick={() => void send("copy")} data-testid="touch-copy">
-            <ClipboardCopy className="size-4" />
-            {t("copy")}
-          </Button>
-        </div>
-        {(!item.telegram || !item.whatsapp) && (
-          <p className="text-xs text-muted-foreground">
-            {[!item.telegram && t("noTelegram"), !item.whatsapp && t("noWhatsapp")].filter(Boolean).join(" · ")}
-          </p>
-        )}
+        <MessengerButtons workspaceId={workspaceId} person={{ id: item.id, name: item.name, phones: item.phones, messengers: item.messengers }} text={text} canWrite onUsed={(c) => setChannel(c)} />
+        <Button type="button" variant="outline" className="min-h-11 w-full gap-2" disabled={!text.trim()} onClick={() => void send("copy")} data-testid="touch-copy">
+          <ClipboardCopy className="size-4" />
+          {t("copy")}
+        </Button>
       </section>
 
       <section className="flex flex-col gap-2">

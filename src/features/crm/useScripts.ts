@@ -28,11 +28,33 @@ export function useScriptFiller(workspaceId: string, meId: string) {
   return (body: string, fullName: string) => fillScript(body, { name: fullName.split(/\s+/)[0] ?? fullName, fullName, myName });
 }
 
-export async function copyToClipboard(text: string): Promise<boolean> {
+/**
+ * Copies a text. The copy is started at once (a phone allows it only in the very press of a button, so nothing may come before it) and the answer
+ * says whether it worked. Without the clipboard of the browser a hidden text field and the old copy command are the spare way.
+ */
+export function startCopy(text: string): Promise<boolean> {
+  const spare = (): boolean => {
+    try {
+      const area = document.createElement("textarea");
+      area.value = text;
+      area.setAttribute("readonly", "");
+      area.style.cssText = "position:fixed;top:0;left:0;opacity:0;pointer-events:none";
+      document.body.appendChild(area);
+      area.select();
+      area.setSelectionRange(0, text.length);
+      const ok = document.execCommand("copy");
+      area.remove();
+      return ok;
+    } catch {
+      return false;
+    }
+  };
   try {
-    await navigator.clipboard.writeText(text);
-    return true;
+    if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text).then(() => true, () => spare());
   } catch {
-    return false;
+    /* the spare way below */
   }
+  return Promise.resolve(spare());
 }
+
+export const copyToClipboard = startCopy;

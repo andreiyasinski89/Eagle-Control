@@ -11,7 +11,8 @@ import { FormField, Modal, selectClass } from "@/components/ui/modal";
 import { api, ApiFailure } from "@/features/mindmap/api";
 import { cn } from "@/lib/utils";
 import { STAGES, type Stage } from "@/modules/crm/people";
-import { ContactDrawer, messengerLinks } from "./ContactDrawer";
+import { ContactDrawer } from "./ContactDrawer";
+import { MessengerButtons } from "./MessengerButtons";
 import { useDeclineAsk } from "./DeclineReason";
 import { DataTable, Pager, type Column } from "./DataTable";
 import { DuplicatesDialog } from "./DuplicatesDialog";
@@ -238,13 +239,8 @@ export function ContactsView({ workspaceId, slug, canWrite, canExport, canMerge,
       key: "messengers",
       header: t("messengers"),
       render: (c) => (
-        <span className="flex gap-2 text-xs" onClick={(e) => e.stopPropagation()}>
-          {Object.entries(c.messengers).map(([k, v]) => (
-            <a key={k} href={messengerLinks[k]?.(v)} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-              {t(`field.${k}`)}
-            </a>
-          ))}
-          {Object.keys(c.messengers).length === 0 && "—"}
+        <span className="block w-32" onClick={(e) => e.stopPropagation()}>
+          <MessengerButtons workspaceId={workspaceId} person={{ id: c.id, name: c.name, phones: c.phones, messengers: c.messengers }} text="" compact />
         </span>
       ),
     },

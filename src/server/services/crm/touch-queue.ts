@@ -105,6 +105,9 @@ export async function getTouchQueue(userId: string, workspaceId: string, now = n
       telegram: handle(m.telegram),
       whatsapp: digits(m.whatsapp) ?? digits(c.phones[0]),
       phone: c.phones[0] ?? null,
+      // As typed: the buttons of the messengers decide what to open from these (a number without its country code opens no chat).
+      phones: c.phones,
+      messengers: m,
       recent: list.slice(0, 3).map((a) => ({ id: a.id, type: a.type, subject: a.subject, body: a.body, outcome: a.outcome, at: a.completedAt ?? a.dueAt ?? a.createdAt })),
     };
   });
@@ -131,7 +134,7 @@ export const touchResultSchema = z.object({
   outcome: z.enum(OUTCOMES),
   /** The text that was sent, kept with the touch. */
   message: z.string().trim().max(4000).optional(),
-  channel: z.enum(["telegram", "whatsapp", "copy", "call"]).optional(),
+  channel: z.enum(["telegram", "whatsapp", "instagram", "copy", "call"]).optional(),
   /** For a meeting that was set: when. */
   meetingAt: z.string().datetime().optional(),
   durationMin: z.number().int().min(5).max(480).optional(),

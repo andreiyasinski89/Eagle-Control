@@ -510,3 +510,13 @@
 ## 0.48.1 — Where the database is, in one page
 
 - A signed-in person can open `/api/v1/diagnostics` and see the region of the database, the region of the server, whether they are close, and how many milliseconds one trip to the database takes (region names and times only). It answers "why is it slow" without looking at any secret.
+
+## 0.49.0 — Write in one click: Telegram, WhatsApp, Instagram
+
+- **The script block of a person's card** ("Message script"): a template to pick, the text to read and change (the name is put in), and under it three buttons, **Telegram, WhatsApp, Instagram**. One press copies the text (before the link is opened, in the same press, as phones demand; the old copy command is the spare way) and opens the chat with the person, or, when we do not know where it is, the place to choose a person (the text is already in the clipboard). A check mark for a second and the toast "Script copied".
+- **The message goes into the person's feed** ("Message sent via Telegram…", with the text); the toast "Did not send it: undo" takes it back, and the person's last touch goes back to the one before (so an undone message does not leave them looking as if they had been written to).
+- **A button without the data** for a direct chat stays pressable, its icon is faded, and a small pencil on its corner opens a field to type the name or the number on the spot (a doubtful value is saved with a remark, not refused).
+- **The phone has to carry its country code** (`+` or `00` first). **No country is guessed or set by default**: a number without a code opens no chat and the card says to add the code. The fields of the card say "the number with the country code".
+- **One place makes the links** (`buildMessengerLink`, with the cleaning of phones and names: `@name`, `name`, `t.me/name`, `instagram.com/name?igsh=…`), used by the card, the touch queue and the list. The queue has the same three buttons now (Instagram is new there) and keeps its own result buttons for the feed; the list of contacts has three icons in each row.
+- The existing fields are used (`phones`, and the `messengers` of the card): no database change.
+- Tests: 15 for the links and the cleaning, 2 on a real database for taking a touch back, and a Playwright scenario for the three buttons (text in the clipboard, the address opened, the feed, the undo, the pencil). [docs/MESSENGERS.ru.md](docs/MESSENGERS.ru.md): the instruction and what was and was not checked on real phones.

@@ -2444,5 +2444,57 @@
     "saveFailed": "Nie udało się zapisać. Spróbuj ponownie.",
     "send": "Wyślij materiał",
     "noneInLang": "Brak materiałów w tym języku. Wybierz inny."
+  },
+  "messenger": {
+    "scriptTitle": "Skrypt wiadomości",
+    "template": "Szablon",
+    "scriptPlaceholder": "Napisz wiadomość tutaj albo wybierz szablon.",
+    "autoCopy": "Tekst skopiuje się automatycznie przy przejściu do komunikatora.",
+    "name": {
+      "telegram": "Telegram",
+      "whatsapp": "WhatsApp",
+      "instagram": "Instagram"
+    },
+    "hint": {
+      "telegram": "Dodaj nazwę w Telegramie albo telefon z kodem kraju, aby od razu otwierać czat.",
+      "whatsapp": "Dodaj telefon z kodem kraju, aby od razu otwierać czat.",
+      "instagram": "Dodaj nazwę na Instagramie, aby od razu otwierać rozmowę."
+    },
+    "add": {
+      "telegram": "Dodaj nazwę w Telegramie",
+      "whatsapp": "Dodaj telefon do WhatsAppa",
+      "instagram": "Dodaj nazwę na Instagramie"
+    },
+    "field": {
+      "telegram": "Nazwa w Telegramie lub link",
+      "whatsapp": "Telefon z kodem kraju",
+      "instagram": "Nazwa na Instagramie lub link"
+    },
+    "placeholder": {
+      "telegram": "@username lub link",
+      "whatsapp": "+ i kod kraju, potem numer",
+      "instagram": "@username lub link"
+    },
+    "fieldHint": {
+      "telegram": "@username lub link",
+      "whatsapp": "numer z kodem kraju",
+      "instagram": "@username lub link"
+    },
+    "phoneHint": "numer z kodem kraju, zaczynając od + lub 00",
+    "noCode": "Telefon nie ma kodu kraju, więc czatu nie da się otworzyć od razu. Wpisz numer z kodem (na przykład zaczynając od +).",
+    "doubtPhone": "To nie wygląda na numer z kodem kraju (+ lub 00, potem cyfry). Zapiszę mimo to, ale czat otworzy się tylko dla numeru z kodem.",
+    "doubtName": "To nie wygląda na nazwę. Zapiszę mimo to, ale czat nie otworzy się od razu.",
+    "copied": "Skrypt skopiowany",
+    "copyFailed": "Nie udało się skopiować: zaznacz tekst i skopiuj ręcznie.",
+    "undo": "Nie wysłałem: cofnij",
+    "undone": "Wpis cofnięty.",
+    "logged": {
+      "telegram": "Wiadomość wysłana przez Telegram",
+      "whatsapp": "Wiadomość wysłana przez WhatsApp",
+      "instagram": "Wiadomość wysłana przez Instagram"
+    },
+    "save": "Zapisz",
+    "cancel": "Anuluj",
+    "error": "Coś poszło nie tak"
   }
 }

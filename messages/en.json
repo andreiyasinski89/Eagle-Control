@@ -2444,5 +2444,57 @@
     "saveFailed": "Could not save. Try again.",
     "send": "Send a material",
     "noneInLang": "No materials in this language. Choose another one."
+  },
+  "messenger": {
+    "scriptTitle": "Message script",
+    "template": "Template",
+    "scriptPlaceholder": "Write the message here, or pick a template.",
+    "autoCopy": "The text is copied automatically when you open a messenger.",
+    "name": {
+      "telegram": "Telegram",
+      "whatsapp": "WhatsApp",
+      "instagram": "Instagram"
+    },
+    "hint": {
+      "telegram": "Add a Telegram name or a phone with its country code to open the chat at once.",
+      "whatsapp": "Add a phone with its country code to open the chat at once.",
+      "instagram": "Add an Instagram name to open the conversation at once."
+    },
+    "add": {
+      "telegram": "Add the Telegram name",
+      "whatsapp": "Add the phone for WhatsApp",
+      "instagram": "Add the Instagram name"
+    },
+    "field": {
+      "telegram": "Telegram name or link",
+      "whatsapp": "Phone with the country code",
+      "instagram": "Instagram name or link"
+    },
+    "placeholder": {
+      "telegram": "@username or a link",
+      "whatsapp": "+ and the country code, then the number",
+      "instagram": "@username or a link"
+    },
+    "fieldHint": {
+      "telegram": "@username or a link",
+      "whatsapp": "the number with the country code",
+      "instagram": "@username or a link"
+    },
+    "phoneHint": "the number with the country code, starting with + or 00",
+    "noCode": "The phone has no country code, so the chat cannot be opened at once. Write the number with the code (for example starting with +).",
+    "doubtPhone": "This does not look like a number with a country code (a + or 00 and then the digits). It is saved anyway; a chat opens only for a number with a code.",
+    "doubtName": "This does not look like a name. It is saved anyway, but the chat will not open at once.",
+    "copied": "Script copied",
+    "copyFailed": "Could not copy: select the text and copy it by hand.",
+    "undo": "Did not send it: undo",
+    "undone": "The note was taken back.",
+    "logged": {
+      "telegram": "Message sent via Telegram",
+      "whatsapp": "Message sent via WhatsApp",
+      "instagram": "Message sent via Instagram"
+    },
+    "save": "Save",
+    "cancel": "Cancel",
+    "error": "Something went wrong"
   }
 }

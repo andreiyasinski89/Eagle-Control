@@ -10,8 +10,8 @@ import { FormField, Modal, selectClass } from "@/components/ui/modal";
 import { Link } from "@/i18n/navigation";
 import { Attachments } from "@/features/drawer/Attachments";
 import { VoiceNote } from "./VoiceNote";
-import { SendMaterial } from "./SendMaterial";
-import { copyToClipboard } from "./useScripts";
+import { ScriptBlock } from "./ScriptBlock";
+import { buildMessengerLink } from "@/modules/crm/messenger";
 import { Comments } from "@/features/drawer/Comments";
 import type { NodeDetail } from "@/features/drawer/types";
 import { api, ApiFailure } from "@/features/mindmap/api";
@@ -21,7 +21,6 @@ import { useTimeZone } from "@/features/views/useTimeZone";
 import { ActivityDialog } from "./DealDialogs";
 import { FunnelFields, type FunnelValues } from "./FunnelFields";
 import { PartnerFields, type TransferRow } from "./PartnerFields";
-import { ScriptPicker } from "./ScriptPicker";
 import { ScheduleDialog } from "./ScheduleDialog";
 import { dayInput, dayToIso, money } from "./format";
 import { useCompanyOptions, useMembers } from "./hooks";
@@ -70,12 +69,10 @@ export interface ContactDetail {
   deals: { id: string; title: string; stage: string; amount: number; currency: string }[];
 }
 
-const clean = (v: string) => v.replace(/^@/, "").trim();
-export const messengerLinks: Record<string, (v: string) => string> = {
-  telegram: (v) => `https://t.me/${clean(v)}`,
-  whatsapp: (v) => `https://wa.me/${v.replace(/\D/g, "")}`,
-  instagram: (v) => `https://instagram.com/${clean(v)}`,
-};
+/** The link behind the "Open" next to a messenger field: the person's own chat or page, from what is typed there. */
+export const messengerLinks: Record<string, (v: string) => string> = Object.fromEntries(
+  (["telegram", "whatsapp", "instagram"] as const).map((m) => [m, (v: string) => buildMessengerLink(m, { phones: [], messengers: { [m]: v } }, "").url]),
+);
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -91,13 +88,13 @@ const list = (v: string) => v.split(/[;,\n]+/).map((x) => x.trim()).filter(Boole
 export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase, canExport, meId, onClose }: { workspaceId: string; slug: string; contactId: string; canWrite: boolean; canErase: boolean; canExport: boolean; meId: string; onClose: () => void }) {
   const t = useTranslations("crm");
   const tc = useTranslations("common");
+  const tm = useTranslations("messenger");
   const locale = useLocale();
   const qc = useQueryClient();
   const members = useMembers(workspaceId);
   const companies = useCompanyOptions(workspaceId);
   const [activity, setActivity] = useState<ActivityDto["type"] | null>(null);
   const [planning, setPlanning] = useState(false);
-  const [materialNote, setMaterialNote] = useState<string | null>(null);
   const { tz } = useTimeZone();
   const [erasing, setErasing] = useState(false);
   const [confirm, setConfirm] = useState("");
@@ -244,17 +241,7 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
       </Section>
 
       <Section title={t("scriptsSection")}>
-        <ScriptPicker workspaceId={workspaceId} meId={meId} stage={c.stage} fullName={c.name} />
-        {canWrite && (
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <SendMaterial workspaceId={workspaceId} onPick={async (line) => setMaterialNote((await copyToClipboard(line)) ? t("materialCopied") : t("materialCopyFailed"))} />
-            {materialNote && (
-              <span role="status" className="text-xs text-muted-foreground" data-testid="material-note">
-                {materialNote}
-              </span>
-            )}
-          </div>
-        )}
+        <ScriptBlock key={c.id} workspaceId={workspaceId} meId={meId} stage={c.stage} canWrite={canWrite} person={{ id: c.id, name: c.name, phones: c.phones, messengers: c.messengers }} />
       </Section>
 
       {(upcoming.length > 0 || canWrite) && (
@@ -311,7 +298,7 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
           <FormField label={t("field.email")}>
             <Input disabled={dis} defaultValue={c.emails.join(", ")} key={`e${c.emails.join()}`} onBlur={(e) => e.target.value !== c.emails.join(", ") && patch.mutate({ emails: list(e.target.value) })} />
           </FormField>
-          <FormField label={t("field.phone")}>
+          <FormField label={t("field.phone")} hint={tm("phoneHint")}>
             <Input disabled={dis} defaultValue={c.phones.join(", ")} key={`ph${c.phones.join()}`} onBlur={(e) => e.target.value !== c.phones.join(", ") && patch.mutate({ phones: list(e.target.value) })} />
           </FormField>
           <FormField label={t("owner")}>
@@ -328,9 +315,9 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
             <Input type="date" disabled={dis} value={dayInput(c.birthday)} onChange={(e) => patch.mutate({ birthday: dayToIso(e.target.value)?.slice(0, 10) ?? null })} />
           </FormField>
         </div>
-        <div className="grid grid-cols-3 gap-3 text-sm">
+        <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
           {(["telegram", "whatsapp", "instagram"] as const).map((m) => (
-            <FormField key={m} label={t(`field.${m}`)}>
+            <FormField key={m} label={t(`field.${m}`)} hint={tm(`fieldHint.${m}`)}>
               <Input disabled={dis} defaultValue={c.messengers[m] ?? ""} key={`${m}${c.messengers[m]}`} onBlur={(e) => e.target.value !== (c.messengers[m] ?? "") && patch.mutate({ messengers: { [m]: e.target.value } })} />
               {c.messengers[m] && (
                 <a className="text-xs text-primary hover:underline" href={messengerLinks[m]?.(c.messengers[m] as string)} target="_blank" rel="noopener noreferrer">
