@@ -15,6 +15,7 @@ import { shortDate } from "./format";
 import type { DealCardDto } from "./types";
 import { OnboardingCard } from "@/features/start/OnboardingCard";
 import { RankWidget } from "./RankWidget";
+import { ProductivityHistory } from "./ProductivityHistory";
 import { AddPeopleDialog } from "./AddPeopleDialog";
 import { NewEventDialog } from "@/features/views/NewEventDialog";
 
@@ -596,6 +597,8 @@ export function MyDayView({ workspaceId, slug, workspaceName, userName, simple =
           </Link>
         </section>
       )}
+
+      {data?.crm !== undefined && <ProductivityHistory workspaceId={workspaceId} />}
     </section>
   );
 }

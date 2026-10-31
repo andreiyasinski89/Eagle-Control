@@ -524,3 +524,12 @@
 ## 0.49.1 — Without a chat to open, the person's own messenger opens
 
 - With no Telegram name or phone for the person, the Telegram button now opens **your own Telegram on the choice of a chat** (the address of the app, `tg://msg?text=…`, the text is also copied) instead of a web page; if the app is not there, a link "Open Telegram in the browser" appears under the buttons. WhatsApp without a number opens your own WhatsApp on the choice of a chat with the text in it, and Instagram without a name opens your own Instagram on the list of conversations; both already did. The way of the instruction is in [docs/MESSENGERS.ru.md](docs/MESSENGERS.ru.md).
+
+## 0.50.0 — History of productivity
+
+- **Migration 0037 (additive):** the `DayScore` table, one row for every person and day: what was planned and done (tasks, meetings, contacts), the backlog, the time tracked, and the two percentages.
+- **The days are kept.** Every time My day is looked at, today's row is saved and updated; **yesterday is closed** (worked out as it stood at the end of the day and then left alone) in the background at the first look of the next day, and by a **nightly job** (`crm/day-scores`, 03:50 UTC) for everybody who has worked with the plan in the last two weeks, whether they opened the app or not. A day that wanted nothing from the person is **not saved** (a gap, not a zero). Erasing an account removes its days.
+- **"History of productivity" under the plan of the day** with five periods: **Yesterday** (yesterday and today side by side, with arrows for better or worse), **This week**, **30 days**, **Year** and **All time**. The week and 30 days are a chart by days with two lines (efficiency, productivity), the year and all time by weeks. Above the chart: the average of both, an arrow up or down against the span just before (the week before, the 30 before, the year before), and the number of days counted. Pressing a point shows that day's plan and fact. Personal: only your own days are ever shown.
+- **The history starts when this goes live**: what was planned in the past cannot be restored (deadlines move), so nothing is guessed. The demo workspace has four months of sample days.
+- For the nightly job on Vercel set `CRON_SECRET` (the schedule is in `vercel.json`); without it the days are still kept at every look and closed at the next one.
+- Tests: 10 for the rules (the spans, the weeks, the averages, the trend), 11 on a real database (saving, closing, the nightly job, every period, privacy).

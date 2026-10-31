@@ -2498,5 +2498,34 @@
     "error": "Something went wrong",
     "appHint": "Your Telegram opens on the choice of a chat; find the person there. Not opened?",
     "openWeb": "Open Telegram in the browser"
+  },
+  "history": {
+    "title": "History of productivity",
+    "period": "Period",
+    "periods": {
+      "yesterday": "Yesterday",
+      "week": "This week",
+      "30d": "30 days",
+      "year": "Year",
+      "all": "All time"
+    },
+    "efficiency": "Efficiency",
+    "productivity": "Productivity",
+    "yesterday": "Yesterday",
+    "today": "Today",
+    "noDay": "No data for this day.",
+    "planFact": "Done {done} of {planned} planned",
+    "todayVsYesterday": "today against yesterday",
+    "avgEfficiency": "Average efficiency",
+    "avgProductivity": "Average productivity",
+    "daysCounted": "Days counted",
+    "before": "before: {v}",
+    "chartLabel": "Chart of efficiency and productivity by days",
+    "byWeeks": "Each point is the average of a week.",
+    "pressDay": "Press a point to see that day.",
+    "breakdown": "Tasks {tasks} · meetings {meetings} · contacts {follow}",
+    "since": "The history is kept from {date}.",
+    "empty": "The history starts to build up today: open My day and the numbers of each day are kept from now on. Days with nothing planned are not counted, they are not zeros.",
+    "error": "Could not load the history."
   }
 }

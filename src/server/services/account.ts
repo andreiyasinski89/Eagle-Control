@@ -262,6 +262,7 @@ export async function eraseAccount(userId: string, now = new Date()): Promise<Er
       await tx.notification.deleteMany({ where: { OR: [{ userId }, { payload: { path: ["byUserId"], equals: userId } }] } });
       await tx.notificationPreference.deleteMany({ where: { userId } });
       await tx.reminder.deleteMany({ where: { userId } });
+      await tx.dayScore.deleteMany({ where: { userId } });
       await tx.runningTimer.deleteMany({ where: { userId } });
       await tx.savedFilter.deleteMany({ where: { userId } });
       await tx.calendarLink.deleteMany({ where: { userId } });

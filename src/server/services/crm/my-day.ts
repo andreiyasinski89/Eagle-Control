@@ -7,6 +7,7 @@ import { loadWorkspaceMember } from "@/server/services/nodes/access";
 import { fullName, NO_TOUCH_DAYS } from "./common";
 import { contactScope, dueBefore, withScope } from "./scope";
 import { toCard } from "./deals";
+import { keepDay } from "./day-history";
 
 const DAY = 86_400_000;
 
@@ -19,7 +20,7 @@ const DAY = 86_400_000;
  * meetings and calls are instants, so they are matched by the real span of the person's day.
  * `plan` is the day's plan against its fact, and the percentages that come from them (see `dayScore`).
  */
-export async function getMyDay(userId: string, workspaceId: string, now = new Date()) {
+export async function computeMyDay(userId: string, workspaceId: string, now = new Date()) {
   const membership = await loadWorkspaceMember(db, userId, workspaceId, "workspace:read");
   const me = await db.user.findUnique({ where: { id: userId }, select: { timezone: true } });
   const timeZone = me && isValidTimeZone(me.timezone) ? me.timezone : "UTC";
@@ -222,4 +223,11 @@ export async function getMyDay(userId: string, workspaceId: string, now = new Da
   };
   const total = tasks.length + events.length + reminders.length + result.crmTasks.length + result.scheduled.length + contactsDue.length + result.dealsNeedingNextStep.length + result.attention.staleDeals.length + result.attention.coldContacts.length;
   return { ...result, counts: { total } };
+}
+
+/** The day as the person sees it, and, as a side effect, the day's numbers are kept for the history (and yesterday is closed if it was not). */
+export async function getMyDay(userId: string, workspaceId: string, now = new Date()) {
+  const day = await computeMyDay(userId, workspaceId, now);
+  await keepDay(userId, workspaceId, day.date, day.timeZone, day.plan).catch((e) => console.error("day history", e instanceof Error ? e.message : e));
+  return day;
 }

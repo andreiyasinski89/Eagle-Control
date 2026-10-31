@@ -10,6 +10,7 @@ import { purgeOAuth } from "@/server/services/oauth";
 import { deliverDue, purgeDeliveries } from "@/server/webhooks";
 import { pollAll, pushEvent } from "@/server/integrations/google";
 import { recalcTemperatures } from "@/server/services/crm/temperature";
+import { closeYesterdays } from "@/server/services/crm/day-history";
 import { announceEndedSprints, dispatchReminders, maintenance, refreshAllProjects } from "./tasks";
 
 /** Event name → what it does. Add integration jobs (calendar sync…) here; both runners pick them up. */
@@ -20,6 +21,8 @@ export const handlers = {
   "maintenance/run": async () => maintenance(),
   // People cool as the days pass without a touch: the temperature is worked out again every night.
   "crm/temperature": async () => recalcTemperatures(),
+  // The day plan of yesterday is closed for everybody who works with it, whether they opened the app or not.
+  "crm/day-scores": async () => closeYesterdays(),
   /** One Google Calendar event per changed EVENT node; failures are logged, the next change or the poll fixes them. */
   "calendar/push": async (data) => {
     for (const id of Array.isArray(data.nodeIds) ? (data.nodeIds as string[]) : []) await pushEvent(id).catch((e) => console.error("calendar push failed", e instanceof Error ? e.message : e));

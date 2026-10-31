@@ -19,6 +19,7 @@ export const functions = [
   job("reminders/dispatch", { cron: "*/5 * * * *" }),
   job("maintenance/run", { cron: "30 3 * * *" }),
   job("crm/temperature", { cron: "40 3 * * *" }),
+  job("crm/day-scores", { cron: "50 3 * * *" }),
   job("billing/expire", { cron: "15 4 * * *" }),
   job("account/erase", { cron: "20 * * * *" }),
   job("demo/reset", { cron: "0 3 * * *" }),

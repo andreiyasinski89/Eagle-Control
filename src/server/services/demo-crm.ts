@@ -113,6 +113,18 @@ export async function createDemoCrm(userId: string, workspaceId: string, people:
   await material("Prezentacja produktu", "PRESENTATION", "pl", "Продукт", "https://example.com/prezentacja-pl");
   await material("Каталог продуктов", "PDF", "ru", "Продукт", "https://example.com/catalog-ru.pdf");
 
+  // Four months of the day plan kept for the history: the numbers climb with the weeks, with the ups and downs of a real working time and a few days off.
+  const today = new Date().toISOString().slice(0, 10);
+  const scores = Array.from({ length: 120 }, (_, i) => 120 - i).flatMap((back) => {
+    const wave = Math.sin(back / 3.2) * 12 + Math.cos(back / 1.7) * 6;
+    const eff = Math.max(8, Math.min(100, Math.round(100 - back * 0.45 + wave)));
+    const planned = 4 + (back % 4);
+    if (back % 7 === 0) return [];
+    const done = Math.round((planned * eff) / 100);
+    return [{ userId, workspaceId, day: new Date(`${new Date(new Date(`${today}T00:00:00Z`).getTime() - back * DAY).toISOString().slice(0, 10)}T00:00:00Z`), tasksPlanned: Math.ceil(planned / 2), tasksDone: Math.min(Math.ceil(planned / 2), done), meetingsPlanned: Math.floor(planned / 4), meetingsDone: Math.min(Math.floor(planned / 4), Math.round(done / 4)), followUpsPlanned: planned - Math.ceil(planned / 2) - Math.floor(planned / 4), followUpsDone: Math.max(0, Math.min(planned - Math.ceil(planned / 2) - Math.floor(planned / 4), done - Math.ceil(planned / 2))), backlogOpen: back % 5, backlogCleared: back % 3, trackedMinutes: 120 + (back % 6) * 30, efficiency: eff, productivity: Math.max(5, Math.round(eff * 0.85 - (back % 5) * 2)), closed: true }];
+  });
+  await db.dayScore.createMany({ data: scores });
+
   if (projectId) {
     await db.nodeLink.create({ data: { fromNodeId: launch.id, toNodeId: projectId, kind: "DEAL_PROJECT" } });
     const project = await db.node.findUniqueOrThrow({ where: { id: projectId }, select: { data: true } });

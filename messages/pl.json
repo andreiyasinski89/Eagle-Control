@@ -2498,5 +2498,34 @@
     "error": "Coś poszło nie tak",
     "appHint": "Otworzy się Twój Telegram na wyborze czatu: znajdź tam osobę. Nie otworzył się?",
     "openWeb": "Otwórz Telegram w przeglądarce"
+  },
+  "history": {
+    "title": "Historia produktywności",
+    "period": "Okres",
+    "periods": {
+      "yesterday": "Wczoraj",
+      "week": "Ten tydzień",
+      "30d": "30 dni",
+      "year": "Rok",
+      "all": "Cały czas"
+    },
+    "efficiency": "Skuteczność",
+    "productivity": "Produktywność",
+    "yesterday": "Wczoraj",
+    "today": "Dzisiaj",
+    "noDay": "Brak danych za ten dzień.",
+    "planFact": "Zrobiono {done} z {planned} zaplanowanych",
+    "todayVsYesterday": "dzisiaj w porównaniu z wczoraj",
+    "avgEfficiency": "Średnia skuteczność",
+    "avgProductivity": "Średnia produktywność",
+    "daysCounted": "Dni w obliczeniu",
+    "before": "wcześniej: {v}",
+    "chartLabel": "Wykres skuteczności i produktywności według dni",
+    "byWeeks": "Każdy punkt to średnia z tygodnia.",
+    "pressDay": "Naciśnij punkt, aby zobaczyć ten dzień.",
+    "breakdown": "Zadania {tasks} · spotkania {meetings} · kontakty {follow}",
+    "since": "Historia jest prowadzona od {date}.",
+    "empty": "Historia zacznie się gromadzić od dziś: wchodź do „Mój dzień”, a liczby każdego dnia będą zapisywane. Dni, w których nic nie zaplanowano, nie liczą się, to nie zera.",
+    "error": "Nie udało się wczytać historii."
   }
 }

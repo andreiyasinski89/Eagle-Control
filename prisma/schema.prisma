@@ -288,6 +288,7 @@ model Workspace {
   contactGroups    ContactGroup[]
   scripts          Script[]
   materials        Material[]
+  dayScores        DayScore[]
   stageRules       StageRule[]
   networkGoals     NetworkGoal[]
   notes            Note[]
@@ -1507,4 +1508,32 @@ model Material {
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@index([workspaceId, ownerId])
+}
+
+/// One day of one person's work, kept: what was planned and done, and the two percentages (see modules/crm/day-score.ts). The history of the day plan is made of these.
+model DayScore {
+  id             String   @id @default(cuid())
+  userId         String
+  workspaceId    String
+  /// The person's own day.
+  day            DateTime @db.Date
+  tasksPlanned   Int      @default(0)
+  tasksDone      Int      @default(0)
+  meetingsPlanned Int     @default(0)
+  meetingsDone   Int      @default(0)
+  followUpsPlanned Int    @default(0)
+  followUpsDone  Int      @default(0)
+  backlogOpen    Int      @default(0)
+  backlogCleared Int      @default(0)
+  trackedMinutes Int      @default(0)
+  efficiency     Int?
+  productivity   Int?
+  /// The day is over and its numbers were worked out at its end: opening the app later does not change them.
+  closed         Boolean  @default(false)
+  updatedAt      DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workspaceId, day])
+  @@index([workspaceId, userId, day])
 }
