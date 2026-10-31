@@ -506,3 +506,7 @@
 - **Fewer trips to the database for every page** (measured by the new query log on the home page: 18 queries became 9): the session is asked once per page instead of three times (layout, page and CRM frame each asked on their own), the three independent questions of the frame (membership, the list of workspaces, the person's flags) go out together instead of one after another, and the "account deletion" banner and the simple-mode check reuse the answer. Every query is a trip to the database, so in production this is the difference between seconds and tenths of a second.
 - **A query log for finding slow places:** `DB_LOG_QUERIES=1` (every query with its time) or `DB_SLOW_MS=300` (only those that take that long or more; safe in production). Nothing is listened to without them.
 - [docs/PERFORMANCE.ru.md](docs/PERFORMANCE.ru.md): what to check in Vercel and Neon, in order: the region of the functions against the database (the likeliest cause), the sleeping free database, `connection_limit`.
+
+## 0.48.1 — Where the database is, in one page
+
+- A signed-in person can open `/api/v1/diagnostics` and see the region of the database, the region of the server, whether they are close, and how many milliseconds one trip to the database takes (region names and times only). It answers "why is it slow" without looking at any secret.
