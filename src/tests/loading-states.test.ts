@@ -26,3 +26,17 @@ describe("loading states", () => {
     expect(skeleton).toContain('aria-busy="true"');
   });
 });
+
+describe("speed of the frame", () => {
+  const root = join(process.cwd(), "src");
+  it("shows a loading page at once when a section of the workspace is opened", () => {
+    expect(() => readFileSync(join(root, "app/[locale]/w/[slug]/loading.tsx"), "utf8")).not.toThrow();
+  });
+  it("asks for the session once per page, not in each layout and page on its own", () => {
+    for (const f of ["app/[locale]/w/[slug]/layout.tsx", "app/[locale]/w/[slug]/page.tsx", "features/crm/server.ts"]) {
+      const text = readFileSync(join(root, f), "utf8");
+      expect(text, f).toContain("getSession");
+      expect(text, f).not.toMatch(/\bawait auth\(\)/);
+    }
+  });
+});

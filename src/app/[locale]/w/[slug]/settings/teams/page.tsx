@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { auth } from "@/server/auth";
+import { getSession } from "@/server/session";
 import { db } from "@/server/db";
 import { can } from "@/server/policies";
 import { listTeams } from "@/server/services/teams";
@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 export default async function TeamsPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const session = await auth();
+  const session = await getSession();
   const t = await getTranslations("teams");
   const workspace = await db.workspace.findUniqueOrThrow({ where: { slug }, select: { id: true } });
   const me = await db.membership.findUnique({ where: { userId_workspaceId: { userId: session?.user?.id ?? "", workspaceId: workspace.id } } });

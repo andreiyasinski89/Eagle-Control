@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { redirect } from "@/i18n/navigation";
 import { MindMapView } from "@/features/mindmap/MindMapView";
 import type { TreePayload } from "@/features/mindmap/types";
-import { auth } from "@/server/auth";
+import { getSession } from "@/server/session";
 import { ApiError } from "@/server/http/errors";
 import { getTree } from "@/server/services/nodes/queries";
 
@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 export default async function ProjectPage({ params }: { params: Promise<{ locale: string; slug: string; projectId: string }> }) {
   const { locale, slug, projectId } = await params;
-  const session = await auth();
+  const session = await getSession();
   if (!session?.user?.id) return redirect({ href: "/sign-in", locale });
 
   let payload: TreePayload;

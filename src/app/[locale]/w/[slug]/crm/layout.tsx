@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { CrmProviders, CrmTabs } from "@/features/crm/CrmShell";
-import { auth } from "@/server/auth";
+import { getSession } from "@/server/session";
 import { db } from "@/server/db";
 import { can } from "@/server/policies";
 
@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default async function CrmLayout({ children, params }: { children: React.ReactNode; params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const session = await auth();
+  const session = await getSession();
   const membership = await db.membership.findFirst({ where: { userId: session?.user?.id ?? "", workspace: { slug } } });
   // Without the CRM flag the section does not exist for this person.
   if (!membership || !can(membership, "crm:read")) notFound();

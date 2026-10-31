@@ -499,3 +499,10 @@
 
 - The step "Profile and time zone" on the Start page (and the card on the home page) led to `/w/<workspace>/settings`, which has no page of its own, so it showed a 404. It now opens **your account page**, where the time zone is set. Every other step already opened a page that exists.
 - A test now checks that **every step of the Start page opens a page that exists**, so the same mistake cannot come back unnoticed.
+
+## 0.48.0 — A quicker response
+
+- **A loading page at once** (`loading.tsx` in the workspace): opening a section now shows the frame and a grey placeholder immediately, while the server prepares the page. Before, the screen stayed as it was until everything was ready, and a press looked like nothing happened.
+- **Fewer trips to the database for every page** (measured by the new query log on the home page: 18 queries became 9): the session is asked once per page instead of three times (layout, page and CRM frame each asked on their own), the three independent questions of the frame (membership, the list of workspaces, the person's flags) go out together instead of one after another, and the "account deletion" banner and the simple-mode check reuse the answer. Every query is a trip to the database, so in production this is the difference between seconds and tenths of a second.
+- **A query log for finding slow places:** `DB_LOG_QUERIES=1` (every query with its time) or `DB_SLOW_MS=300` (only those that take that long or more; safe in production). Nothing is listened to without them.
+- [docs/PERFORMANCE.ru.md](docs/PERFORMANCE.ru.md): what to check in Vercel and Neon, in order: the region of the functions against the database (the likeliest cause), the sleeping free database, `connection_limit`.

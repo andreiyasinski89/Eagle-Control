@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { auth } from "@/server/auth";
+import { getSession } from "@/server/session";
 import { db } from "@/server/db";
 import { can } from "@/server/policies";
 import { listProjects } from "@/server/services/nodes/queries";
@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 export default async function ProjectsPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const [t, tm, session] = await Promise.all([getTranslations("projects"), getTranslations("map"), auth()]);
+  const [t, tm, session] = await Promise.all([getTranslations("projects"), getTranslations("map"), getSession()]);
   const userId = session?.user?.id ?? "";
   const workspace = await db.workspace.findUniqueOrThrow({ where: { slug }, select: { id: true } });
   const membership = await db.membership.findUniqueOrThrow({ where: { userId_workspaceId: { userId, workspaceId: workspace.id } } });

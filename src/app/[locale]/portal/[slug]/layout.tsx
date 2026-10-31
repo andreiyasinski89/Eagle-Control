@@ -24,7 +24,7 @@ export default async function PortalLayout({ children, params }: { children: Rea
   const t = await getTranslations("portal");
   return (
     <div className="flex min-h-screen flex-col">
-      <DeletionBanner userId={userId} />
+      <DeletionBanner requestedAt={(await db.user.findUnique({ where: { id: userId }, select: { deletionRequestedAt: true } }))?.deletionRequestedAt ?? null} />
       <header className="flex h-14 items-center justify-between border-b border-border bg-card px-4">
         <Link href={`/portal/${slug}`} className="font-semibold">
           🦉 {m.workspace.name}
