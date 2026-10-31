@@ -2495,6 +2495,8 @@
     },
     "save": "Zapisz",
     "cancel": "Anuluj",
-    "error": "Coś poszło nie tak"
+    "error": "Coś poszło nie tak",
+    "appHint": "Otworzy się Twój Telegram na wyborze czatu: znajdź tam osobę. Nie otworzył się?",
+    "openWeb": "Otwórz Telegram w przeglądarce"
   }
 }

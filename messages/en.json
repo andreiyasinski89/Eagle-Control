@@ -2495,6 +2495,8 @@
     },
     "save": "Save",
     "cancel": "Cancel",
-    "error": "Something went wrong"
+    "error": "Something went wrong",
+    "appHint": "Your Telegram opens on the choice of a chat; find the person there. Not opened?",
+    "openWeb": "Open Telegram in the browser"
   }
 }

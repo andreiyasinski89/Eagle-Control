@@ -47,6 +47,20 @@ export function MessengerIcon({ channel, muted, className }: { channel: Channel;
   );
 }
 
+/** Opens a link in a new tab; the address of an app (`tg://…`) is followed in place with a hidden link, so that no empty tab is left behind. */
+function openLink(url: string) {
+  if (/^https?:/i.test(url)) {
+    window.open(url, "_blank", "noopener");
+    return;
+  }
+  const a = document.createElement("a");
+  a.href = url;
+  a.rel = "noopener";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
 const HOVER: Record<Channel, string> = { telegram: "hover:border-[#229ED9]", whatsapp: "hover:border-[#25D366]", instagram: "hover:border-[#DD2A7B]" };
 
 /**
@@ -58,7 +72,7 @@ export function MessengerButtons({ workspaceId, person, text, canWrite = true, l
   const t = useTranslations("messenger");
   const qc = useQueryClient();
   const [done, setDone] = useState<Channel | null>(null);
-  const [note, setNote] = useState<{ text: string; undoId?: string } | null>(null);
+  const [note, setNote] = useState<{ text: string; undoId?: string; web?: string } | null>(null);
   const [editing, setEditing] = useState<Channel | null>(null);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
@@ -85,14 +99,19 @@ export function MessengerButtons({ workspaceId, person, text, canWrite = true, l
     const link = buildMessengerLink(channel, person, sending ? text : "");
     // The copy is started first and the link opened at once: both belong to this very press.
     const copying = sending ? startCopy(text) : null;
-    window.open(link.url, "_blank", "noopener");
+    openLink(link.url);
+    // The address of an app opens nothing if the app is not there: the way to the browser version is offered at once, the text being in the clipboard.
+    if (link.webFallback) {
+      setNote({ text: t("appHint"), web: link.webFallback });
+      later(() => setNote((n) => (n?.web ? null : n)), 12000);
+    }
     setDone(channel);
     later(() => setDone((d) => (d === channel ? null : d)), 1000);
     onUsed?.(channel);
     if (!copying) return;
     void copying.then((ok) => {
-      setNote({ text: ok ? t("copied") : t("copyFailed") });
-      later(() => setNote(null), 8000);
+      setNote((n) => ({ ...n, text: n?.web ? `${ok ? t("copied") : t("copyFailed")}. ${n.text}` : ok ? t("copied") : t("copyFailed") }));
+      later(() => setNote(null), 12000);
     });
     if (logActivity && canWrite) log.mutate(channel);
   }
@@ -146,6 +165,11 @@ export function MessengerButtons({ workspaceId, person, text, canWrite = true, l
       {note && (
         <p role="status" className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground" data-testid="messenger-note">
           {note.text}
+          {note.web && (
+            <a href={note.web} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center text-primary hover:underline" data-testid="messenger-web">
+              {t("openWeb")}
+            </a>
+          )}
           {note.undoId && (
             <button type="button" className="inline-flex min-h-11 items-center text-primary hover:underline" onClick={() => undo.mutate(note.undoId as string)} data-testid="messenger-undo">
               {t("undo")}

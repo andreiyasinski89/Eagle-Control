@@ -55,9 +55,9 @@ describe("buildMessengerLink: Telegram", () => {
   it("falls back to the phone when there is no name", () => {
     expect(buildMessengerLink("telegram", { phones: ["+48 512 345 678"], messengers: {} }, "x").url).toBe("https://t.me/+48512345678");
   });
-  it("skips a phone without a code and opens the share window with the text", () => {
+  it("skips a phone without a code and opens the person's own Telegram on the choice of a chat, with the text", () => {
     const l = buildMessengerLink("telegram", { phones: ["512-345-678"], messengers: {} }, "Привет, Анна & co");
-    expect(l).toEqual({ url: `https://t.me/share/url?url=&text=${encodeURIComponent("Привет, Анна & co")}`, direct: false, textInLink: true });
+    expect(l).toEqual({ url: `tg://msg?text=${encodeURIComponent("Привет, Анна & co")}`, direct: false, textInLink: true, webFallback: "https://web.telegram.org/a/" });
   });
 });
 

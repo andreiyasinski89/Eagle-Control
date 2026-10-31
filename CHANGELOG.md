@@ -520,3 +520,7 @@
 - **One place makes the links** (`buildMessengerLink`, with the cleaning of phones and names: `@name`, `name`, `t.me/name`, `instagram.com/name?igsh=…`), used by the card, the touch queue and the list. The queue has the same three buttons now (Instagram is new there) and keeps its own result buttons for the feed; the list of contacts has three icons in each row.
 - The existing fields are used (`phones`, and the `messengers` of the card): no database change.
 - Tests: 15 for the links and the cleaning, 2 on a real database for taking a touch back, and a Playwright scenario for the three buttons (text in the clipboard, the address opened, the feed, the undo, the pencil). [docs/MESSENGERS.ru.md](docs/MESSENGERS.ru.md): the instruction and what was and was not checked on real phones.
+
+## 0.49.1 — Without a chat to open, the person's own messenger opens
+
+- With no Telegram name or phone for the person, the Telegram button now opens **your own Telegram on the choice of a chat** (the address of the app, `tg://msg?text=…`, the text is also copied) instead of a web page; if the app is not there, a link "Open Telegram in the browser" appears under the buttons. WhatsApp without a number opens your own WhatsApp on the choice of a chat with the text in it, and Instagram without a name opens your own Instagram on the list of conversations; both already did. The way of the instruction is in [docs/MESSENGERS.ru.md](docs/MESSENGERS.ru.md).

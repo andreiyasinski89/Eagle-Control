@@ -48,6 +48,8 @@ export interface MessengerLink {
   direct: boolean;
   /** The text is inside the link; otherwise it is only in the clipboard, to paste. */
   textInLink: boolean;
+  /** Where to go when the app of the messenger does not open (a link that opens the app has no page of its own to fall back to). */
+  webFallback?: string;
 }
 
 /** The number WhatsApp should use: the one given for WhatsApp (a number or a `wa.me` link), else the first phone of the person. */
@@ -68,7 +70,8 @@ export function buildMessengerLink(channel: Channel, contact: MessengerContact, 
     if (user) return { url: `https://t.me/${user}`, direct: true, textInLink: false };
     const phone = contact.phones.map(phoneWithCode).find((d): d is string => !!d);
     if (phone) return { url: `https://t.me/+${phone}`, direct: true, textInLink: false };
-    return { url: `https://t.me/share/url?url=&text=${body}`, direct: false, textInLink: true };
+    // No chat to open: the person's own Telegram, on the choice of a chat, with the text in it. It is the address of the app, not of a page: it opens the installed app (phone or desktop).
+    return { url: `tg://msg?text=${body}`, direct: false, textInLink: true, webFallback: "https://web.telegram.org/a/" };
   }
   if (channel === "whatsapp") {
     const phone = whatsappDigits(contact);
