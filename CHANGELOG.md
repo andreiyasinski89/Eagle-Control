@@ -560,3 +560,9 @@
 ## 0.52.2 — A sleeping database no longer crashes the first visitor
 
 - The hosted database sleeps when nobody uses it. The first query after a pause answered "can't reach the server", and whoever came first saw a crash page (or a button that worked only on the second press). Every query now waits and tries again up to three times (0.4, 1.2 and 2.5 seconds) while the error is a missing connection; a query that really ran and failed is never repeated. After the last try the real error is shown as before.
+
+## 0.52.3 — A failed session lookup no longer signs a person out
+
+- Found in the sign-in e-mails of a new person (five links in 25 minutes, the later ones asked from inside their own workspace): they were signed in, but whenever the database was slow or asleep the session lookup failed, Auth.js answered "nobody", and the page sent them back to the sign-in page, where they asked for a new link, and so on round and round.
+- "Nobody" is now believed only when there is no session cookie, or the database confirms that the session does not exist or has expired. When the lookup fails the cookie is checked and the lookup repeated (0.3, 0.9 and 2 seconds); if it still fails the request fails honestly instead of signing anyone out.
+- The sign-in route may now run up to 60 seconds: the first sign-in of a new person makes the account and its first records, and on a database that has just woken up that can pass the default 10 seconds.

@@ -1,4 +1,5 @@
-import NextAuth from "next-auth";
+import NextAuth, { type Session } from "next-auth";
+import { cookies } from "next/headers";
 import Google from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import type { Provider } from "next-auth/providers";
@@ -7,6 +8,7 @@ import { sendMail } from "@/server/mail";
 import { syncGrantedPlans } from "@/server/services/grants";
 import { applySignupIntent, intentLocale } from "@/server/services/signup";
 import { confirmLink } from "./confirm-link";
+import { resilientSession } from "./resilient";
 import { signInMail } from "./mail-texts";
 
 const providers: Provider[] = [
@@ -37,7 +39,7 @@ if (process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET) {
   );
 }
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+const nextAuth = NextAuth({
   adapter: PrismaAdapter(db),
   session: { strategy: "database" },
   providers,
@@ -77,3 +79,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
 });
+
+export const { handlers, signIn, signOut } = nextAuth;
+
+/** Who is signed in. A failed lookup is not a sign-out: see `resilientSession`. */
+export const auth = (): Promise<Session | null> =>
+  resilientSession<Session>({
+    read: () => nextAuth.auth(),
+    token: async () => {
+      const jar = await cookies();
+      return jar.get("__Secure-authjs.session-token")?.value ?? jar.get("authjs.session-token")?.value ?? null;
+    },
+    valid: async (token) => {
+      const row = await db.session.findUnique({ where: { sessionToken: token }, select: { expires: true } });
+      return !!row && row.expires > new Date();
+    },
+  });

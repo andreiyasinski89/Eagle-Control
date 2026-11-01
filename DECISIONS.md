@@ -265,3 +265,4 @@
 | 260 | "Wrote, waiting" is its own result with a fixed 2-day wait, not "no reply" | A message not yet answered is not silence; it must not push people towards going quiet. The 2 days are fixed, not a setting, until somebody asks. |
 | 261 | A touch result gets a 30-second transaction | It is many sequential queries; on a distant or sleeping database the default 5 seconds ran out and the first press failed. |
 | 262 | Queries retry when the database connection is not there yet | A sleeping free database wakes within seconds; the first visitor should wait a moment, not meet a crash page. Only "cannot connect" errors are retried. |
+| 263 | "Nobody" from Auth.js is believed only when there is no cookie or the database says the session is gone | A failed lookup looked like a sign-out and sent signed-in people round the sign-in page in a loop. |

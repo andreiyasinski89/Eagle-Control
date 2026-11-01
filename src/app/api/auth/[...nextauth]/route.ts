@@ -4,6 +4,9 @@ import { clientIp } from "@/server/http/limits";
 import { rateLimit } from "@/server/http/rate-limit";
 import { allowSignIn } from "@/server/services/signin-guard";
 
+// A first sign-in makes the account and its first records: on a database that has just woken up that can pass the default 10 seconds.
+export const maxDuration = 60;
+
 export const GET = handlers.GET;
 
 const WINDOW = 15 * 60_000;
