@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { withDbRetry } from "./db-retry";
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
@@ -10,12 +11,16 @@ const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 function create(): PrismaClient {
   const all = process.env.DB_LOG_QUERIES === "1";
   const slow = Number(process.env.DB_SLOW_MS ?? "");
-  if (!all && !(slow > 0)) return new PrismaClient();
-  const client = new PrismaClient({ log: [{ emit: "event", level: "query" }] });
-  (client as unknown as { $on(event: "query", cb: (e: { query: string; duration: number }) => void): void }).$on("query", (e) => {
-    if (all || e.duration >= slow) console.log(`[db] ${e.duration} ms ${e.query.replace(/\s+/g, " ").slice(0, 160)}`);
-  });
-  return client;
+  const listening = all || slow > 0;
+  const client = listening ? new PrismaClient({ log: [{ emit: "event", level: "query" }] }) : new PrismaClient();
+  if (listening) {
+    (client as unknown as { $on(event: "query", cb: (e: { query: string; duration: number }) => void): void }).$on("query", (e) => {
+      if (all || e.duration >= slow) console.log(`[db] ${e.duration} ms ${e.query.replace(/\s+/g, " ").slice(0, 160)}`);
+    });
+  }
+  // A sleeping database answers the first query after a pause with "can't reach the server": that query is tried again (see db-retry.ts).
+  // The type stays the plain client: the extension changes how queries run, not what they are.
+  return client.$extends({ query: { $allOperations: ({ args, query }) => withDbRetry(() => query(args)) } }) as unknown as PrismaClient;
 }
 
 export const db = globalForPrisma.prisma ?? create();

@@ -556,3 +556,7 @@
 
 - Writing down a result of a touch (any of the buttons, "Wrote, waiting for a reply" included) is a long series of small queries in one transaction, which had the default 5 seconds. With the database far from the server or just woken up, it sometimes ran out, the press failed once and worked the second time. The transaction now has 30 seconds (and 15 to wait for a connection).
 - If a press does fail, the message now stands right under the "Result" heading, where it cannot be missed, instead of below the buttons.
+
+## 0.52.2 — A sleeping database no longer crashes the first visitor
+
+- The hosted database sleeps when nobody uses it. The first query after a pause answered "can't reach the server", and whoever came first saw a crash page (or a button that worked only on the second press). Every query now waits and tries again up to three times (0.4, 1.2 and 2.5 seconds) while the error is a missing connection; a query that really ran and failed is never repeated. After the last try the real error is shown as before.
