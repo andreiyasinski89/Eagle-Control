@@ -4,7 +4,7 @@ import { SendMaterial } from "./SendMaterial";
 import { MessengerButtons } from "./MessengerButtons";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, ClipboardCopy, Settings, SkipForward, X } from "lucide-react";
+import { Check, ClipboardCopy, Hourglass, Settings, SkipForward, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -299,6 +299,10 @@ function TouchCard({ workspaceId, item, data, slug, onDone, onSkip }: { workspac
       <section className="flex flex-col gap-2">
         <h2 className="text-sm font-medium">{t("resultTitle")}</h2>
         <div className="grid grid-cols-2 gap-2">
+          <Button type="button" variant="soft" className="col-span-2 min-h-12 gap-2" disabled={result.isPending} onClick={() => result.mutate({ outcome: "WAITING" })} data-testid="touch-waiting">
+            <Hourglass className="size-4" />
+            {t("waiting")}
+          </Button>
           <Button type="button" className="min-h-12" disabled={result.isPending} onClick={() => result.mutate({ outcome: "REPLIED" })} data-testid="touch-replied">
             <Check className="size-4" />
             {t("replied")}
@@ -407,6 +411,7 @@ function Summary({ workspaceId, slug, done, skipped, truncated, onAgain }: { wor
     [t("summaryTouches"), done.length],
     [t("summaryReplies"), count("REPLIED")],
     [t("summaryMeetings"), count("MEETING_SET")],
+    [t("summaryWaiting"), count("WAITING")],
     [t("summaryNoReply"), count("NO_REPLY")],
     [t("summaryDeclines"), count("DECLINED")],
     [t("summarySkipped"), skipped],

@@ -148,10 +148,10 @@ export const touchResultSchema = z.object({
 });
 
 const SUBJECT: Record<string, Record<string, string>> = {
-  ru: { REPLIED: "Касание: ответил(а)", NO_REPLY: "Касание: без ответа", MEETING_SET: "Касание: назначена встреча", DECLINED: "Касание: отказ", meeting: "Встреча" },
-  en: { REPLIED: "Touch: replied", NO_REPLY: "Touch: no reply", MEETING_SET: "Touch: meeting set", DECLINED: "Touch: said no", meeting: "Meeting" },
-  pl: { REPLIED: "Kontakt: odpowiedział(a)", NO_REPLY: "Kontakt: brak odpowiedzi", MEETING_SET: "Kontakt: umówione spotkanie", DECLINED: "Kontakt: odmowa", meeting: "Spotkanie" },
-  uk: { REPLIED: "Дотик: відповів(ла)", NO_REPLY: "Дотик: без відповіді", MEETING_SET: "Дотик: призначено зустріч", DECLINED: "Дотик: відмова", meeting: "Зустріч" },
+  ru: { REPLIED: "Касание: ответил(а)", NO_REPLY: "Касание: без ответа", WAITING: "Касание: написал(а), жду ответа", MEETING_SET: "Касание: назначена встреча", DECLINED: "Касание: отказ", meeting: "Встреча" },
+  en: { REPLIED: "Touch: replied", NO_REPLY: "Touch: no reply", WAITING: "Touch: wrote, waiting for an answer", MEETING_SET: "Touch: meeting set", DECLINED: "Touch: said no", meeting: "Meeting" },
+  pl: { REPLIED: "Kontakt: odpowiedział(a)", NO_REPLY: "Kontakt: brak odpowiedzi", WAITING: "Kontakt: napisał(a), czekam na odpowiedź", MEETING_SET: "Kontakt: umówione spotkanie", DECLINED: "Kontakt: odmowa", meeting: "Spotkanie" },
+  uk: { REPLIED: "Дотик: відповів(ла)", NO_REPLY: "Дотик: без відповіді", WAITING: "Дотик: написав(ла), чекаю відповіді", MEETING_SET: "Дотик: призначено зустріч", DECLINED: "Дотик: відмова", meeting: "Зустріч" },
 };
 
 /**
@@ -217,6 +217,7 @@ async function unansweredInRow(tx: Tx, contactId: string): Promise<number> {
   const last = await tx.crmActivity.findMany({ where: { contactId, outcome: { not: null } }, orderBy: { completedAt: { sort: "desc", nulls: "last" } }, take: 10, select: { outcome: true } });
   let n = 0;
   for (const a of last) {
+    if (a.outcome === "WAITING") continue; // a message still waiting for its answer neither adds to the silence nor ends it
     if (a.outcome !== "NO_REPLY") break;
     n++;
   }

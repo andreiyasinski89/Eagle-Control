@@ -2348,7 +2348,9 @@
     "settingsSave": "Save",
     "settingsSaved": "Saved.",
     "more": "There are more people than fit in one queue: finish this one, then refresh.",
-    "copyFailed": "Could not copy: select the text and copy it by hand."
+    "copyFailed": "Could not copy: select the text and copy it by hand.",
+    "waiting": "Wrote, waiting for a reply",
+    "summaryWaiting": "Waiting for a reply"
   },
   "mobile": {
     "nav": "Main sections",

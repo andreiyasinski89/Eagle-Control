@@ -545,3 +545,9 @@
 ## 0.51.1 — CRM opens on the plan of the day
 
 - The "CRM" item of the menu now opens the plan of the day instead of the funnel board; the item stays highlighted on every CRM tab. The board is still the "Pipeline" tab.
+
+## 0.52.0 — "Wrote, waiting for a reply" in the touch queue
+
+- A new result button at the top of every touch card: "Wrote, waiting for a reply". It writes the touch into the feed, sets the last contact to now and moves on to the next card at once.
+- The person comes back into the queue in 2 days with the "reminder" script. Their stage does not change (a new name becomes a first contact), and the touch never counts as silence: it neither adds to the run of unanswered touches nor ends it, so nobody goes quiet or cools down just because they had no time to reply yet.
+- A quiet person who was written to stays quiet; only the day to come back moves. The end-of-session summary counts "waiting for a reply" separately.

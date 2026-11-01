@@ -262,3 +262,4 @@
 | 257 | Old formal scripts are recognised by their exact words and moved to the new set | Nothing the person wrote is touched; a script with even one changed letter stays as it was. |
 | 258 | Pressing "add ready-made" does not add a second language set | The keys are the same in every language, so the same script is already there. |
 | 259 | The CRM menu item opens the plan of the day | It is what a person works from every morning; the funnel is one tab away. |
+| 260 | "Wrote, waiting" is its own result with a fixed 2-day wait, not "no reply" | A message not yet answered is not silence; it must not push people towards going quiet. The 2 days are fixed, not a setting, until somebody asks. |

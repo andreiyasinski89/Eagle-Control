@@ -18,7 +18,7 @@ import type { Stage } from "./people";
  */
 export type Temperature = "HOT" | "WARM" | "COLD";
 export type ActivityKind = "CALL" | "EMAIL" | "MEETING" | "MESSAGE" | "NOTE" | "TASK";
-export type Outcome = "REPLIED" | "NO_REPLY" | "MEETING_SET" | "DECLINED";
+export type Outcome = "REPLIED" | "NO_REPLY" | "MEETING_SET" | "DECLINED" | "WAITING";
 /** Marks left on a touch by whoever made it. */
 export const SIGNALS = ["PRICE_QUESTION"] as const;
 export type Signal = (typeof SIGNALS)[number];
@@ -91,6 +91,7 @@ export function computeTemperature(c: TempContact, activities: readonly TempActi
   // Messages that got no answer, newest first: how many in a row.
   let unanswered = 0;
   for (const a of touches) {
+    if (a.outcome === "WAITING") continue; // not answered yet is not silence
     if (a.outcome === "NO_REPLY") unanswered++;
     else break;
   }

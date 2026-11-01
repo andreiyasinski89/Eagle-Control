@@ -32,6 +32,18 @@ describe("what a result does to the next step", () => {
     expect(plan({ outcome: "REPLIED", stage: "WARMING" }).stage).toBeUndefined();
   });
 
+  it("wrote and waiting: back in 2 days for a reminder, no stage change, no silence; a new name becomes a first contact", () => {
+    expect(plan({ outcome: "WAITING" })).toMatchObject({ day: "2026-11-12", cooled: false, nextStep: "Мягко напомнить, если человек так и не ответил" });
+    expect(plan({ outcome: "WAITING" }).stage).toBeUndefined();
+    expect(plan({ outcome: "WAITING" }).returnAt).toBeUndefined();
+    expect(plan({ outcome: "WAITING", stage: "NEW" }).stage).toBe("FIRST_CONTACT");
+    // even after many unanswered touches it never cools the person
+    expect(plan({ outcome: "WAITING", unansweredInRow: 9 }).cooled).toBe(false);
+    // a quiet person who was written to stays quiet and comes back after the 2 days
+    expect(plan({ outcome: "WAITING", stage: "NO_REPLY" })).toMatchObject({ returnAt: "2026-11-12", day: "2026-11-12" });
+    expect(plan({ outcome: "WAITING", stage: "NO_REPLY" }).stage).toBeUndefined();
+  });
+
   it("no answer: the next touch in 3 days by default, in 2 if the person chose so", () => {
     expect(plan({ outcome: "NO_REPLY", unansweredInRow: 1 })).toMatchObject({ day: "2026-11-13", cooled: false });
     expect(plan({ outcome: "NO_REPLY", unansweredInRow: 2, settings: { ...DEFAULT_TOUCH_SETTINGS, noReplyDays: 2 } })).toMatchObject({ day: "2026-11-12", cooled: false });
@@ -84,6 +96,7 @@ describe("which script is for which moment", () => {
   it("a new name gets a first touch, silence a reminder, a presentation its follow-up, a quiet person a return", () => {
     expect(situationFor({ stage: "NEW", lastOutcome: null, meetingHeld: false })).toBe("FIRST_TOUCH");
     expect(situationFor({ stage: "WARMING", lastOutcome: "NO_REPLY", meetingHeld: false })).toBe("REMINDER");
+    expect(situationFor({ stage: "WARMING", lastOutcome: "WAITING", meetingHeld: false })).toBe("REMINDER");
     expect(situationFor({ stage: "PRESENTATION", lastOutcome: null, meetingHeld: false })).toBe("AFTER_PRESENTATION");
     expect(situationFor({ stage: "WARMING", lastOutcome: "REPLIED", meetingHeld: true })).toBe("AFTER_PRESENTATION");
     expect(situationFor({ stage: "NO_REPLY", lastOutcome: "NO_REPLY", meetingHeld: false })).toBe("RETURN");

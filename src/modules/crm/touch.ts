@@ -6,12 +6,18 @@ import type { Temperature } from "./temperature";
  * The touch queue: the people to write to today, one at a time, and what each answer does to the next step.
  * Everything here is plain functions: the order of the queue, the next step after a result, the situation a script is for.
  */
-export const OUTCOMES = ["REPLIED", "NO_REPLY", "MEETING_SET", "DECLINED"] as const;
+export const OUTCOMES = ["REPLIED", "NO_REPLY", "MEETING_SET", "DECLINED", "WAITING"] as const;
 export type TouchOutcome = (typeof OUTCOMES)[number];
 
 /** The moments a script is written for. */
 export const SITUATIONS = ["FIRST_TOUCH", "REMINDER", "AFTER_PRESENTATION", "RETURN"] as const;
 export type Situation = (typeof SITUATIONS)[number];
+
+/**
+ * "Wrote, waiting for an answer": the message is out and the person has simply not had the time to reply. It is not a silence (it does not count towards
+ * going quiet); the person comes back into the queue after this many days for a gentle reminder.
+ */
+export const WAIT_DAYS = 2;
 
 export interface TouchSettings {
   /** After an answer: days until the next touch. */
@@ -76,7 +82,7 @@ export function orderQueue<T extends QueueItem>(items: readonly T[]): T[] {
 /** What to say to this person now: a first touch to a new name, a reminder after silence, words after a presentation, a return to a quiet one. */
 export function situationFor(c: { stage: Stage; lastOutcome: string | null; meetingHeld: boolean }): Situation {
   if (c.stage === "DECLINED" || c.stage === "NO_REPLY") return "RETURN";
-  if (c.lastOutcome === "NO_REPLY") return "REMINDER";
+  if (c.lastOutcome === "NO_REPLY" || c.lastOutcome === "WAITING") return "REMINDER";
   if (c.stage === "PRESENTATION" || c.stage === "DECIDING" || c.meetingHeld) return "AFTER_PRESENTATION";
   return c.stage === "NEW" ? "FIRST_TOUCH" : "REMINDER";
 }
@@ -87,11 +93,11 @@ type Lang = "ru" | "en" | "pl" | "uk";
 const lang = (l: string | null | undefined): Lang => (l === "ru" || l === "pl" || l === "uk" ? l : "en");
 
 /** The next steps the queue writes, in the person's language: what to do, not "write a message". */
-const TEXT: Record<Lang, { replied: string; noReply: string; cooled: string; meeting: (date: string) => string; declined: string }> = {
-  ru: { replied: "Продолжить разговор: человек ответил", noReply: "Повторное касание: мягко напомнить о себе", cooled: "Вернуться к человеку после паузы", meeting: (d) => `Встреча ${d}: провести разговор`, declined: "Вернуться к разговору, если что-то изменилось" },
-  en: { replied: "Continue the conversation: they replied", noReply: "Second touch: a gentle reminder", cooled: "Come back to them after the pause", meeting: (d) => `Meeting on ${d}: have the talk`, declined: "Come back to the conversation if something has changed" },
-  pl: { replied: "Kontynuować rozmowę: odpowiedział(a)", noReply: "Kolejny kontakt: delikatne przypomnienie", cooled: "Wrócić do osoby po przerwie", meeting: (d) => `Spotkanie ${d}: przeprowadzić rozmowę`, declined: "Wrócić do rozmowy, jeśli coś się zmieniło" },
-  uk: { replied: "Продовжити розмову: людина відповіла", noReply: "Повторний дотик: м'яко нагадати про себе", cooled: "Повернутися до людини після паузи", meeting: (d) => `Зустріч ${d}: провести розмову`, declined: "Повернутися до розмови, якщо щось змінилося" },
+const TEXT: Record<Lang, { replied: string; waiting: string; noReply: string; cooled: string; meeting: (date: string) => string; declined: string }> = {
+  ru: { replied: "Продолжить разговор: человек ответил", waiting: "Мягко напомнить, если человек так и не ответил", noReply: "Повторное касание: мягко напомнить о себе", cooled: "Вернуться к человеку после паузы", meeting: (d) => `Встреча ${d}: провести разговор`, declined: "Вернуться к разговору, если что-то изменилось" },
+  en: { replied: "Continue the conversation: they replied", waiting: "A gentle reminder if they have not answered", noReply: "Second touch: a gentle reminder", cooled: "Come back to them after the pause", meeting: (d) => `Meeting on ${d}: have the talk`, declined: "Come back to the conversation if something has changed" },
+  pl: { replied: "Kontynuować rozmowę: odpowiedział(a)", waiting: "Delikatnie przypomnieć, jeśli nie odpowiedział(a)", noReply: "Kolejny kontakt: delikatne przypomnienie", cooled: "Wrócić do osoby po przerwie", meeting: (d) => `Spotkanie ${d}: przeprowadzić rozmowę`, declined: "Wrócić do rozmowy, jeśli coś się zmieniło" },
+  uk: { replied: "Продовжити розмову: людина відповіла", waiting: "М'яко нагадати, якщо людина так і не відповіла", noReply: "Повторний дотик: м'яко нагадати про себе", cooled: "Повернутися до людини після паузи", meeting: (d) => `Зустріч ${d}: провести розмову`, declined: "Повернутися до розмови, якщо щось змінилося" },
 };
 
 export interface TouchPlan {
@@ -134,6 +140,12 @@ export function planTouch(p: PlanInput): TouchPlan {
   switch (p.outcome) {
     case "REPLIED":
       return { stage: revived ?? opened, nextStep: t.replied, day: addDays(p.today, s.replyDays), cooled: false };
+    case "WAITING": {
+      const day = addDays(p.today, WAIT_DAYS);
+      // A quiet person who was written to stays quiet, only the day to come back moves; nobody's stage changes, except that a new name is now a first contact.
+      const quiet = p.stage === "DECLINED" || p.stage === "NO_REPLY";
+      return { stage: opened, nextStep: t.waiting, day, ...(quiet ? { returnAt: day } : {}), cooled: false };
+    }
     case "NO_REPLY": {
       if ((p.unansweredInRow ?? 1) >= s.coolAfter) {
         const day = addDays(p.today, s.coolDays);

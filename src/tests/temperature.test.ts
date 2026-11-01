@@ -65,6 +65,15 @@ describe("how warm a person is", () => {
     expect(run(c, [touch(1, { outcome: "NO_REPLY" }), touch(2, { outcome: "REPLIED" }), touch(3, { outcome: "NO_REPLY" }), touch(4, { outcome: "NO_REPLY" })]).reasons).not.toContain("unanswered");
   });
 
+  it("a message still waiting for its answer is not silence: it neither adds to the run nor ends it", () => {
+    const c = person({ stage: "WARMING", lastContactedAt: ago(1) });
+    const waiting = run(c, [touch(1, { outcome: "WAITING" }), touch(2, { outcome: "WAITING" })]);
+    expect(waiting.score).toBe(3); // stage 2 + the touches, no points off
+    expect(waiting.reasons).not.toContain("unanswered");
+    const two = run(c, [touch(1, { outcome: "NO_REPLY" }), touch(2, { outcome: "WAITING" }), touch(3, { outcome: "NO_REPLY" })]);
+    expect(two.reasons).toContain("unanswered");
+  });
+
   it("a move forward in the funnel counts for two weeks", () => {
     const moved = person({ stage: "WARMING", previousStage: "FIRST_CONTACT", stageChangedAt: ago(3) });
     const back = person({ stage: "FIRST_CONTACT", previousStage: "WARMING", stageChangedAt: ago(3) });

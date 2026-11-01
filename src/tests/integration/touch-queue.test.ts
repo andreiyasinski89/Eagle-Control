@@ -118,6 +118,24 @@ describe("what a result does", () => {
     expect(await names(new Date(NOW.getTime() + 37 * 86_400_000))).toContain("Quiet"); // and back on its day
   });
 
+  it("wrote and waiting: out of today's queue, back in 2 days with the reminder, never counted as silence", async () => {
+    const id = await make("Patient", { stage: "WARMING", nextStepAt: at(day(0)) });
+    const r = await recordTouchResult(owner, id, { outcome: "WAITING", message: "Hi!" }, NOW);
+    expect(r).toMatchObject({ outcome: "WAITING", stage: "WARMING", cooled: false, nextStepAt: `${day(2)}T00:00:00.000Z`, returnAt: null });
+    expect(await raw.crmActivity.findFirstOrThrow({ where: { contactId: id, outcome: "WAITING" } })).toMatchObject({ type: "MESSAGE", subject: "Touch: wrote, waiting for an answer", body: "Hi!" });
+    expect((await card(id)).lastContactedAt).toBeTruthy();
+    expect(await names()).not.toContain("Patient");
+    expect(await names(new Date(NOW.getTime() + 86_400_000))).not.toContain("Patient");
+    const back = (await queue(new Date(NOW.getTime() + 2 * 86_400_000))).find((i) => i.firstName === "Patient");
+    expect(back).toMatchObject({ situation: "REMINDER", lastOutcome: "WAITING" });
+    // three waits in a row do not make the person go quiet, and a wait between two silences does not end their run
+    await recordTouchResult(owner, id, { outcome: "WAITING" }, new Date(NOW.getTime() + 2 * 86_400_000));
+    expect((await recordTouchResult(owner, id, { outcome: "WAITING" }, new Date(NOW.getTime() + 4 * 86_400_000))).cooled).toBe(false);
+    expect((await recordTouchResult(owner, id, { outcome: "NO_REPLY" }, new Date(NOW.getTime() + 6 * 86_400_000))).cooled).toBe(false);
+    // the answer comes: the next step is the usual one
+    expect(await recordTouchResult(owner, id, { outcome: "REPLIED" }, new Date(NOW.getTime() + 7 * 86_400_000))).toMatchObject({ nextStep: "Continue the conversation: they replied" });
+  });
+
   it("an answer in between ends the run of unanswered touches", async () => {
     const id = await make("Streak", { stage: "WARMING", nextStepAt: at(day(0)) });
     await recordTouchResult(owner, id, { outcome: "NO_REPLY" }, NOW);

@@ -2348,7 +2348,9 @@
     "settingsSave": "Zapisz",
     "settingsSaved": "Zapisano.",
     "more": "Osób jest więcej, niż mieści jedna kolejka: skończ tę, potem odśwież.",
-    "copyFailed": "Nie udało się skopiować: zaznacz tekst i skopiuj ręcznie."
+    "copyFailed": "Nie udało się skopiować: zaznacz tekst i skopiuj ręcznie.",
+    "waiting": "Napisałem(am), czekam na odpowiedź",
+    "summaryWaiting": "Czekam na odpowiedź"
   },
   "mobile": {
     "nav": "Główne sekcje",
