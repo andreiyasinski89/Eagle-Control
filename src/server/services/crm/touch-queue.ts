@@ -209,7 +209,9 @@ export async function recordTouchResult(userId: string, contactId: string, input
     await tx.contact.update({ where: { nodeId: contactId }, data: { lastContactedAt: now, returnAt: plan.returnAt ? new Date(`${plan.returnAt}T00:00:00.000Z`) : null } });
     const temperature = await refreshTemperature(tx, contactId, now);
     return { activityId: touch.id, outcome: input.outcome, stage: plan.stage ?? c.stage, nextStep: plan.nextStep, nextStepAt: `${plan.day}T00:00:00.000Z`, returnAt: plan.returnAt ?? null, cooled: plan.cooled, temperature };
-  });
+    // A result is dozens of small queries in one go. With the database far from the server (or waking up) they can pass the 5 seconds a transaction
+    // is allowed by default, and the press then fails once and works the second time; so it is given room.
+  }, { timeout: 30_000, maxWait: 15_000 });
 }
 
 /** How many touches in a row, the latest first, went without an answer. A touch with no recorded result stops the count. */

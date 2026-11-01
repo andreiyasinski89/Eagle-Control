@@ -551,3 +551,8 @@
 - A new result button at the top of every touch card: "Wrote, waiting for a reply". It writes the touch into the feed, sets the last contact to now and moves on to the next card at once.
 - The person comes back into the queue in 2 days with the "reminder" script. Their stage does not change (a new name becomes a first contact), and the touch never counts as silence: it neither adds to the run of unanswered touches nor ends it, so nobody goes quiet or cools down just because they had no time to reply yet.
 - A quiet person who was written to stays quiet; only the day to come back moves. The end-of-session summary counts "waiting for a reply" separately.
+
+## 0.52.1 — A touch result no longer fails on the first press
+
+- Writing down a result of a touch (any of the buttons, "Wrote, waiting for a reply" included) is a long series of small queries in one transaction, which had the default 5 seconds. With the database far from the server or just woken up, it sometimes ran out, the press failed once and worked the second time. The transaction now has 30 seconds (and 15 to wait for a connection).
+- If a press does fail, the message now stands right under the "Result" heading, where it cannot be missed, instead of below the buttons.

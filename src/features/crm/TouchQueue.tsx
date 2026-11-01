@@ -298,6 +298,11 @@ function TouchCard({ workspaceId, item, data, slug, onDone, onSkip }: { workspac
 
       <section className="flex flex-col gap-2">
         <h2 className="text-sm font-medium">{t("resultTitle")}</h2>
+        {error && (
+          <p role="alert" className="text-sm text-danger" data-testid="touch-error">
+            {error}
+          </p>
+        )}
         <div className="grid grid-cols-2 gap-2">
           <Button type="button" variant="soft" className="col-span-2 min-h-12 gap-2" disabled={result.isPending} onClick={() => result.mutate({ outcome: "WAITING" })} data-testid="touch-waiting">
             <Hourglass className="size-4" />
@@ -321,11 +326,6 @@ function TouchCard({ workspaceId, item, data, slug, onDone, onSkip }: { workspac
           <SkipForward className="size-4" />
           {t("skip")}
         </Button>
-        {error && (
-          <p role="alert" className="text-sm text-danger" data-testid="touch-error">
-            {error}
-          </p>
-        )}
       </section>
 
       {note && (
