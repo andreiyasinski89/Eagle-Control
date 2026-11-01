@@ -541,3 +541,7 @@
 - Scripts from the first, formal edition that nobody edited are recognised by their exact words and join the new set; edited ones stay as they are.
 - Pressing "add ready-made scripts" no longer adds a second set in another language; it only brings back what is missing. A copy of a ready-made script is the member's own, fixed, in their language.
 - The language is passed by the screen (`?locale=`); without it the saved profile language, then English. The touch queue and the script list both use it. A "Ready-made · follows your language" mark and a hint in the editor tell which is which.
+
+## 0.51.1 — CRM opens on the plan of the day
+
+- The "CRM" item of the menu now opens the plan of the day instead of the funnel board; the item stays highlighted on every CRM tab. The board is still the "Pipeline" tab.

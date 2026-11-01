@@ -30,7 +30,9 @@ export function navGroups(slug: string, showCrm: boolean, t: (key: string) => st
             label: t("groupCustomers"),
             items: [
               {
-                href: `${base}/crm`,
+                // CRM opens on the plan of the day; the funnel board is one tab away. exact:false keeps the item lit on every CRM page.
+                href: `${base}/crm/day`,
+                matchPrefix: `${base}/crm`,
                 label: t("crm"),
                 icon: Handshake,
                 exact: false,

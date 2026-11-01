@@ -124,8 +124,8 @@ function SidebarBody({ slug, showCrm, workspaces, user, onNavigate }: ShellProps
     icon: Settings,
     exact: false,
   };
-  const link = ({ href, label, icon: Icon, exact }: { href: string; label: string; icon: typeof Settings; exact?: boolean }) => {
-    const active = exact ? pathname === href : pathname.startsWith(href.replace(/\/members$/, ""));
+  const link = ({ href, label, icon: Icon, exact, matchPrefix }: { href: string; label: string; icon: typeof Settings; exact?: boolean; matchPrefix?: string }) => {
+    const active = exact ? pathname === href : pathname.startsWith(matchPrefix ?? href.replace(/\/members$/, ""));
     return (
       <Link
         key={href}

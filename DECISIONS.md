@@ -261,3 +261,4 @@
 | 256 | A ready-made script follows the language by a key until it is edited, then it is frozen | One set serves four languages and a translation fix reaches everybody who never touched a text; what a person changed is never overwritten. |
 | 257 | Old formal scripts are recognised by their exact words and moved to the new set | Nothing the person wrote is touched; a script with even one changed letter stays as it was. |
 | 258 | Pressing "add ready-made" does not add a second language set | The keys are the same in every language, so the same script is already there. |
+| 259 | The CRM menu item opens the plan of the day | It is what a person works from every morning; the funnel is one tab away. |
