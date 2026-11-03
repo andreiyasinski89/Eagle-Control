@@ -230,7 +230,7 @@ export async function createContact(userId: string, workspaceId: string, input: 
   });
 }
 
-export async function updateContactIn(tx: Tx, userId: string, contactId: string, patch: z.infer<typeof patchContactSchema>) {
+export async function updateContactIn(tx: Tx, userId: string, contactId: string, patch: z.infer<typeof patchContactSchema>, opts: { source?: string } = {}) {
   const node = await loadCrmNode(tx, userId, contactId, "CONTACT", true);
   const cur = await tx.contact.findUniqueOrThrow({ where: { nodeId: contactId } });
   await assertWorkspaceMember(tx, node.workspaceId, patch.ownerId);
@@ -263,14 +263,14 @@ export async function updateContactIn(tx: Tx, userId: string, contactId: string,
     nodeData.title = fullName(patch.firstName ?? cur.firstName, patch.lastName !== undefined ? patch.lastName : cur.lastName);
   }
   await tx.contact.update({ where: { nodeId: contactId }, data });
-  if (stageMoved) await tx.contactStageEvent.create({ data: { contactNodeId: contactId, workspaceId: node.workspaceId, fromStage: cur.stage, toStage: patch.stage as (typeof STAGES)[number], actorId: userId } });
+  if (stageMoved) await tx.contactStageEvent.create({ data: { contactNodeId: contactId, workspaceId: node.workspaceId, fromStage: cur.stage, toStage: patch.stage as (typeof STAGES)[number], actorId: userId, source: opts.source ?? null } });
   if (Object.keys(nodeData).length) await tx.node.update({ where: { id: contactId }, data: nodeData });
   await logActivity(tx, { workspaceId: node.workspaceId, nodeId: contactId, actorId: userId, action: "contact.updated", diff: { fields: Object.keys(patch) } });
 }
 
-export async function updateContact(userId: string, contactId: string, patch: z.infer<typeof patchContactSchema>) {
+export async function updateContact(userId: string, contactId: string, patch: z.infer<typeof patchContactSchema>, opts: { source?: string } = {}) {
   return db.$transaction(async (tx) => {
-    await updateContactIn(tx, userId, contactId, patch);
+    await updateContactIn(tx, userId, contactId, patch, opts);
     return getContactIn(tx, userId, contactId);
   });
 }

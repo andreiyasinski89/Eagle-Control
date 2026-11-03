@@ -60,7 +60,7 @@ export async function runAgent(opts: RunOptions): Promise<RunResult> {
 
   const { system, user } = promptsFor(opts.role, opts.vars);
   const model = opts.model ?? anthropicModel;
-  const ctx: AgentContext = { userId: opts.userId, workspaceId: opts.workspaceId };
+  const ctx: AgentContext = { userId: opts.userId, workspaceId: opts.workspaceId, seen: new Set() };
   const tools = toolDefs();
   const messages: Msg[] = [{ role: "user", content: user }];
   const toolCalls: ToolCallLog[] = [];

@@ -103,7 +103,7 @@ describe("Morning briefing role", () => {
     expect(first.system).toContain("НИКОГДА не отправляешь");
     expect(first.system).not.toMatch(/\{[a-z_]+\}/);
     expect(first.messages[0]).toEqual({ role: "user", content: expect.stringContaining("Сегодня 2026-11-03. Подготовь утренний брифинг.") });
-    expect(first.tools.map((t) => t.name).sort()).toEqual(["create_draft", "get_calendar", "get_contact", "list_activities", "list_contacts", "log_activity", "move_deal", "my_day", "update_deal"]);
+    expect(first.tools.map((t) => t.name).sort()).toEqual(["create_draft", "get_calendar", "get_contact", "list_activities", "list_contacts", "log_activity", "move_deal", "my_day", "update_contact", "update_deal"]);
     expect(first.tools.every((t) => t.input_schema.type === "object")).toBe(true);
 
     // agent_runs keeps the whole run.
@@ -192,6 +192,32 @@ describe("What the agent writes into the CRM", () => {
     expect(await raw.agentDraft.count({ where: { contactId: annaId } })).toBe(0);
     expect(await raw.crmActivity.count({ where: { contactId: annaId, type: "TASK", source: "agent" } })).toBe(1);
     expect(await raw.crmActivity.count({ where: { contactId: valentinId, type: "MESSAGE", source: "agent" } })).toBe(0);
+  });
+
+  it("changes a contact only after its history was read, and leaves a before → after note", async () => {
+    const contactId = (await createContact(owner, ws.id, { emails: [], phones: [], messengers: {}, allowDuplicate: false, firstName: "Нона", consentGiven: false, stage: "WARMING", temperature: "WARM" })).id;
+    const change = { id: contactId, stage: "PRESENTATION", temperature: "HOT", nextStep: "Презентация по видеозвонку", nextStepAt: "2026-11-05T17:00:00.000Z", consentGiven: true };
+    const model = scripted([
+      () => reply([use("u1", "update_contact", change)]),
+      (req) => {
+        expect(lastResults(req)[0]).toMatchObject({ isError: true, content: expect.stringContaining("list_activities") });
+        return reply([use("u2", "list_activities", { contactId }), use("u3", "update_contact", change)]);
+      },
+      (req) => {
+        const [, applied] = lastResults(req);
+        expect(applied).toMatchObject({ isError: false });
+        expect(JSON.parse(applied!.content)).toMatchObject({ stage: "PRESENTATION", temperature: "HOT", nextStep: "Презентация по видеозвонку" });
+        return reply([{ type: "text", text: "Нона переведена на презентацию." }], "end_turn");
+      },
+    ]);
+    await runAgent({ userId: owner, workspaceId: ws.id, role: "call_summary", vars: { ...VARS, transcript: "Нона согласна на презентацию" }, model });
+
+    const c = await raw.contact.findUniqueOrThrow({ where: { nodeId: contactId } });
+    expect(c).toMatchObject({ stage: "PRESENTATION", temperature: "HOT", nextStep: "Презентация по видеозвонку", consentGiven: false }); // consent is not the agent's to give
+    expect(await raw.contactStageEvent.findMany({ where: { contactNodeId: contactId }, select: { fromStage: true, toStage: true, source: true } })).toEqual(expect.arrayContaining([{ fromStage: "WARMING", toStage: "PRESENTATION", source: "agent" }]));
+    const note = await raw.crmActivity.findFirstOrThrow({ where: { contactId, source: "agent", type: "NOTE" } });
+    expect(note.subject).toBe("[агент] Контакт обновлён");
+    expect(note.body).toBe("Стадия: WARMING → PRESENTATION\nТемпература: WARM → HOT\nСледующий шаг: Презентация по видеозвонку (2026-11-05)");
   });
 
   it("keeps a failed run in agent_runs", async () => {

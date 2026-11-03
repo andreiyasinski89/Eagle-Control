@@ -574,6 +574,8 @@ model ContactStageEvent {
   toStage       PersonStage
   at            DateTime     @default(now())
   actorId       String?
+  /// null = a person moved the contact, "agent" = the sales agent did.
+  source        String?
 
   contact Contact @relation(fields: [contactNodeId], references: [nodeId], onDelete: Cascade)
 
