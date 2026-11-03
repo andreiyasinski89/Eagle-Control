@@ -4,8 +4,11 @@ import type { AgentSettings } from "./agent-settings";
 /** The roles the clock runs by itself. Voice logs and the like start from a person's action. */
 export type ScheduledRole = "morning_briefing" | "stale_followups" | "evening_report";
 
+/** A role that failed this many times within FAILURE_PAUSE_HOURS waits that long before the next try (a short outage must not cost the whole day). */
+export const MAX_FAILURES_IN_PAUSE = 3;
+export const FAILURE_PAUSE_HOURS = 2;
 /** After this many failed runs of one role in a day it is left alone until tomorrow. */
-export const MAX_FAILURES_PER_DAY = 3;
+export const MAX_FAILURES_PER_DAY = 9;
 /** A briefing that missed its time by more than this is no longer a morning briefing. */
 const BRIEFING_WINDOW_MINUTES = 180;
 /** The follow-up keeper wakes at these local hours, every two hours. */
@@ -26,12 +29,14 @@ export interface DueInput {
   lastOk: Partial<Record<ScheduledRole, Date>>;
   /** How many runs of each role failed since the person's day began. */
   failuresToday: Partial<Record<ScheduledRole, number>>;
+  /** And how many in the last FAILURE_PAUSE_HOURS. */
+  recentFailures: Partial<Record<ScheduledRole, number>>;
 }
 
 /**
  * Which roles are due for one person right now: the morning briefing at their time (once a day), the follow-up keeper
  * every two hours from 09:00 to 21:00, the evening report from 21:00 (once a day). Nothing is due when the agent is off.
- * A run that failed is tried again at the next tick, up to MAX_FAILURES_PER_DAY times, then left until tomorrow.
+ * A run that failed is tried again at the next tick; after three failures in two hours it waits, and after nine in a day it is left until tomorrow.
  */
 export function dueRoles(i: DueInput): ScheduledRole[] {
   if (!i.settings.enabled) return [];
@@ -40,7 +45,7 @@ export function dueRoles(i: DueInput): ScheduledRole[] {
     const at = i.lastOk[r];
     return !!at && zonedParts(at, i.tz).day === day;
   };
-  const tired = (r: ScheduledRole) => (i.failuresToday[r] ?? 0) >= MAX_FAILURES_PER_DAY;
+  const tired = (r: ScheduledRole) => (i.failuresToday[r] ?? 0) >= MAX_FAILURES_PER_DAY || (i.recentFailures[r] ?? 0) >= MAX_FAILURES_IN_PAUSE;
   const due: ScheduledRole[] = [];
 
   const briefing = minutesOf(i.settings.briefingTime);

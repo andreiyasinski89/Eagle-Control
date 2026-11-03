@@ -217,3 +217,25 @@ describe("A scheduled run reaches the chat", () => {
     expect(sent("sendMessage", PEER_CHAT)).toEqual([]);
   });
 });
+
+// Last: it pins a later day, and the runs it leaves behind must not look like the future to the tests above.
+describe("A scheduled run that fails", () => {
+  it("tells the person why, on the first failure and when it pauses, not on every retry", async () => {
+    await saveAgentSettings(owner, ws.id, agentSettingsSchema.parse({ enabled: true, briefingTime: "08:00", touchesPerDay: 20, meetingsPerDay: 4, goal: "Gold", deadline: null, dailyRunLimit: 40 }));
+    const broken: AgentModel = {
+      async complete() {
+        throw new Error("The AI service did not accept the request: 401 invalid x-api-key");
+      },
+    };
+    const day = (hhmm: string) => new Date(`2026-11-10T${hhmm}:00.000Z`);
+    for (const t of ["07:05", "07:20", "07:35", "07:50"]) await runDueAgents(day(t), { model: broken });
+    const notices = sent("sendMessage", OWNER_CHAT).map((c) => String(c.body.text)).filter((t) => t.startsWith("⚠️"));
+    expect(notices).toHaveLength(2);
+    expect(notices[0]).toContain("Утренний брифинг: не получилось");
+    expect(notices[0]).toContain("401 invalid x-api-key");
+    expect(notices[0]).toContain("через 15 минут");
+    expect(notices[1]).toContain("через 2 часа");
+    // The fourth tick was inside the pause: nothing was tried.
+    expect(await raw.agentRun.count({ where: { userId: owner, output: { startsWith: "[error]" }, createdAt: { gte: day("00:00") } } })).toBe(3);
+  });
+});

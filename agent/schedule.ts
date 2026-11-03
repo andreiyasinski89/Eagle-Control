@@ -1,10 +1,10 @@
 import { db } from "@/server/db";
 import { ApiError } from "@/server/http/errors";
 import { cleanAgentSettings } from "@/modules/crm/agent-settings";
-import { dueRoles, type ScheduledRole } from "@/modules/crm/agent-schedule";
+import { dueRoles, FAILURE_PAUSE_HOURS, MAX_FAILURES_IN_PAUSE, type ScheduledRole } from "@/modules/crm/agent-schedule";
 import { isValidTimeZone, zonedParts, zonedToUtc } from "@/modules/views/tz";
 import type { AgentModel } from "./model";
-import { deliverAgentRun } from "@/server/integrations/telegram-agent";
+import { deliverAgentRun, notifyAgentFailure } from "@/server/integrations/telegram-agent";
 import { runAgent } from "./run";
 import { agentRunInput } from "./settings-vars";
 
@@ -40,14 +40,17 @@ export async function runDueAgents(now = new Date(), opts: { model?: AgentModel 
     });
     const lastOk: Partial<Record<ScheduledRole, Date>> = {};
     const failuresToday: Partial<Record<ScheduledRole, number>> = {};
+    const recentFailures: Partial<Record<ScheduledRole, number>> = {};
+    const pauseFrom = now.getTime() - FAILURE_PAUSE_HOURS * 3_600_000;
     for (const r of recent) {
       const role = r.role as ScheduledRole;
       if (isFailure(r.output)) {
         if (r.createdAt >= dayStart) failuresToday[role] = (failuresToday[role] ?? 0) + 1;
+        if (r.createdAt.getTime() > pauseFrom) recentFailures[role] = (recentFailures[role] ?? 0) + 1;
       } else lastOk[role] = r.createdAt;
     }
 
-    for (const role of dueRoles({ settings, tz, now, lastOk, failuresToday })) {
+    for (const role of dueRoles({ settings, tz, now, lastOk, failuresToday, recentFailures })) {
       try {
         const input = await agentRunInput(m.userId, m.workspaceId, now);
         const startedAt = new Date();
@@ -68,6 +71,9 @@ export async function runDueAgents(now = new Date(), opts: { model?: AgentModel 
         const recorded = await db.agentRun.count({ where: { userId: m.userId, workspaceId: m.workspaceId, role, createdAt: { gte: now } } });
         if (recorded === 0) await db.agentRun.create({ data: { workspaceId: m.workspaceId, userId: m.userId, role, input: "", output: `[error] ${message}`, toolCalls: [], tokens: 0, createdAt: now } });
         result.runs.push({ userId: m.userId, role, outcome: "failed" });
+        // The person hears about the first failure and about the moment the agent stops trying for a while; not about every retry.
+        const failedNow = (recentFailures[role] ?? 0) + 1;
+        if (failedNow === 1 || failedNow === MAX_FAILURES_IN_PAUSE) await notifyAgentFailure({ userId: m.userId, workspaceId: m.workspaceId, role, reason: message, pausing: failedNow === MAX_FAILURES_IN_PAUSE }).catch((err) => console.error("agent failure notice failed", err instanceof Error ? err.message : err));
       }
     }
   }

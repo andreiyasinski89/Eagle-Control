@@ -53,7 +53,8 @@ export const anthropicModel: AgentModel = {
       });
       return { content: res.content ?? [], stopReason: res.stop_reason ?? "end_turn", inputTokens: res.usage?.input_tokens ?? 0, outputTokens: res.usage?.output_tokens ?? 0, model };
     } catch (e) {
-      if (e instanceof IntegrationError) throw new ApiError(503, "ai_unavailable", "The AI service is busy or unavailable. Try again in a moment.");
+      // The provider's own reason (a key it refuses, no credit left, a model it does not know) is what the person has to act on; it holds no secret.
+      if (e instanceof IntegrationError) throw new ApiError(503, "ai_unavailable", `The AI service did not accept the request: ${e.message.replace(/^anthropic:s*/, "").slice(0, 300)}`);
       throw e;
     }
   },
