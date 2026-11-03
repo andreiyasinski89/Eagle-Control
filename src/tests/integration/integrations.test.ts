@@ -188,7 +188,7 @@ describe("Telegram", () => {
 
     it("reports a Telegram failure instead of pretending it worked", async () => {
       on(/setWebhook/, () => reply(400, { ok: false, description: "bad webhook: HTTPS url must be provided" }));
-      await expect(setTelegramWebhook()).rejects.toThrow(/telegram/i);
+      await expect(setTelegramWebhook()).rejects.toMatchObject({ status: 502, code: "telegram_rejected", message: expect.stringContaining("HTTPS url must be provided") });
     });
   });
 
