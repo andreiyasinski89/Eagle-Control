@@ -3,6 +3,7 @@ import { ApiError, forbidden } from "@/server/http/errors";
 import { loadWorkspaceMember } from "@/server/services/nodes/access";
 import { anthropicModel, type AgentModel, type Block, type Msg } from "./model";
 import { promptsFor, type AgentRole } from "./roles";
+import { timersTableFor } from "./timers";
 import { toolByName, toolDefs, type AgentContext } from "./tools";
 
 const MAX_TURNS = 12;
@@ -25,6 +26,8 @@ export interface RunOptions extends AgentContext {
   vars: Record<string, string | number>;
   model?: AgentModel;
   maxTurns?: number;
+  /** The moment the run is about; tests pin it. */
+  now?: Date;
 }
 
 export interface RunResult {
@@ -58,7 +61,15 @@ export async function runAgent(opts: RunOptions): Promise<RunResult> {
   const member = await loadWorkspaceMember(db, opts.userId, opts.workspaceId, "crm:read");
   if (member.role === "GUEST") throw forbidden();
 
-  const { system, user } = promptsFor(opts.role, opts.vars);
+  let vars = opts.vars;
+  let silentCount: number | null = null;
+  if (opts.role === "stale_followups" && vars.timers_table === undefined) {
+    // The table is data from the CRM, not something the caller types: the run builds it from the timers.
+    const t = await timersTableFor(opts.userId, opts.workspaceId, opts.now);
+    vars = { ...vars, timers_table: t.table };
+    silentCount = t.count;
+  }
+  const { system, user } = promptsFor(opts.role, vars);
   const model = opts.model ?? anthropicModel;
   const ctx: AgentContext = { userId: opts.userId, workspaceId: opts.workspaceId, seen: new Set() };
   const tools = toolDefs();
@@ -77,6 +88,12 @@ export async function runAgent(opts: RunOptions): Promise<RunResult> {
     if (inTokens + outTokens > 0) await db.aiUsage.create({ data: { workspaceId: opts.workspaceId, userId: opts.userId, feature: `agent:${opts.role}`, model: modelName, inputTokens: inTokens, outputTokens: outTokens } });
     return run.id;
   };
+
+  if (silentCount === 0) {
+    // Nothing to follow up: no model call, no tokens spent, but the check is still on record.
+    const output = "Просроченных таймеров тишины нет.";
+    return { id: await save(output), output, toolCalls, tokens: 0 };
+  }
 
   try {
     for (let turn = 0; turn < (opts.maxTurns ?? MAX_TURNS); turn++) {

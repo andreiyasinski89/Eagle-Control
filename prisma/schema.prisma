@@ -513,6 +513,8 @@ model Contact {
   // The person in a funnel (network marketing): where they are, how warm, where they came from, what is next.
   stage          PersonStage  @default(NEW)
   stageChangedAt DateTime     @default(now())
+  /// When the person last wrote back (set by the "replied" button). It stays set; a touch of ours after it means the reply was answered.
+  repliedAt      DateTime?
   temperature    Temperature?
   interests      String[]     @default([])
   source         String?
