@@ -151,6 +151,7 @@ model User {
   accounts          Account[]
   sessions          Session[]
   memberships       Membership[]
+  agentRuns         AgentRun[]
   projectAccess     ProjectMember[]
   savedFilters      SavedFilter[]
   assignedNodes     Node[]                   @relation("NodeAssignee")
@@ -230,6 +231,7 @@ model Workspace {
   leadForms        LeadForm[]
   integrations     Integration[]
   aiUsage          AiUsage[]
+  agentRuns        AgentRun[]
   notifications    Notification[]
   subscription     Subscription?
   userIntegrations UserIntegration[]
@@ -665,6 +667,8 @@ model CrmActivity {
   contactId   String?
   companyId   String?
   dealId      String?
+  /// Who wrote it: null = a person in the app, "agent" = the sales agent, "api" etc. may follow.
+  source      String?
   createdAt   DateTime        @default(now())
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
@@ -851,6 +855,8 @@ model DealStageEvent {
   toStageId   String
   at          DateTime @default(now())
   actorId     String?
+  /// null = a person moved it, "agent" = the sales agent did.
+  source      String?
 
   deal Deal @relation(fields: [dealId], references: [nodeId], onDelete: Cascade)
 
@@ -1106,4 +1112,25 @@ model SignInAttempt {
   @@index([at])
   @@index([ipHash, at])
   @@index([mailHash, at])
+}
+
+/// One run of the sales agent (a role such as "morning_briefing"): what went in, what came out, which CRM tools it called, what it cost.
+model AgentRun {
+  id          String   @id @default(cuid())
+  workspaceId String
+  userId      String
+  role        String
+  input       String   @db.Text
+  output      String   @db.Text
+  /// [{ name, input, output, isError, ms }] in call order.
+  toolCalls   Json     @default("[]")
+  tokens      Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, createdAt])
+  @@index([userId, createdAt])
+  @@map("agent_runs")
 }

@@ -287,7 +287,7 @@ export async function archiveDeal(userId: string, dealId: string) {
 
 // ── stage moves ────────────────────────────────────────────────────────────
 
-export async function moveDeal(userId: string, dealId: string, input: z.infer<typeof moveDealSchema>) {
+export async function moveDeal(userId: string, dealId: string, input: z.infer<typeof moveDealSchema>, opts: { source?: string } = {}) {
   let won: { workspaceId: string; title: string; amount: string } | null = null;
   const out = await db.$transaction(async (tx) => {
     const node = await loadCrmNode(tx, userId, dealId, "DEAL", true);
@@ -335,7 +335,7 @@ export async function moveDeal(userId: string, dealId: string, input: z.infer<ty
       for (const id of who) await notify({ userId: id, workspaceId: node.workspaceId, kind: "deal_won", title: `Deal won: ${node.title}`, body: `${toNum(deal.amount)} ${deal.currency}`, url: `/crm?deal=${dealId}`, dedupeKey: `won:${dealId}`, payload: { dealId } }, tx);
     }
     if (deal.stageId !== target.id) {
-      await tx.dealStageEvent.create({ data: { dealId, workspaceId: node.workspaceId, pipelineId: deal.pipelineId, fromStageId: deal.stageId, toStageId: target.id, actorId: userId, at: now } });
+      await tx.dealStageEvent.create({ data: { dealId, workspaceId: node.workspaceId, pipelineId: deal.pipelineId, fromStageId: deal.stageId, toStageId: target.id, actorId: userId, source: opts.source ?? null, at: now } });
       await logActivity(tx, { workspaceId: node.workspaceId, nodeId: dealId, actorId: userId, action: "deal.moved", diff: { from: deal.stage.name, to: target.name } });
     }
     return getDealIn(tx, userId, dealId);
