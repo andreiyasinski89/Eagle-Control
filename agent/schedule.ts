@@ -4,6 +4,7 @@ import { cleanAgentSettings } from "@/modules/crm/agent-settings";
 import { dueRoles, type ScheduledRole } from "@/modules/crm/agent-schedule";
 import { isValidTimeZone, zonedParts, zonedToUtc } from "@/modules/views/tz";
 import type { AgentModel } from "./model";
+import { deliverAgentRun } from "@/server/integrations/telegram-agent";
 import { runAgent } from "./run";
 import { agentRunInput } from "./settings-vars";
 
@@ -49,8 +50,12 @@ export async function runDueAgents(now = new Date(), opts: { model?: AgentModel 
     for (const role of dueRoles({ settings, tz, now, lastOk, failuresToday })) {
       try {
         const input = await agentRunInput(m.userId, m.workspaceId, now);
-        await runAgent({ userId: m.userId, workspaceId: m.workspaceId, role, ...input, now, ...(opts.model ? { model: opts.model } : {}) });
+        const startedAt = new Date();
+        const run = await runAgent({ userId: m.userId, workspaceId: m.workspaceId, role, ...input, now, ...(opts.model ? { model: opts.model } : {}) });
         result.runs.push({ userId: m.userId, role, outcome: "ok" });
+        // A check that needed no model (nobody has gone quiet) has nothing to say: the chat is not pinged every two hours for that.
+        // A delivery that fails does not undo the run: the result is in agent_runs and the drafts are in the panel.
+        if (run.tokens > 0) await deliverAgentRun({ userId: m.userId, workspaceId: m.workspaceId, role, output: run.output, since: startedAt }).catch((e) => console.error("agent delivery failed", e instanceof Error ? e.message : e));
       } catch (e) {
         // No plan, allowance spent, daily limit reached: nothing to retry and nothing to record.
         if (e instanceof ApiError && (e.status === 402 || e.status === 403 || e.status === 429)) {

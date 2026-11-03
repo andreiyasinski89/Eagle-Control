@@ -169,7 +169,7 @@ describe("Telegram", () => {
       expect(await setTelegramWebhook()).toEqual({ url });
       const call = sent(/api\.telegram\.org\/bottg-token\/setWebhook/)[0]!;
       expect(call.method).toBe("POST");
-      expect(call.body).toEqual({ url, secret_token: "tg-secret", allowed_updates: ["message"] });
+      expect(call.body).toEqual({ url, secret_token: "tg-secret", allowed_updates: ["message", "callback_query"] });
     });
 
     it("says what Telegram is doing: connected, not connected, or unknown", async () => {
