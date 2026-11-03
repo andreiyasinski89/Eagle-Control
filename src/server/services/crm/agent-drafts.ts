@@ -3,6 +3,7 @@ import type { AgentDraft, AgentDraftStatus, Prisma } from "@prisma/client";
 import { db } from "@/server/db";
 import { conflict, notFound } from "@/server/http/errors";
 import { CHANNEL_LABEL, openChatUrl } from "@/modules/crm/draft-links";
+import { findStopWords } from "@/modules/crm/stop-words";
 import { loadWorkspaceMember } from "@/server/services/nodes/access";
 import { createActivityIn } from "./activities";
 import { fullName, invalid } from "./common";
@@ -25,7 +26,9 @@ export const listDraftsSchema = z.object({ status: z.enum(["PENDING", "APPROVED"
 export type CreateDraftResult =
   | { kind: "draft"; draft: AgentDraft }
   /** The contact has not given consent: no draft, an open task "get consent" instead (the same one if it already exists). */
-  | { kind: "consent_required"; taskId: string; created: boolean };
+  | { kind: "consent_required"; taskId: string; created: boolean }
+  /** The text promises money (income, financial freedom...). Nothing is saved; the agent must rewrite it. */
+  | { kind: "stop_words"; phrases: string[] };
 
 /**
  * The agent's only way to produce a message. For a contact without `consentGiven` nothing is drafted:
@@ -48,6 +51,8 @@ export async function createAgentDraft(userId: string, workspaceId: string, inpu
       );
       return { kind: "consent_required", taskId: task.id, created: true };
     }
+    const phrases = findStopWords(input.text);
+    if (phrases.length > 0) return { kind: "stop_words", phrases };
     const draft = await tx.agentDraft.create({ data: { workspaceId, userId, contactId: input.contactId, channel: input.channel, text: input.text, reason: input.reason ?? null } });
     return { kind: "draft", draft };
   });

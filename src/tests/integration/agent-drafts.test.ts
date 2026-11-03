@@ -62,6 +62,13 @@ describe("Creating a draft", () => {
     expect(tasks[0]).toMatchObject({ source: "agent", completedAt: null, subject: "[агент] Получить согласие: Ваня Белков" });
   });
 
+  it("saves nothing when the text promises money, and says which phrase", async () => {
+    const before = await raw.agentDraft.count({ where: { contactId: withConsent } });
+    const r = await draft(withConsent, "Валентин, это пассивный доход и финансовая свобода!");
+    expect(r).toEqual({ kind: "stop_words", phrases: ["пассивный доход", "финансовая свобода"] });
+    expect(await raw.agentDraft.count({ where: { contactId: withConsent } })).toBe(before);
+  });
+
   it("refuses a contact of another workspace", async () => {
     const other = await raw.user.create({ data: { email: "z@x.io" } });
     const otherWs = await createWorkspace(other.id, "Other");

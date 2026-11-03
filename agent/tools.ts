@@ -141,6 +141,7 @@ export const AGENT_TOOLS: AgentTool[] = [
     run: async (ctx, input) => {
       await inWorkspace(ctx, input.contactId);
       const r = await createAgentDraft(ctx.userId, ctx.workspaceId, input);
+      if (r.kind === "stop_words") return { status: "blocked_stop_words", phrases: r.phrases, hint: "Draft not saved. Rewrite without promises of income: talk about travel, hotel savings, the club, the team." };
       return r.kind === "draft" ? { status: "draft_created", draftId: r.draft.id } : { status: "consent_required", consentTaskId: r.taskId, taskCreated: r.created };
     },
   }),
