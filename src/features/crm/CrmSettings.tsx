@@ -1,5 +1,6 @@
 "use client";
 
+import { AgentSettingsPanel } from "./AgentSettingsPanel";
 import { OnboardingPlanPanel } from "./OnboardingPlanPanel";
 import { RankPlanPanel } from "./RankPlanPanel";
 import { useEffect, useState } from "react";
@@ -192,6 +193,7 @@ export function CrmSettings({ workspaceId }: { workspaceId: string }) {
       <PrivacyPanel workspaceId={workspaceId} />
       <OnboardingPlanPanel workspaceId={workspaceId} />
       <RankPlanPanel workspaceId={workspaceId} />
+      <AgentSettingsPanel workspaceId={workspaceId} />
       {error && (
         <p role="alert" className="text-sm text-danger">
           {error}

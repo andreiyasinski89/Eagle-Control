@@ -45,6 +45,7 @@ beforeAll(async () => {
   owner = (await t.db.user.create({ data: { email: "o@x.io", name: "Owner" } })).id;
   other = (await t.db.user.create({ data: { email: "p@x.io", name: "Peer" } })).id;
   ws = await createWorkspace(owner, "MWR");
+  await raw.workspace.update({ where: { id: ws.id }, data: { plan: "PRO" } });
   await t.db.membership.create({ data: { userId: other, workspaceId: ws.id, role: "MEMBER", crmAccess: true } });
 
   await person("Валентин", { stage: "WARMING", temperature: "HOT", touched: 24 * 5 });
@@ -117,6 +118,7 @@ describe("The follow-up table and role", () => {
 
   it("spends no tokens and calls no model when no timer has run out", async () => {
     const quiet = await createWorkspace(other, "Quiet");
+    await raw.workspace.update({ where: { id: quiet.id }, data: { plan: "PRO" } });
     const model: AgentModel = {
       async complete() {
         throw new Error("the model must not be called");

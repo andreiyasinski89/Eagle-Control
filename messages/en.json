@@ -2552,5 +2552,21 @@
     "why": "Why today",
     "count": "Waiting for you: {count}",
     "textLabel": "Message text"
+  },
+  "agentSettings": {
+    "title": "Sales agent",
+    "hint": "The agent prepares the briefing, watches for silence and writes the evening report. It never sends messages to people: drafts only.",
+    "enabled": "Agent is on",
+    "briefingTime": "Morning briefing at",
+    "touchesPerDay": "Touches per day",
+    "meetingsPerDay": "Presentations per day",
+    "goal": "Goal",
+    "goalPlaceholder": "For example, Gold status",
+    "deadline": "Goal deadline",
+    "dailyRunLimit": "At most this many agent runs a day",
+    "limitNote": "The agent spends your plan's monthly AI allowance. The daily run limit guards against runaway cost.",
+    "save": "Save",
+    "saved": "Saved",
+    "failed": "Could not save"
   }
 }

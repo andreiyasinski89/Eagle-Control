@@ -2552,5 +2552,21 @@
     "why": "Dlaczego dziś",
     "count": "Czeka na Ciebie: {count}",
     "textLabel": "Treść wiadomości"
+  },
+  "agentSettings": {
+    "title": "Agent sprzedaży",
+    "hint": "Agent przygotowuje poranny brief, pilnuje ciszy i pisze wieczorny raport. Nie wysyła wiadomości do ludzi: tylko szkice.",
+    "enabled": "Agent jest włączony",
+    "briefingTime": "Poranny brief o",
+    "touchesPerDay": "Kontaktów dziennie",
+    "meetingsPerDay": "Prezentacji dziennie",
+    "goal": "Cel",
+    "goalPlaceholder": "Na przykład status Gold",
+    "deadline": "Termin celu",
+    "dailyRunLimit": "Najwyżej tyle uruchomień agenta na dobę",
+    "limitNote": "Agent zużywa miesięczny limit AI z Twojego planu. Dzienny limit uruchomień chroni przed zbędnymi kosztami.",
+    "save": "Zapisz",
+    "saved": "Zapisano",
+    "failed": "Nie udało się zapisać"
   }
 }
