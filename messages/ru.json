@@ -529,6 +529,8 @@
     "contactGone": "Этого контакта больше нет.",
     "lastContact": "Последний контакт: {date}",
     "neverContacted": "Контактов не было",
+    "markReplied": "Ответил",
+    "repliedWaiting": "Ответил {date}: ждёт твоего ответа",
     "birthday": "День рождения",
     "revoked": "отозвано {date}",
     "noDeals": "Сделок нет.",

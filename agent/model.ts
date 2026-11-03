@@ -49,7 +49,7 @@ export const anthropicModel: AgentModel = {
         method: "POST",
         timeoutMs: 120_000,
         headers: { "x-api-key": key, "anthropic-version": "2023-06-01" },
-        json: { model, max_tokens: req.maxTokens, system: req.system, messages: req.messages, tools: req.tools },
+        json: { model, max_tokens: req.maxTokens, system: req.system, messages: req.messages, ...(req.tools.length > 0 ? { tools: req.tools } : {}) },
       });
       return { content: res.content ?? [], stopReason: res.stop_reason ?? "end_turn", inputTokens: res.usage?.input_tokens ?? 0, outputTokens: res.usage?.output_tokens ?? 0, model };
     } catch (e) {

@@ -1,10 +1,14 @@
 import { loadPrompt, render } from "./prompts";
 
-/** A role is one prompt file in agent/prompts plus the shared system prompt. */
+/**
+ * A role is one prompt file in agent/prompts plus the shared system prompt.
+ * `noTools` roles get their data already worked out and may not call anything: the evening report only reads.
+ */
 export const ROLES = {
   morning_briefing: { prompt: "morning_briefing", title: "Утренний брифинг" },
   stale_followups: { prompt: "stale_followups", title: "Истёкшие таймеры тишины" },
   call_summary: { prompt: "call_summary", title: "Итог разговора" },
+  evening_report: { prompt: "evening_report", title: "Вечерний отчёт", noTools: true },
 } as const;
 
 export type AgentRole = keyof typeof ROLES;

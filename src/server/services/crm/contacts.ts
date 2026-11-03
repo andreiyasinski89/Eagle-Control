@@ -348,6 +348,19 @@ export async function setConsent(userId: string, contactId: string, given: boole
   });
 }
 
+/**
+ * The person wrote back: the "replied" button. `repliedAt` stays until a touch of ours comes after it (see modules/crm/silence.ts),
+ * so a second press before we answered only moves the moment forward.
+ */
+export async function markReplied(userId: string, contactId: string, at = new Date()) {
+  return db.$transaction(async (tx) => {
+    const node = await loadCrmNode(tx, userId, contactId, "CONTACT", true);
+    await tx.contact.update({ where: { nodeId: contactId }, data: { repliedAt: at } });
+    await logActivity(tx, { workspaceId: node.workspaceId, nodeId: contactId, actorId: userId, action: "contact.replied" });
+    return getContactIn(tx, userId, contactId);
+  });
+}
+
 // ── reads ──────────────────────────────────────────────────────────────────
 
 export const listContactsSchema = z.object({
@@ -460,6 +473,7 @@ export async function getContactIn(tx: Tx, userId: string, contactId: string) {
     consentGiven: c.consentGiven,
     consentAt: c.consentAt,
     lastContactedAt: c.lastContactedAt,
+    repliedAt: c.repliedAt,
     createdAt: node.createdAt,
     stage: c.stage,
     stageChangedAt: c.stageChangedAt,
