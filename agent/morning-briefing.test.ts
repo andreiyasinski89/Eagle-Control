@@ -103,7 +103,7 @@ describe("Morning briefing role", () => {
     expect(first.system).toContain("НИКОГДА не отправляешь");
     expect(first.system).not.toMatch(/\{[a-z_]+\}/);
     expect(first.messages[0]).toEqual({ role: "user", content: expect.stringContaining("Сегодня 2026-11-03. Подготовь утренний брифинг.") });
-    expect(first.tools.map((t) => t.name).sort()).toEqual(["get_calendar", "get_contact", "list_activities", "list_contacts", "log_activity", "move_deal", "my_day", "update_deal"]);
+    expect(first.tools.map((t) => t.name).sort()).toEqual(["create_draft", "get_calendar", "get_contact", "list_activities", "list_contacts", "log_activity", "move_deal", "my_day", "update_deal"]);
     expect(first.tools.every((t) => t.input_schema.type === "object")).toBe(true);
 
     // agent_runs keeps the whole run.
@@ -174,6 +174,24 @@ describe("What the agent writes into the CRM", () => {
     expect(after.source).not.toBe("hacked"); // the lead origin of a deal is not the agent's to rewrite
     const notes = await raw.crmActivity.findMany({ where: { dealId: deal.id, source: "agent" }, orderBy: { createdAt: "asc" } });
     expect(notes.map((n) => n.subject)).toEqual(["[агент] Сделка перемещена", "[агент] Сделка обновлена"]);
+  });
+
+  it("saves drafts only through create_draft: a draft with consent, a task without, nothing sent", async () => {
+    const model = scripted([
+      () => reply([use("d1", "create_draft", { contactId: valentinId, channel: "TELEGRAM", text: "Валентин, привет! Как тебе вчерашняя презентация?", reason: "был на офлайн-презентации" }), use("d2", "create_draft", { contactId: annaId, text: "Анна, привет!" })]),
+      (req) => {
+        const [withConsent, without] = lastResults(req).map((r) => JSON.parse(r.content) as Record<string, unknown>);
+        expect(withConsent).toMatchObject({ status: "draft_created" });
+        expect(without).toMatchObject({ status: "consent_required", taskCreated: true });
+        return reply([{ type: "text", text: "Черновик для Валентина сохранён; для Анны нужно согласие." }], "end_turn");
+      },
+    ]);
+    await runAgent({ userId: owner, workspaceId: ws.id, role: "morning_briefing", vars: VARS, model });
+
+    expect(await raw.agentDraft.findMany({ where: { contactId: valentinId }, select: { status: true, userId: true, reason: true } })).toEqual([{ status: "PENDING", userId: owner, reason: "был на офлайн-презентации" }]);
+    expect(await raw.agentDraft.count({ where: { contactId: annaId } })).toBe(0);
+    expect(await raw.crmActivity.count({ where: { contactId: annaId, type: "TASK", source: "agent" } })).toBe(1);
+    expect(await raw.crmActivity.count({ where: { contactId: valentinId, type: "MESSAGE", source: "agent" } })).toBe(0);
   });
 
   it("keeps a failed run in agent_runs", async () => {

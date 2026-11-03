@@ -152,6 +152,7 @@ model User {
   sessions          Session[]
   memberships       Membership[]
   agentRuns         AgentRun[]
+  agentDrafts       AgentDraft[]
   projectAccess     ProjectMember[]
   savedFilters      SavedFilter[]
   assignedNodes     Node[]                   @relation("NodeAssignee")
@@ -232,6 +233,7 @@ model Workspace {
   integrations     Integration[]
   aiUsage          AiUsage[]
   agentRuns        AgentRun[]
+  agentDrafts      AgentDraft[]
   notifications    Notification[]
   subscription     Subscription?
   userIntegrations UserIntegration[]
@@ -534,6 +536,7 @@ model Contact {
   primaryForDeals Deal[]
   activities      CrmActivity[]
   stageEvents     ContactStageEvent[]
+  agentDrafts     AgentDraft[]
 
   @@index([companyId])
   @@index([workspaceId, stage])
@@ -1133,4 +1136,40 @@ model AgentRun {
   @@index([workspaceId, createdAt])
   @@index([userId, createdAt])
   @@map("agent_runs")
+}
+
+enum AgentDraftStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SENT
+}
+
+enum AgentDraftChannel {
+  TELEGRAM
+  WHATSAPP
+  INSTAGRAM
+}
+
+/// A message the agent prepared for a contact. The agent only ever creates these; a person copies, edits or rejects them, and only a person sends.
+model AgentDraft {
+  id          String            @id @default(cuid())
+  workspaceId String
+  /// The person the draft belongs to (whose agent run wrote it). Only they see and act on it.
+  userId      String
+  contactId   String
+  channel     AgentDraftChannel
+  text        String            @db.Text
+  status      AgentDraftStatus  @default(PENDING)
+  /// Why this contact today, as the agent put it.
+  reason      String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contact   Contact   @relation(fields: [contactId], references: [nodeId], onDelete: Cascade)
+
+  @@index([workspaceId, userId, status])
+  @@index([contactId])
 }

@@ -21,6 +21,7 @@ export function CrmTabs({ slug }: { slug: string }) {
     { href: `${base}/companies`, label: t("tabCompanies") },
     { href: `${base}/contacts`, label: t("tabContacts") },
     { href: `${base}/activities`, label: t("tabActivities") },
+    { href: `${base}/drafts`, label: t("tabDrafts") },
   ];
   return (
     <nav aria-label="CRM" className="flex gap-1 border-b border-border bg-card px-4">

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { db } from "@/server/db";
 import { notFound } from "@/server/http/errors";
+import { createAgentDraft, createDraftSchema } from "@/server/services/crm/agent-drafts";
 import { activitySchema, createActivity, listActivities, listActivitiesSchema } from "@/server/services/crm/activities";
 import { getContact, listContacts, listContactsSchema } from "@/server/services/crm/contacts";
 import { dealFieldsSchema, moveDeal, moveDealSchema, patchDealSchema, updateDeal } from "@/server/services/crm/deals";
@@ -89,6 +90,19 @@ export const AGENT_TOOLS: AgentTool[] = [
     run: async (ctx, a) => {
       for (const id of [a.contactId, a.companyId, a.dealId]) if (id) await inWorkspace(ctx, id);
       return createActivity(ctx.userId, ctx.workspaceId, { ...a, subject: withPrefix(a.subject) }, { source: AGENT_SOURCE });
+    },
+  }),
+  tool({
+    name: "create_draft",
+    description:
+      "Save a message draft for a contact; a person reads it in the \"Черновики агента\" panel and sends it themselves. This never sends anything. " +
+      "If the contact has consentGiven = false no draft is made: an open task \"получить согласие\" is created instead and the result says consent_required — then suggest a first personal message without selling.",
+    readOnly: false,
+    schema: createDraftSchema,
+    run: async (ctx, input) => {
+      await inWorkspace(ctx, input.contactId);
+      const r = await createAgentDraft(ctx.userId, ctx.workspaceId, input);
+      return r.kind === "draft" ? { status: "draft_created", draftId: r.draft.id } : { status: "consent_required", consentTaskId: r.taskId, taskCreated: r.created };
     },
   }),
   tool({

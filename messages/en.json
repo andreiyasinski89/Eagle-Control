@@ -675,7 +675,8 @@
     "pickedCount": "{n, plural, one {# person selected} other {# people selected}}",
     "moveToGroup": "Move to group",
     "applyGroup": "Move",
-    "clearPick": "Clear"
+    "clearPick": "Clear",
+    "tabDrafts": "Agent drafts"
   },
   "myday": {
     "title": "My day",
@@ -1316,5 +1317,23 @@
     "addSubtask": "Add a subtask",
     "subtaskPlaceholder": "A small task…",
     "add": "Add"
+  },
+  "agentDrafts": {
+    "title": "Agent drafts",
+    "empty": "No drafts. The agent leaves them here and you send them.",
+    "copyOpen": "Copy and open {channel}",
+    "copyOnly": "Copy",
+    "edit": "Edit",
+    "reject": "Reject",
+    "save": "Save",
+    "cancel": "Cancel",
+    "approved": "Reviewed",
+    "noHandle": "The card has no {channel} contact: the text is copied, open the chat yourself.",
+    "consentLost": "The contact no longer has consent. Get it first.",
+    "settled": "This draft was already sent or rejected.",
+    "copyFailed": "Could not copy the text. The status is unchanged.",
+    "why": "Why today",
+    "count": "Waiting for you: {count}",
+    "textLabel": "Message text"
   }
 }

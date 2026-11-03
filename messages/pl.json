@@ -675,7 +675,8 @@
     "pickedCount": "{n, plural, one {Zaznaczono # osobę} few {Zaznaczono # osoby} many {Zaznaczono # osób} other {Zaznaczono # osoby}}",
     "moveToGroup": "Przenieś do grupy",
     "applyGroup": "Przenieś",
-    "clearPick": "Wyczyść"
+    "clearPick": "Wyczyść",
+    "tabDrafts": "Szkice agenta"
   },
   "myday": {
     "title": "Mój dzień",
@@ -1316,5 +1317,23 @@
     "addSubtask": "Dodaj podzadanie",
     "subtaskPlaceholder": "Małe zadanie…",
     "add": "Dodaj"
+  },
+  "agentDrafts": {
+    "title": "Szkice agenta",
+    "empty": "Brak szkiców. Agent zostawia je tutaj, a wysyłasz Ty.",
+    "copyOpen": "Kopiuj i otwórz {channel}",
+    "copyOnly": "Kopiuj",
+    "edit": "Edytuj",
+    "reject": "Odrzuć",
+    "save": "Zapisz",
+    "cancel": "Anuluj",
+    "approved": "Sprawdzony",
+    "noHandle": "Karta nie ma kontaktu w {channel}: tekst zostanie skopiowany, czat otwórz sam.",
+    "consentLost": "Kontakt nie ma już zgody. Najpierw ją uzyskaj.",
+    "settled": "Ten szkic został już wysłany lub odrzucony.",
+    "copyFailed": "Nie udało się skopiować tekstu. Status bez zmian.",
+    "why": "Dlaczego dziś",
+    "count": "Czeka na Ciebie: {count}",
+    "textLabel": "Treść wiadomości"
   }
 }
