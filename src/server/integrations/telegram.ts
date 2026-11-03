@@ -9,7 +9,7 @@ import { getTree, listProjects } from "@/server/services/nodes/queries";
 import { getMyDay } from "@/server/services/crm/my-day";
 import { ingestLead } from "@/server/services/crm/lead-ingest";
 import { registerChannel, type ChannelAdapter } from "@/server/services/notify";
-import { appUrl, httpJson, notConfigured, requireIntegrations, safeEqual, sha256 } from "./common";
+import { appUrl, httpJson, IntegrationError, notConfigured, requireIntegrations, safeEqual, sha256 } from "./common";
 import { sendTelegram, telegramConfigured } from "./telegram-api";
 import { handleAgentCallback, handleAgentReply, type CallbackQuery } from "./telegram-agent";
 
@@ -83,7 +83,13 @@ export async function setTelegramWebhook(): Promise<{ url: string }> {
   if (!token || !secret) throw notConfigured("Telegram");
   const url = telegramWebhookUrl();
   if (!url.startsWith("https://")) throw new ApiError(422, "https_required", "Telegram only delivers to https addresses. Set APP_URL to the public https address of this installation.");
-  await httpJson("telegram", `https://api.telegram.org/bot${token}/setWebhook`, { method: "POST", json: { url, secret_token: secret, allowed_updates: ["message", "callback_query"] } });
+  try {
+    await httpJson("telegram", `https://api.telegram.org/bot${token}/setWebhook`, { method: "POST", json: { url, secret_token: secret, allowed_updates: ["message", "callback_query"] } });
+  } catch (e) {
+    // Telegram's own reason (a secret with characters it does not accept, an address it cannot use) is what the person needs to read, not "Internal error".
+    if (e instanceof IntegrationError) throw new ApiError(502, "telegram_rejected", `Telegram did not accept the webhook: ${e.message.replace(/^telegram:s*/, "")}`);
+    throw e;
+  }
   return { url };
 }
 
