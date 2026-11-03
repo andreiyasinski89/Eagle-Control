@@ -10,18 +10,12 @@ import { getMyDay } from "@/server/services/crm/my-day";
 import { ingestLead } from "@/server/services/crm/lead-ingest";
 import { registerChannel, type ChannelAdapter } from "@/server/services/notify";
 import { appUrl, httpJson, notConfigured, requireIntegrations, safeEqual, sha256 } from "./common";
+import { sendTelegram, telegramConfigured } from "./telegram-api";
+import { handleAgentCallback, handleAgentReply, type CallbackQuery } from "./telegram-agent";
+
+export { sendTelegram, telegramConfigured };
 
 const CODE_TTL_MS = 15 * 60_000;
-const TEXT_LIMIT = 3900; // Telegram allows 4096 characters per message
-
-export const telegramConfigured = () => !!env().TELEGRAM_BOT_TOKEN && !!env().TELEGRAM_WEBHOOK_SECRET;
-
-/** One bot for the whole installation; every person links their own chat to it. */
-export async function sendTelegram(chatId: string, text: string): Promise<void> {
-  const token = env().TELEGRAM_BOT_TOKEN;
-  if (!token) throw notConfigured("Telegram");
-  await httpJson("telegram", `https://api.telegram.org/bot${token}/sendMessage`, { method: "POST", json: { chat_id: chatId, text: text.slice(0, TEXT_LIMIT), disable_web_page_preview: true } });
-}
 
 // ── linking ────────────────────────────────────────────────────────────────
 
@@ -63,9 +57,11 @@ async function webhookState(): Promise<WebhookState | null> {
   const token = env().TELEGRAM_BOT_TOKEN;
   if (!token) return null;
   try {
-    const info = await httpJson<{ result?: { url?: string; last_error_message?: string } }>("telegram", `https://api.telegram.org/bot${token}/getWebhookInfo`, { timeoutMs: 4_000 });
+    const info = await httpJson<{ result?: { url?: string; last_error_message?: string; allowed_updates?: string[] } }>("telegram", `https://api.telegram.org/bot${token}/getWebhookInfo`, { timeoutMs: 4_000 });
     const url = info.result?.url || null;
-    return { ok: url === telegramWebhookUrl(), url, lastError: info.result?.last_error_message ?? null };
+    // Buttons under the agent's drafts only reach us when the webhook was registered to receive them (no list = Telegram's default, which includes them).
+    const allowed = info.result?.allowed_updates;
+    return { ok: url === telegramWebhookUrl() && (!allowed || allowed.includes("callback_query")), url, lastError: info.result?.last_error_message ?? null };
   } catch {
     return null;
   }
@@ -87,7 +83,7 @@ export async function setTelegramWebhook(): Promise<{ url: string }> {
   if (!token || !secret) throw notConfigured("Telegram");
   const url = telegramWebhookUrl();
   if (!url.startsWith("https://")) throw new ApiError(422, "https_required", "Telegram only delivers to https addresses. Set APP_URL to the public https address of this installation.");
-  await httpJson("telegram", `https://api.telegram.org/bot${token}/setWebhook`, { method: "POST", json: { url, secret_token: secret, allowed_updates: ["message"] } });
+  await httpJson("telegram", `https://api.telegram.org/bot${token}/setWebhook`, { method: "POST", json: { url, secret_token: secret, allowed_updates: ["message", "callback_query"] } });
   return { url };
 }
 
@@ -121,18 +117,24 @@ export function verifyTelegramSecret(header: string | null): boolean {
 }
 
 interface Update {
-  message?: { text?: string; chat?: { id?: number | string; type?: string; first_name?: string; username?: string } };
+  message?: { text?: string; reply_to_message?: { text?: string; message_id?: number }; chat?: { id?: number | string; type?: string; first_name?: string; username?: string } };
+  callback_query?: CallbackQuery;
 }
 
 const HELP = ["/today – what is due today", "/task <title> – add a task for me", "/done <n> – finish task n from /today", "/lead <name> [email] – add a lead", "/help – this list"].join("\n");
 
 /** Handles one update from the bot. Never throws: a bad message gets a short reply instead of a retry storm from Telegram. */
 export async function handleUpdate(raw: unknown, now = new Date()): Promise<void> {
+  const callback = (raw as Update | null)?.callback_query;
+  if (callback) return handleAgentCallback(callback); // a button under one of the agent's drafts
   const msg = (raw as Update | null)?.message;
   const chatId = msg?.chat?.id !== undefined ? String(msg.chat.id) : null;
   const text = msg?.text?.trim();
   if (!chatId || !text || msg?.chat?.type !== "private") return; // groups are ignored: commands act as a person
   const reply = (t: string) => sendTelegram(chatId, t).catch((e) => console.error("telegram reply failed", e));
+
+  // An answer to one of the agent's draft messages is the new text of that draft.
+  if (msg?.reply_to_message && (await handleAgentReply({ chatId, text, repliedText: msg.reply_to_message.text, repliedId: msg.reply_to_message.message_id }))) return;
 
   try {
     const [cmdRaw, ...rest] = text.split(/\s+/);
