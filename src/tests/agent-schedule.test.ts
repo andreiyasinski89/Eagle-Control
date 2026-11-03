@@ -4,7 +4,7 @@ import { dueRoles, type DueInput } from "@/modules/crm/agent-schedule";
 
 // Warsaw is UTC+1 in November: 07:00Z is 08:00 on the wall clock.
 const at = (hhmmZ: string, day = "2026-11-03") => new Date(`${day}T${hhmmZ}:00.000Z`);
-const input = (over: Partial<DueInput> & { now: Date }): DueInput => ({ settings: { ...DEFAULT_AGENT_SETTINGS, enabled: true }, tz: "Europe/Warsaw", lastOk: {}, failuresToday: {}, ...over });
+const input = (over: Partial<DueInput> & { now: Date }): DueInput => ({ settings: { ...DEFAULT_AGENT_SETTINGS, enabled: true }, tz: "Europe/Warsaw", lastOk: {}, failuresToday: {}, recentFailures: {}, ...over });
 
 describe("What is due", () => {
   it("is nothing when the agent is off", () => {
@@ -47,9 +47,12 @@ describe("What is due", () => {
     expect(dueRoles(input({ now: at("20:20"), lastOk: { ...rest, evening_report: at("20:05"), stale_followups: at("20:05") } }))).toEqual([]);
   });
 
-  it("tries a failed role again, three times a day at most", () => {
-    expect(dueRoles(input({ now: at("07:05"), failuresToday: { morning_briefing: 2 } }))).toEqual(["morning_briefing"]);
-    expect(dueRoles(input({ now: at("07:05"), failuresToday: { morning_briefing: 3 } }))).toEqual([]);
+  it("tries a failed role again, pauses after three failures in two hours, and stops after nine in a day", () => {
+    expect(dueRoles(input({ now: at("07:05"), failuresToday: { morning_briefing: 2 }, recentFailures: { morning_briefing: 2 } }))).toEqual(["morning_briefing"]);
+    expect(dueRoles(input({ now: at("07:05"), failuresToday: { morning_briefing: 3 }, recentFailures: { morning_briefing: 3 } }))).toEqual([]); // paused
+    // The pause is over (the three failures are older than two hours), so it tries again.
+    expect(dueRoles(input({ now: at("08:05"), failuresToday: { morning_briefing: 3 }, recentFailures: { morning_briefing: 0 } }))).toContain("morning_briefing");
+    expect(dueRoles(input({ now: at("08:05"), failuresToday: { morning_briefing: 9 }, recentFailures: {} }))).not.toContain("morning_briefing");
   });
 
   it("reads every time on the person's own clock", () => {

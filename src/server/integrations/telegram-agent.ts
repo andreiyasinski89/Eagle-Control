@@ -80,6 +80,19 @@ export async function deliverAgentRun(o: { userId: string; workspaceId: string; 
   return { delivered: true, messages };
 }
 
+/** Tells the person in their chat that a scheduled run did not work, and why (the reason is the provider's or the server's own words, never a secret). */
+export async function notifyAgentFailure(o: { userId: string; workspaceId: string; role: string; reason: string; pausing: boolean }): Promise<void> {
+  if (!telegramConfigured()) return;
+  const chat = await chatOf(o.userId, o.workspaceId);
+  if (!chat) return;
+  const title = TITLES[o.role] ?? "Агент";
+  await sendTelegramMessage(chat, `⚠️ ${title}: не получилось.
+
+Причина: ${o.reason.slice(0, 400)}
+
+${o.pausing ? "Три попытки подряд не удались. Попробую снова через 2 часа." : "Попробую ещё раз через 15 минут."}`);
+}
+
 // ── what the person does in the chat ───────────────────────────────────────
 
 export interface CallbackQuery {
