@@ -37,6 +37,7 @@ beforeAll(async () => {
   close = t.close;
   owner = (await t.db.user.create({ data: { email: "o@x.io", name: "Owner", timezone: "UTC" } })).id;
   ws = await createWorkspace(owner, "MWR");
+  await raw.workspace.update({ where: { id: ws.id }, data: { plan: "PRO" } });
 
   const warm = (await createContact(owner, ws.id, { ...base, firstName: "Валентин", ownerId: owner, stage: "NEW" })).id;
   const partner = (await createContact(owner, ws.id, { ...base, firstName: "Ирина", ownerId: owner, stage: "DECIDING" })).id;
@@ -69,6 +70,7 @@ describe("The evening report data", () => {
   it("says so plainly when nothing happened and no deadline is given", async () => {
     const quiet = await raw.user.create({ data: { email: "q@x.io", name: "Quiet", timezone: "UTC" } });
     const w = await createWorkspace(quiet.id, "Quiet");
+    await raw.workspace.update({ where: { id: w.id }, data: { plan: "PRO" } });
     const text = await dayReportFor(quiet.id, w.id, new Date());
     expect(text).toContain("переходов между стадиями не было");
     expect(text).toContain("таких нет");

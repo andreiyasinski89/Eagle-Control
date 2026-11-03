@@ -43,6 +43,11 @@ async function gate(userId: string, workspaceId: string, now: Date) {
   return { plan: ws.plan, used };
 }
 
+/** The same plan and monthly allowance check for callers outside this file (the sales agent). */
+export async function assertAiAllowed(userId: string, workspaceId: string, now = new Date()): Promise<void> {
+  await gate(userId, workspaceId, now);
+}
+
 /** Records what the call cost (counts only, never the text) and warns the owners once at 80% and once at 100%. */
 async function record(userId: string, workspaceId: string, feature: AiFeature, r: AiResult, plan: "FREE" | "PRO" | "ENTERPRISE", before: number, now: Date) {
   await db.aiUsage.create({ data: { workspaceId, userId, feature, model: r.model, inputTokens: r.inputTokens, outputTokens: r.outputTokens } });

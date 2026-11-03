@@ -1,4 +1,6 @@
 import { db } from "@/server/db";
+import { assertAiAllowed } from "@/server/ai";
+import { cleanAgentSettings } from "@/modules/crm/agent-settings";
 import { ApiError, forbidden } from "@/server/http/errors";
 import { loadWorkspaceMember } from "@/server/services/nodes/access";
 import { anthropicModel, type AgentModel, type Block, type Msg } from "./model";
@@ -63,6 +65,11 @@ async function callTool(ctx: AgentContext, name: string, input: Record<string, u
 export async function runAgent(opts: RunOptions): Promise<RunResult> {
   const member = await loadWorkspaceMember(db, opts.userId, opts.workspaceId, "crm:read");
   if (member.role === "GUEST") throw forbidden();
+  // The agent spends the same AI allowance as every other AI feature and obeys the plan; a day's runs are capped by the person's own limit.
+  await assertAiAllowed(opts.userId, opts.workspaceId);
+  const { dailyRunLimit } = cleanAgentSettings(member.agentSettings);
+  const recent = await db.agentRun.count({ where: { userId: opts.userId, workspaceId: opts.workspaceId, createdAt: { gte: new Date(Date.now() - 86_400_000) } } });
+  if (recent >= dailyRunLimit) throw new ApiError(429, "agent_daily_limit", `The agent already ran ${recent} times in the last 24 hours (the limit in its settings is ${dailyRunLimit}).`);
 
   let vars = opts.vars;
   let silentCount: number | null = null;

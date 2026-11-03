@@ -62,6 +62,7 @@ beforeAll(async () => {
   owner = (await t.db.user.create({ data: { email: "andrey@x.io", name: "Андрей" } })).id;
   outsider = (await t.db.user.create({ data: { email: "other@x.io", name: "Other" } })).id;
   ws = await createWorkspace(owner, "MWR");
+  await raw.workspace.update({ where: { id: ws.id }, data: { plan: "PRO" } });
   const other = await createWorkspace(outsider, "Other");
 
   const base = { emails: [], phones: [], messengers: {}, allowDuplicate: false };
