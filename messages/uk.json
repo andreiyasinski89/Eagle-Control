@@ -1660,6 +1660,8 @@
     "contactGone": "Цього контакту більше немає.",
     "lastContact": "Останній контакт: {date}",
     "neverContacted": "Контактів не було",
+    "markReplied": "Відповів",
+    "repliedWaiting": "Відповів {date}: чекає на твою відповідь",
     "birthday": "День народження",
     "revoked": "відкликано {date}",
     "noDeals": "Угод немає.",

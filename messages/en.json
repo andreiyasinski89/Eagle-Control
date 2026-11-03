@@ -529,6 +529,8 @@
     "contactGone": "This contact no longer exists.",
     "lastContact": "Last contact: {date}",
     "neverContacted": "Never contacted",
+    "markReplied": "Replied",
+    "repliedWaiting": "Replied {date}: waiting for your answer",
     "birthday": "Birthday",
     "revoked": "revoked {date}",
     "noDeals": "No deals.",

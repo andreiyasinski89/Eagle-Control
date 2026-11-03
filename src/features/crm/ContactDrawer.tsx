@@ -46,6 +46,7 @@ export interface ContactDetail {
   consentGiven: boolean;
   consentAt: string | null;
   lastContactedAt: string | null;
+  repliedAt: string | null;
   stage: FunnelValues["stage"];
   declineReason: string | null;
   temperature: FunnelValues["temperature"];
@@ -148,6 +149,7 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
   });
   const finish = useMutation({ mutationFn: (id: string) => api.patch(`/api/v1/activities/${id}`, { completed: true }), onSuccess: refresh });
   const unplan = useMutation({ mutationFn: (id: string) => api.del(`/api/v1/activities/${id}`), onSuccess: refresh });
+  const replied = useMutation({ mutationFn: () => api.post(`/api/v1/contacts/${contactId}/replied`, {}), onSuccess: refresh });
   const consent = useMutation({ mutationFn: (given: boolean) => api.put(`/api/v1/contacts/${contactId}/consent`, { given, source: "manual" }), onSuccess: refresh });
 
   async function exportData() {
@@ -174,6 +176,7 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
   if (isError) return <aside className={`${shell} p-4 text-sm text-muted-foreground`}>{t("contactGone")}</aside>;
   if (!c) return <aside className={`${shell} p-4`}><SkeletonRows rows={5} /></aside>;
   const dis = !canWrite || !c.access.canEdit;
+  const awaitingAnswer = !!c.repliedAt && (!c.lastContactedAt || new Date(c.lastContactedAt) < new Date(c.repliedAt));
   const cold = !c.lastContactedAt || Date.now() - new Date(c.lastContactedAt).getTime() > 30 * 86_400_000;
 
   return (
@@ -193,6 +196,14 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
           <div className={cold ? "text-xs text-[var(--health-yellow)]" : "text-xs text-muted-foreground"}>
             {c.lastContactedAt ? t("lastContact", { date: new Date(c.lastContactedAt).toLocaleDateString(locale) }) : t("neverContacted")}
           </div>
+          {!dis && (
+            <div className="mt-2 flex items-center gap-2">
+              <Button size="sm" variant="outline" disabled={replied.isPending} onClick={() => replied.mutate()}>
+                {t("markReplied")}
+              </Button>
+              {awaitingAnswer && <span className="text-xs text-[var(--health-yellow)]">{t("repliedWaiting", { date: new Date(c.repliedAt!).toLocaleDateString(locale) })}</span>}
+            </div>
+          )}
         </div>
         <Button variant="ghost" size="sm" onClick={onClose} aria-label={t("close")}>
           <X className="size-4" />
