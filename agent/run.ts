@@ -2,8 +2,9 @@ import { db } from "@/server/db";
 import { ApiError, forbidden } from "@/server/http/errors";
 import { loadWorkspaceMember } from "@/server/services/nodes/access";
 import { anthropicModel, type AgentModel, type Block, type Msg } from "./model";
-import { promptsFor, type AgentRole } from "./roles";
+import { promptsFor, ROLES, type AgentRole } from "./roles";
 import { timersTableFor } from "./timers";
+import { dayReportFor } from "./day-report";
 import { toolByName, toolDefs, type AgentContext } from "./tools";
 
 const MAX_TURNS = 12;
@@ -28,6 +29,8 @@ export interface RunOptions extends AgentContext {
   maxTurns?: number;
   /** The moment the run is about; tests pin it. */
   now?: Date;
+  /** YYYY-MM-DD; lets the evening report say how many days are left. */
+  deadlineDate?: string;
 }
 
 export interface RunResult {
@@ -69,10 +72,12 @@ export async function runAgent(opts: RunOptions): Promise<RunResult> {
     vars = { ...vars, timers_table: t.table };
     silentCount = t.count;
   }
+  if (opts.role === "evening_report" && vars.day_report === undefined) vars = { ...vars, day_report: await dayReportFor(opts.userId, opts.workspaceId, opts.now, opts.deadlineDate) };
   const { system, user } = promptsFor(opts.role, vars);
   const model = opts.model ?? anthropicModel;
   const ctx: AgentContext = { userId: opts.userId, workspaceId: opts.workspaceId, seen: new Set() };
-  const tools = toolDefs();
+  const noTools = "noTools" in ROLES[opts.role];
+  const tools = noTools ? [] : toolDefs();
   const messages: Msg[] = [{ role: "user", content: user }];
   const toolCalls: ToolCallLog[] = [];
   let inTokens = 0;
@@ -105,7 +110,7 @@ export async function runAgent(opts: RunOptions): Promise<RunResult> {
       const text = reply.content.filter((b): b is Extract<Block, { type: "text" }> => b.type === "text").map((b) => b.text).join("").trim();
       const uses = reply.content.filter((b): b is Extract<Block, { type: "tool_use" }> => b.type === "tool_use");
       if (text) output = text;
-      if (reply.stopReason !== "tool_use" || uses.length === 0) break;
+      if (noTools || reply.stopReason !== "tool_use" || uses.length === 0) break;
 
       const results: Block[] = [];
       for (const use of uses) {
