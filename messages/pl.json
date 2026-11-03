@@ -1055,7 +1055,8 @@
     "materialCopied": "Link skopiowany: wklej go do czatu.",
     "materialCopyFailed": "Nie udało się skopiować. Otwórz „Materiały” i skopiuj link tam.",
     "scriptOriginal": "Gotowy · zmienia się wraz z językiem",
-    "scriptFreezeHint": "To gotowy skrypt i dopasowuje się do języka interfejsu. Gdy zapiszesz zmianę, stanie się twój i zostanie dokładnie taki, jak go napiszesz."
+    "scriptFreezeHint": "To gotowy skrypt i dopasowuje się do języka interfejsu. Gdy zapiszesz zmianę, stanie się twój i zostanie dokładnie taki, jak go napiszesz.",
+    "tabDrafts": "Szkice agenta"
   },
   "myday": {
     "title": "Mój dzień",
@@ -2531,5 +2532,23 @@
     "since": "Historia jest prowadzona od {date}.",
     "empty": "Historia zacznie się gromadzić od dziś: wchodź do „Mój dzień”, a liczby każdego dnia będą zapisywane. Dni, w których nic nie zaplanowano, nie liczą się, to nie zera.",
     "error": "Nie udało się wczytać historii."
+  },
+  "agentDrafts": {
+    "title": "Szkice agenta",
+    "empty": "Brak szkiców. Agent zostawia je tutaj, a wysyłasz Ty.",
+    "copyOpen": "Kopiuj i otwórz {channel}",
+    "copyOnly": "Kopiuj",
+    "edit": "Edytuj",
+    "reject": "Odrzuć",
+    "save": "Zapisz",
+    "cancel": "Anuluj",
+    "approved": "Sprawdzony",
+    "noHandle": "Karta nie ma kontaktu w {channel}: tekst zostanie skopiowany, czat otwórz sam.",
+    "consentLost": "Kontakt nie ma już zgody. Najpierw ją uzyskaj.",
+    "settled": "Ten szkic został już wysłany lub odrzucony.",
+    "copyFailed": "Nie udało się skopiować tekstu. Status bez zmian.",
+    "why": "Dlaczego dziś",
+    "count": "Czeka na Ciebie: {count}",
+    "textLabel": "Treść wiadomości"
   }
 }

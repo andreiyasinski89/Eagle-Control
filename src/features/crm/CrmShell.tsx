@@ -26,6 +26,7 @@ export function CrmTabs({ slug, full = true }: { slug: string; full?: boolean })
     ...(full ? [{ href: base, label: t("tabPipeline"), exact: true }, { href: `${base}/companies`, label: t("tabCompanies") }] : []),
     { href: `${base}/contacts`, label: t("tabContacts") },
     ...(full ? [{ href: `${base}/activities`, label: t("tabActivities") }] : []),
+    { href: `${base}/drafts`, label: t("tabDrafts") },
     { href: `${base}/scripts`, label: t("tabScripts") },
     { href: `${base}/materials`, label: t("tabMaterials") },
   ];

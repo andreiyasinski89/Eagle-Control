@@ -197,6 +197,8 @@ model User {
   contactShares     ContactShare[]
   referralLinks     ReferralLink[]
   referralJoins     ReferralJoin[]
+  agentRuns         AgentRun[]
+  agentDrafts       AgentDraft[]
   projectAccess     ProjectMember[]
   savedFilters      SavedFilter[]
   assignedNodes     Node[]                   @relation("NodeAssignee")
@@ -304,6 +306,8 @@ model Workspace {
   leadForms        LeadForm[]
   integrations     Integration[]
   aiUsage          AiUsage[]
+  agentRuns        AgentRun[]
+  agentDrafts      AgentDraft[]
   notifications    Notification[]
   subscription     Subscription?
   userIntegrations UserIntegration[]
@@ -651,6 +655,8 @@ model Contact {
   stageChangedAt DateTime     @default(now())
   /// Why the person said no (a code, see modules/crm/decline.ts); only while the stage is Declined.
   declineReason  String?
+  /// When the person last wrote back (set by the "replied" button). It stays set; a touch of ours after it means the reply was answered.
+  repliedAt      DateTime?
   temperature    Temperature?
   /// A temperature set by hand holds until this moment; after it the computed one takes over again.
   temperatureManualUntil DateTime?
@@ -691,6 +697,7 @@ model Contact {
   stageEvents     ContactStageEvent[]
   transfers       ContactTransfer[]
   shares          ContactShare[]
+  agentDrafts     AgentDraft[]
 
   @@index([companyId])
   @@index([workspaceId, stage])
@@ -860,6 +867,8 @@ model ContactStageEvent {
   toStage       PersonStage
   at            DateTime     @default(now())
   actorId       String?
+  /// null = a person moved the contact, "agent" = the sales agent did.
+  source        String?
 
   contact Contact @relation(fields: [contactNodeId], references: [nodeId], onDelete: Cascade)
 
@@ -960,6 +969,8 @@ model CrmActivity {
   contactId   String?
   companyId   String?
   dealId      String?
+  /// Who wrote it: null = a person in the app, "agent" = the sales agent, "api" etc. may follow.
+  source      String?
   createdAt   DateTime        @default(now())
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
@@ -1146,6 +1157,8 @@ model DealStageEvent {
   toStageId   String
   at          DateTime @default(now())
   actorId     String?
+  /// null = a person moved it, "agent" = the sales agent did.
+  source      String?
 
   deal Deal @relation(fields: [dealId], references: [nodeId], onDelete: Cascade)
 
@@ -1538,4 +1551,61 @@ model DayScore {
 
   @@unique([userId, workspaceId, day])
   @@index([workspaceId, userId, day])
+}
+
+/// One run of the sales agent (a role such as "morning_briefing"): what went in, what came out, which CRM tools it called, what it cost.
+model AgentRun {
+  id          String   @id @default(cuid())
+  workspaceId String
+  userId      String
+  role        String
+  input       String   @db.Text
+  output      String   @db.Text
+  /// [{ name, input, output, isError, ms }] in call order.
+  toolCalls   Json     @default("[]")
+  tokens      Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, createdAt])
+  @@index([userId, createdAt])
+  @@map("agent_runs")
+}
+
+enum AgentDraftStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SENT
+}
+
+enum AgentDraftChannel {
+  TELEGRAM
+  WHATSAPP
+  INSTAGRAM
+}
+
+/// A message the agent prepared for a contact. The agent only ever creates these; a person copies, edits or rejects them, and only a person sends.
+model AgentDraft {
+  id          String            @id @default(cuid())
+  workspaceId String
+  /// The person the draft belongs to (whose agent run wrote it). Only they see and act on it.
+  userId      String
+  contactId   String
+  channel     AgentDraftChannel
+  text        String            @db.Text
+  status      AgentDraftStatus  @default(PENDING)
+  /// Why this contact today, as the agent put it.
+  reason      String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contact   Contact   @relation(fields: [contactId], references: [nodeId], onDelete: Cascade)
+
+  @@index([workspaceId, userId, status])
+  @@index([contactId])
 }

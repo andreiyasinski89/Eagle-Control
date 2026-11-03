@@ -58,7 +58,8 @@ async function resolveLinks(tx: Tx, workspaceId: string, input: Pick<ActivityInp
   return { contactId, companyId, dealId };
 }
 
-export async function createActivityIn(tx: Tx, userId: string, workspaceId: string, input: ActivityInput) {
+/** `source` marks who wrote the row ("agent" for the sales agent); it is not part of the public input schema, so API clients cannot set it. */
+export async function createActivityIn(tx: Tx, userId: string, workspaceId: string, input: ActivityInput, opts: { source?: string } = {}) {
   await assertWorkspaceMember(tx, workspaceId, input.ownerId);
   const links = await resolveLinks(tx, workspaceId, input);
   const now = new Date();
@@ -74,6 +75,7 @@ export async function createActivityIn(tx: Tx, userId: string, workspaceId: stri
       durationMin: input.durationMin ?? null,
       completedAt: done ? now : null,
       ownerId: input.ownerId ?? userId,
+      source: opts.source ?? null,
       ...links,
     },
     include: { owner: { select: { id: true, name: true, email: true } } },
@@ -88,12 +90,12 @@ async function assertLinksVisible(tx: Tx, m: Parameters<typeof contactVisible>[1
   if (!links.contactId || !(await contactVisible(tx, m, links.contactId, { write }))) throw notFound("contact");
 }
 
-export async function createActivity(userId: string, workspaceId: string, input: ActivityInput) {
+export async function createActivity(userId: string, workspaceId: string, input: ActivityInput, opts: { source?: string } = {}) {
   return db.$transaction(async (tx) => {
     const m = await loadWorkspaceMember(tx, userId, workspaceId, "crm:write");
     if (!can(m, "crm:full") && (input.dealId || input.companyId)) throw notFound("contact");
     await assertLinksVisible(tx, m, input);
-    return createActivityIn(tx, userId, workspaceId, input);
+    return createActivityIn(tx, userId, workspaceId, input, opts);
   });
 }
 
