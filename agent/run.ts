@@ -68,7 +68,7 @@ export async function runAgent(opts: RunOptions): Promise<RunResult> {
   // The agent spends the same AI allowance as every other AI feature and obeys the plan; a day's runs are capped by the person's own limit.
   await assertAiAllowed(opts.userId, opts.workspaceId);
   const { dailyRunLimit } = cleanAgentSettings(member.agentSettings);
-  const recent = await db.agentRun.count({ where: { userId: opts.userId, workspaceId: opts.workspaceId, createdAt: { gte: new Date(Date.now() - 86_400_000) } } });
+  const recent = await db.agentRun.count({ where: { userId: opts.userId, workspaceId: opts.workspaceId, createdAt: { gte: new Date((opts.now ?? new Date()).getTime() - 86_400_000) } } });
   if (recent >= dailyRunLimit) throw new ApiError(429, "agent_daily_limit", `The agent already ran ${recent} times in the last 24 hours (the limit in its settings is ${dailyRunLimit}).`);
 
   let vars = opts.vars;
@@ -94,7 +94,7 @@ export async function runAgent(opts: RunOptions): Promise<RunResult> {
 
   const save = async (text: string) => {
     const run = await db.agentRun.create({
-      data: { workspaceId: opts.workspaceId, userId: opts.userId, role: opts.role, input: user, output: text, toolCalls: toolCalls as never, tokens: inTokens + outTokens },
+      data: { workspaceId: opts.workspaceId, userId: opts.userId, role: opts.role, input: user, output: text, toolCalls: toolCalls as never, tokens: inTokens + outTokens, ...(opts.now ? { createdAt: opts.now } : {}) },
     });
     // Counts toward the workspace's monthly AI allowance, like every other AI feature.
     if (inTokens + outTokens > 0) await db.aiUsage.create({ data: { workspaceId: opts.workspaceId, userId: opts.userId, feature: `agent:${opts.role}`, model: modelName, inputTokens: inTokens, outputTokens: outTokens } });

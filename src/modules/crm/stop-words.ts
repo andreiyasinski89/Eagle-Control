@@ -4,7 +4,7 @@ const STOP_PATTERNS: { label: string; re: RegExp }[] = [
   { label: "финансовая свобода", re: /финансов\p{L}*\s+(свобод|независим)/u },
   { label: "гарантированный доход", re: /гарантир\p{L}*\s+(доход|зараб|прибыл)/u },
   { label: "лёгкие/быстрые деньги", re: /(легк|быстр)\p{L}*\s+(деньг|зараб)/u },
-  { label: "зарабок без вложений", re: /зараб\p{L}*\s+без\s+вложен/u },
+  { label: "заработок без вложений", re: /зараб\p{L}*\s+без\s+вложен/u },
   { label: "сумма дохода", re: /(зараб|доход)\p{L}*[^.!?\n]{0,30}\d[\d\s.,]*\p{L}*(\$|€|usd|eur|евро|долл|руб|злот|pln|zł)/u },
   { label: "pasywny dochód", re: /pasywn\p{L}*\s+doch/u },
   { label: "wolność finansowa", re: /wolno\p{L}*\s+finansow/u },
