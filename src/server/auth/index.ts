@@ -5,9 +5,11 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import type { Provider } from "next-auth/providers";
 import { db } from "@/server/db";
 import { sendMail } from "@/server/mail";
+import { MailError } from "@/server/mail/errors";
 import { syncGrantedPlans } from "@/server/services/grants";
 import { applySignupIntent, intentLocale } from "@/server/services/signup";
 import { confirmLink } from "./confirm-link";
+import { noteSignInMailFailure } from "./mail-failures";
 import { resilientSession } from "./resilient";
 import { signInMail } from "./mail-texts";
 
@@ -23,7 +25,12 @@ const providers: Provider[] = [
       const link = confirmLink(url);
       // In the language the person was using on the page, when they said so while creating the account.
       const locale = await intentLocale(identifier).catch(() => "en" as const);
-      await sendMail({ to: identifier, ...signInMail(locale, link) });
+      try {
+        await sendMail({ to: identifier, ...signInMail(locale, link) });
+      } catch (e) {
+        noteSignInMailFailure(identifier, e instanceof MailError ? e.info.kind : "unknown");
+        throw e;
+      }
     },
   },
 ];

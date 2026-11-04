@@ -68,7 +68,8 @@
     "linkError": "This sign-in link was already used or has expired (it works once, for 15 minutes). Enter your e-mail below and we will send a new one.",
     "rateLimited": "Too many sign-in e-mails for this address or this network today. Wait a little, or try again tomorrow.",
     "accessDenied": "This account cannot sign in right now. Write to us if you think it is a mistake.",
-    "signInFailed": "We could not sign you in ({code}). Ask for a new link below; if it happens again, write to us and name this code."
+    "signInFailed": "We could not sign you in ({code}). Ask for a new link below; if it happens again, write to us and name this code.",
+    "mailDown": "Our e-mail service is not working right now, so the sign-in link cannot be sent. It is not your fault and the address is fine. Try again in 10–15 minutes, or ask the person who invited you."
   },
   "onboarding": {
     "title": "Create your workspace",
@@ -2181,7 +2182,9 @@
     "stepUpConfirm": "Confirm",
     "stepUpOpenUntil": "Dangerous actions are open until {time}",
     "recomputeTemperatures": "Recalculate temperatures",
-    "temperaturesRecomputed": "Temperatures recalculated: {changed} of {checked} people changed."
+    "temperaturesRecomputed": "Temperatures recalculated: {changed} of {checked} people changed.",
+    "mailAlert": "{n, plural, one {# sign-in e-mail} other {# sign-in e-mails}} could not be sent in the last 24 hours: nobody new can get in.",
+    "mailAlertLink": "Open the e-mail check"
   },
   "sharing": {
     "title": "Show my activity to my sponsor",
@@ -2211,7 +2214,9 @@
       "webhookUrl": "Telegram webhook address (the app sets it itself)",
       "redirectUri": "Redirect address (Redirect URI)",
       "eventsUrl": "Events address (Request URL)",
-      "connectorUrl": "Address for Claude (custom connector)"
+      "connectorUrl": "Address for Claude (custom connector)",
+      "origin": "Authorised JavaScript origin",
+      "authRedirectUri": "Authorised redirect URI"
     },
     "p": {
       "inngest": {
@@ -2260,6 +2265,26 @@
         "why": "People ask Claude in a chat and it works in MeetOwl for them. Nothing to register.",
         "s1": "Nothing to set up: it works as soon as the address of the platform is https.",
         "s2": "People copy the address from the Claude card on the Integrations page. Press Check to be sure."
+      },
+      "mail": {
+        "title": "E-mail for sign-in links",
+        "why": "Every sign-in link is sent from this mailbox. If it stops working, nobody new can get in.",
+        "s1": "Open myaccount.google.com/apppasswords, signed in to the same Google account the e-mails are sent from (2-step verification must be on).",
+        "s2": "Delete the old app password called MeetOwl if there is one, then create a new one with the name MeetOwl.",
+        "s3": "Copy the 16 letters of the password (the spaces do not matter).",
+        "s4": "In Vercel, Settings, Environment Variables: replace the value of SMTP_PASS with the new password. SMTP_HOST must be smtp.gmail.com, SMTP_PORT 465, SMTP_USER your Gmail address.",
+        "s5": "In Vercel open Deployments, press the three dots on the latest one and choose Redeploy. Without it the new password does not take effect.",
+        "s6": "Come back here and press Check: a test e-mail will come to your mailbox. When you have your own domain, Resend (RESEND_API_KEY) is the sturdier way to send."
+      },
+      "googleSignIn": {
+        "title": "Sign in with Google",
+        "why": "One button instead of an e-mailed link: nothing to wait for, no link that can expire.",
+        "s1": "Open console.cloud.google.com and create a project (or take the one where the calendar is already set up).",
+        "s2": "APIs & Services, OAuth consent screen: type External, name MeetOwl, your e-mail. Then press Publish app, so that everybody can sign in and not only the test users.",
+        "s3": "Credentials, Create credentials, OAuth client ID, type Web application.",
+        "s4": "Paste the two addresses below: the origin into Authorised JavaScript origins, the redirect address into Authorised redirect URIs.",
+        "s5": "Copy the Client ID and the Client secret into Vercel as AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET.",
+        "s6": "Redeploy in Vercel, then press Check here. A Sign in with Google button appears on the sign-in page."
       }
     },
     "result": {
@@ -2278,7 +2303,17 @@
       "google_ok": "The keys are in place. The full check is the first real connection on the Integrations page.",
       "slack_keys": "One of the three Slack keys is not added yet.",
       "slack_ok": "The keys are in place. The full check is the first real connection on the Integrations page.",
-      "claude_ok": "Ready: the address is https, people can connect Claude."
+      "claude_ok": "Ready: the address is https, people can connect Claude.",
+      "mail_ok": "A test e-mail was sent to {name}. Check the mailbox: if it is there, sign-in links will be sent too.",
+      "mail_config": "No mailbox is set up for sending: the settings still point at the test server. Fill in SMTP_USER and SMTP_PASS (or RESEND_API_KEY) in Vercel and redeploy.",
+      "mail_credentials": "The mail server refused the login or password. Make a new app password and replace SMTP_PASS in Vercel, then redeploy. The server said:",
+      "mail_quota": "The mail server asks to wait or says today's limit is used up. Try again later; a daily limit lasts until tomorrow. The server said:",
+      "mail_network": "The mail server cannot be reached. Check SMTP_HOST and SMTP_PORT and try again. The server said:",
+      "mail_rejected": "The mail server did not accept the message. The server said:",
+      "mail_unknown": "The e-mail was not sent, for a reason not known to us. The server said:",
+      "googleSignIn_ok": "The keys are in place. The real check is signing in with Google on the sign-in page.",
+      "googleSignIn_keys": "AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET are not filled in Vercel yet.",
+      "googleSignIn_id": "AUTH_GOOGLE_ID does not look right: it ends with .apps.googleusercontent.com."
     }
   },
   "touches": {

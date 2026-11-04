@@ -9,8 +9,9 @@ import { SkeletonRows } from "@/components/ui/skeleton";
 import { api, ApiFailure } from "@/features/mindmap/api";
 import { cn } from "@/lib/utils";
 
-type Id = "inngest" | "telegram" | "google" | "slack" | "claude";
+type Id = "mail" | "googleSignIn" | "inngest" | "telegram" | "google" | "slack" | "claude";
 interface Setup {
+  mailFailures?: { count: number; last: { kind: string; code: string | null; detail: string | null; at: string } | null };
   appUrl: string;
   https: boolean;
   providers: { id: Id; ready: boolean; vars: { name: string; set: boolean }[]; values: { key: string; value: string }[] }[];
@@ -22,16 +23,18 @@ interface Check {
 }
 
 /** The number of numbered steps each service needs; their words are in the messages as `setup.p.<id>.s1…`. */
-const STEPS: Record<Id, number> = { inngest: 6, telegram: 6, google: 7, slack: 6, claude: 2 };
+const STEPS: Record<Id, number> = { mail: 6, googleSignIn: 6, inngest: 6, telegram: 6, google: 7, slack: 6, claude: 2 };
 /** Where the owner does each step: the page to open. */
 const LINKS: Record<Id, { label: string; url: string } | null> = {
+  mail: { label: "myaccount.google.com/apppasswords", url: "https://myaccount.google.com/apppasswords" },
+  googleSignIn: { label: "console.cloud.google.com", url: "https://console.cloud.google.com/apis/credentials" },
   inngest: { label: "app.inngest.com", url: "https://app.inngest.com" },
   telegram: { label: "@BotFather", url: "https://t.me/BotFather" },
   google: { label: "console.cloud.google.com", url: "https://console.cloud.google.com" },
   slack: { label: "api.slack.com/apps", url: "https://api.slack.com/apps" },
   claude: null,
 };
-const ORDER: Id[] = ["inngest", "telegram", "google", "slack", "claude"];
+const ORDER: Id[] = ["mail", "googleSignIn", "inngest", "telegram", "google", "slack", "claude"];
 
 function CopyValue({ label, value }: { label: string; value: string }) {
   const t = useTranslations("setup");
@@ -180,6 +183,7 @@ export function PlatformSetup() {
                 {r && (
                   <p role="status" className={cn("rounded-lg p-3 text-sm", r.ok ? "bg-[var(--health-green)]/15" : "bg-muted")} data-testid={`setup-result-${p.id}`} data-ok={r.ok}>
                     {t(`result.${r.code}`, { name: r.detail ?? "" })}
+                    {!r.ok && r.detail && r.code.startsWith("mail_") && <code className="mt-1 block break-all text-xs text-muted-foreground">{r.detail}</code>}
                   </p>
                 )}
               </div>

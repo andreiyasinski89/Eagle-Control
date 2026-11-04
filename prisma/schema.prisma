@@ -1539,3 +1539,15 @@ model DayScore {
   @@unique([userId, workspaceId, day])
   @@index([workspaceId, userId, day])
 }
+
+/// An e-mail that could not be sent (a sign-in link, a code): what kind of failure and the server's own words, for the platform owner. Only the domain of the address.
+model MailFailure {
+  id       String   @id @default(cuid())
+  kind     String
+  code     String?
+  detail   String?
+  toDomain String?
+  at       DateTime @default(now())
+
+  @@index([at])
+}

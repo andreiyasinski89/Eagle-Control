@@ -5,9 +5,12 @@ import { slackConfigured } from "@/server/integrations/slack";
 import { setTelegramWebhook, telegramBotCheck, telegramConfigured, telegramWebhookState, telegramWebhookUrl } from "@/server/integrations/telegram";
 import { appUrl } from "@/server/integrations/common";
 import { jobsMode } from "@/server/jobs";
+import { db } from "@/server/db";
+import { classifyMailError } from "@/server/mail/errors";
+import { sendMail } from "@/server/mail";
 import { requireSuperAdmin } from "./admin";
 
-export const PROVIDERS = ["inngest", "telegram", "google", "slack", "claude"] as const;
+export const PROVIDERS = ["mail", "googleSignIn", "inngest", "telegram", "google", "slack", "claude"] as const;
 export type Provider = (typeof PROVIDERS)[number];
 export const setupTestSchema = z.object({ provider: z.enum(PROVIDERS) });
 
@@ -22,10 +25,14 @@ export async function getPlatformSetup(userId: string) {
   const e = env();
   const base = appUrl();
   const vars = (names: [string, string | undefined][]) => names.map(([name, v]) => ({ name, set: set(v) }));
+  const mailBad = await recentMailFailures();
   return {
+    mailFailures: mailBad,
     appUrl: base,
     https: base.startsWith("https://"),
     providers: [
+      { id: "mail" as const, ready: mailConfigured() && mailBad.count === 0, vars: vars([["SMTP_HOST", e.SMTP_HOST], ["SMTP_USER", e.SMTP_USER], ["SMTP_PASS", e.SMTP_PASS], ["MAIL_FROM", e.MAIL_FROM], ["RESEND_API_KEY", e.RESEND_API_KEY]]), values: [] },
+      { id: "googleSignIn" as const, ready: set(e.AUTH_GOOGLE_ID) && set(e.AUTH_GOOGLE_SECRET), vars: vars([["AUTH_GOOGLE_ID", e.AUTH_GOOGLE_ID], ["AUTH_GOOGLE_SECRET", e.AUTH_GOOGLE_SECRET]]), values: [{ key: "origin", value: base }, { key: "authRedirectUri", value: `${base}/api/auth/callback/google` }] },
       { id: "inngest" as const, ready: set(e.INNGEST_EVENT_KEY) && set(e.INNGEST_SIGNING_KEY) && jobsMode() === "inngest", vars: vars([["INNGEST_EVENT_KEY", e.INNGEST_EVENT_KEY], ["INNGEST_SIGNING_KEY", e.INNGEST_SIGNING_KEY], ["JOBS_MODE", e.JOBS_MODE]]), values: [{ key: "syncUrl", value: `${base}/api/inngest` }] },
       { id: "telegram" as const, ready: telegramConfigured() && set(e.TELEGRAM_BOT_USERNAME), vars: vars([["TELEGRAM_BOT_TOKEN", e.TELEGRAM_BOT_TOKEN], ["TELEGRAM_BOT_USERNAME", e.TELEGRAM_BOT_USERNAME], ["TELEGRAM_WEBHOOK_SECRET", e.TELEGRAM_WEBHOOK_SECRET]]), values: [{ key: "webhookUrl", value: telegramWebhookUrl() }] },
       { id: "google" as const, ready: googleConfigured(), vars: vars([["GOOGLE_CAL_CLIENT_ID", e.GOOGLE_CAL_CLIENT_ID], ["GOOGLE_CAL_CLIENT_SECRET", e.GOOGLE_CAL_CLIENT_SECRET]]), values: [{ key: "redirectUri", value: `${base}/api/integrations/google/callback` }] },
@@ -33,6 +40,19 @@ export async function getPlatformSetup(userId: string) {
       { id: "claude" as const, ready: base.startsWith("https://"), vars: [], values: [{ key: "connectorUrl", value: `${base}/api/mcp` }] },
     ],
   };
+}
+
+/** Whether anything is set up to send mail beyond the defaults, which point at a test server on the same machine. */
+function mailConfigured(): boolean {
+  const e = env();
+  return set(e.RESEND_API_KEY) || (set(e.SMTP_USER) && set(e.SMTP_PASS)) || !["localhost", "127.0.0.1"].includes(e.SMTP_HOST);
+}
+
+/** Mail that could not be sent in the last day: how many times, the latest kind, the server's words and when. */
+export async function recentMailFailures(now = new Date()) {
+  const since = new Date(now.getTime() - 24 * 3_600_000);
+  const [count, last] = await Promise.all([db.mailFailure.count({ where: { at: { gte: since } } }).catch(() => 0), db.mailFailure.findFirst({ where: { at: { gte: since } }, orderBy: { at: "desc" } }).catch(() => null)]);
+  return { count, last: last ? { kind: last.kind, code: last.code, detail: last.detail, at: last.at.toISOString() } : null };
 }
 
 export type SetupCheck = { ok: boolean; code: string; detail?: string | null };
@@ -46,6 +66,24 @@ export async function testPlatformProvider(userId: string, provider: Provider): 
   const e = env();
   const https = appUrl().startsWith("https://");
   switch (provider) {
+    case "mail": {
+      if (!mailConfigured()) return { ok: false, code: "mail_config" };
+      const me = await db.user.findUnique({ where: { id: userId }, select: { email: true } });
+      if (!me) return { ok: false, code: "mail_unknown" };
+      try {
+        await sendMail({ to: me.email, subject: "MeetOwl: test", text: "The e-mail of MeetOwl works.", html: "<p>The e-mail of MeetOwl works.</p>" }, { waits: [] });
+        return { ok: true, code: "mail_ok", detail: me.email };
+      } catch (err) {
+        const info = (err as { info?: ReturnType<typeof classifyMailError> }).info ?? classifyMailError(err);
+        return { ok: false, code: `mail_${info.kind}`, detail: info.detail };
+      }
+    }
+    case "googleSignIn": {
+      if (!https) return { ok: false, code: "https" };
+      if (!set(e.AUTH_GOOGLE_ID) || !set(e.AUTH_GOOGLE_SECRET)) return { ok: false, code: "googleSignIn_keys" };
+      if (!/\.apps\.googleusercontent\.com$/.test((e.AUTH_GOOGLE_ID ?? "").trim())) return { ok: false, code: "googleSignIn_id" };
+      return { ok: true, code: "googleSignIn_ok" };
+    }
     case "inngest":
       if (!set(e.INNGEST_EVENT_KEY) || !set(e.INNGEST_SIGNING_KEY)) return { ok: false, code: "inngest_keys" };
       if (jobsMode() !== "inngest") return { ok: false, code: "inngest_mode" };

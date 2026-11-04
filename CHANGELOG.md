@@ -566,3 +566,10 @@
 - Found in the sign-in e-mails of a new person (five links in 25 minutes, the later ones asked from inside their own workspace): they were signed in, but whenever the database was slow or asleep the session lookup failed, Auth.js answered "nobody", and the page sent them back to the sign-in page, where they asked for a new link, and so on round and round.
 - "Nobody" is now believed only when there is no session cookie, or the database confirms that the session does not exist or has expired. When the lookup fails the cookie is checked and the lookup repeated (0.3, 0.9 and 2 seconds); if it still fails the request fails honestly instead of signing anyone out.
 - The sign-in route may now run up to 60 seconds: the first sign-in of a new person makes the account and its first records, and on a database that has just woken up that can pass the default 10 seconds.
+
+## 0.53.0 — Sign-in mail: the real reason, honest messages, a check, and Google sign-in steps
+
+- Found: on 4 November sign-in links stopped going out for everybody. The server log said `535 5.7.8 BadCredentials`: Gmail refused the password of the app that sends the e-mails. See `docs/MAIL.ru.md` for the five-minute fix (a new app password in Vercel, then Redeploy).
+- Every failed send is now classified (refused password, limit, unreachable, rejected, not set up), logged with the server's own words (`[mail] not sent: ...`) and kept in a new table `MailFailure` (kind, code, words, only the domain of the address; migration 0039). Failures that may pass are tried again twice; a refused password is not.
+- The person at the form is told the truth ("our e-mail is not working, it is not your fault, try in 10–15 minutes") instead of "check the address".
+- Platform setup (`/admin/setup`) has two new sections: **E-mail for sign-in links** (the settings, a Check button that sends a test e-mail to the owner and shows the server's exact answer) and **Sign in with Google** (steps with the two addresses to paste, and a check of the keys). The admin page shows a red bar when sign-in e-mails failed in the last 24 hours.

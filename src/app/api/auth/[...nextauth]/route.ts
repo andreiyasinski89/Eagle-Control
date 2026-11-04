@@ -3,6 +3,7 @@ import { handlers } from "@/server/auth";
 import { clientIp } from "@/server/http/limits";
 import { rateLimit } from "@/server/http/rate-limit";
 import { allowSignIn } from "@/server/services/signin-guard";
+import { takeSignInMailFailure } from "@/server/auth/mail-failures";
 
 // A first sign-in makes the account and its first records: on a database that has just woken up that can pass the default 10 seconds.
 export const maxDuration = 60;
@@ -37,5 +38,12 @@ export async function POST(req: NextRequest): Promise<Response> {
       await saveSignupIntent({ email, locale: String(form?.get("locale") ?? "") }).catch(() => undefined);
     }
   }
-  return handlers.POST(req);
+  const res = await handlers.POST(req);
+  // The link could not be sent: say so plainly (the form shows "the mail service is not working, try again later"), instead of the bare Auth.js error.
+  if (req.nextUrl.pathname.endsWith("/signin/email")) {
+    const email = String((await req.clone().formData().catch(() => null))?.get("email") ?? "").trim().toLowerCase();
+    const kind = email ? takeSignInMailFailure(email) : null;
+    if (kind) return NextResponse.json({ error: { code: "mail_unavailable", kind, message: "The e-mail service is not working right now. Try again in a few minutes." } }, { status: 503 });
+  }
+  return res;
 }
