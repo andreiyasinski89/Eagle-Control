@@ -31,6 +31,13 @@ const csp = [
 const config: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  async redirects() {
+    // Ukrainian is "uk" for browsers, but its address is /ua (see src/i18n/routing.ts): the other spelling lands in the right place instead of on a 404.
+    return [
+      { source: "/uk", destination: "/ua", permanent: true },
+      { source: "/uk/:path*", destination: "/ua/:path*", permanent: true },
+    ];
+  },
   // The agent reads its prompts from agent/prompts/*.md at run time; without this the serverless bundle of the routes that start it would not contain them.
   outputFileTracingIncludes: { "/api/inngest": ["./agent/prompts/**/*"], "/api/jobs/[name]": ["./agent/prompts/**/*"] },
   async headers() {

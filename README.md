@@ -70,7 +70,7 @@ npm run dev
 |---|---|
 | `npm run typecheck` / `npm run lint` | strict TS, ESLint (`no-explicit-any` is an error) |
 | `npm test` | Vitest: unit tests + integration tests on real SQL (PGlite, no Docker needed) |
-| `npm run test:e2e` | Playwright (needs the Docker stack above running). The ambassador's day (a lead by webhook → touch queue → "Meeting set" → plan of the day) runs against the demo: `APP_URL=http://localhost:3100 PW_CHANNEL=chrome npx playwright test e2e/ambassador.spec.ts` |
+| `npm run test:e2e` | Playwright: sign-up by e-mailed link, workspace and invitation (`onboarding.spec.ts`), the project map (`mindmap.spec.ts`). Needs a migrated database and no demo mode; the mailbox for the links is started by the config itself (`scripts/e2e-mailbox.mjs`, or Mailpit on :8025 if it is already running), so Docker is not required. Add `PW_CHANNEL=chrome` to use the installed Chrome. The ambassador's day and the messenger buttons run against the demo (see next). The ambassador's day (a lead by webhook → touch queue → "Meeting set" → plan of the day) runs against the demo: `APP_URL=http://localhost:3100 PW_CHANNEL=chrome npx playwright test e2e/ambassador.spec.ts` |
 | `npm run db:migrate` | create a new dev migration after schema edits |
 
 ## Using the map

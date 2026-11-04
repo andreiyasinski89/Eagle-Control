@@ -270,3 +270,5 @@
 | 265 | A refused password is never retried; unreachable and "wait" are, twice | A wrong password does not fix itself; a slow server does. A person is waiting, so the waits are short. |
 | 266 | The sign-in form is told "the mail service is down", not "check the address" | The address was never the problem; the wrong message sends people round in circles. |
 | 267 | Google sign-in is offered through the platform setup page, with Resend as the sturdier sender once there is a domain | It removes the e-mailed link for most people; Resend needs an own domain, which does not exist yet. |
+| 268 | The browser tests bring their own mailbox | They need a mailbox for the sign-in links; with Docker as a requirement they were not run for months and went stale unnoticed. |
+| 269 | Dependencies are updated in stages by risk, never with `npm audit fix --force` | The audit's own "fix" for next-auth is a 2021 version that would remove sign-in; none of the findings is reachable from outside, so there is time to do it carefully. |

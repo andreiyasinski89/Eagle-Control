@@ -19,10 +19,12 @@ vi.mock("@/server/auth", () => ({
     GET: async () => new Response("ok"),
     POST: async (req: Request) => {
       auth.posts++;
+      // Auth.js takes the body of the request, and it can be read only once: the route must not need it afterwards
+      const sent = await req.formData();
       // what the real sender does when the mail cannot be sent: notes why, and Auth.js answers with its bare configuration error
       if (auth.failWith) {
         const { noteSignInMailFailure } = await import("@/server/auth/mail-failures");
-        noteSignInMailFailure(String((await req.clone().formData()).get("email")), auth.failWith);
+        noteSignInMailFailure(String(sent.get("email")), auth.failWith);
         return Response.json({ url: "https://app.example.com/sign-in?error=Configuration" });
       }
       return new Response("sent");
