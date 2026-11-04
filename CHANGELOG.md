@@ -580,3 +580,7 @@
 - The two stale browser tests (sign-up by e-mailed link, project map) work again against the current screens: a shared helper signs in the way a person does (link from the mail, then the confirmation button), the config starts a small mailbox (`scripts/e2e-mailbox.mjs`) so Docker is not needed, waits are longer for a dev server that builds pages on first visit, and the expectations match the template (two goals with two sprints each).
 - `robots.txt` (the API, signed-in areas and personal links are closed to crawlers); `/uk/...` now redirects to `/ua/...` instead of a 404; the two lint warnings in the config files are gone; the six array schemas that had no `.max()` have one.
 - `docs/DEPENDENCIES.ru.md`: what the dependency audit found, what really matters, and the plan to update in five stages (small updates, nodemailer 10, zod 4, Next 16, Prisma 7).
+
+## 0.53.2 — The mail check says what looks wrong in the settings
+
+- When the mail check fails, it also shows what the site sees in its mail settings (server:port, the login half hidden, the length of the password: never the password) and lists what looks wrong in plain words: the name of a variable typed as its value, a password that is not 16 small letters (so not an app password), quotation marks, spaces or a line break around a value, a Resend key that takes over from Gmail, a host or port that does not fit Gmail.

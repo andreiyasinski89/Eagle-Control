@@ -2317,6 +2317,22 @@
       "googleSignIn_ok": "Klucze są na miejscu. Prawdziwym sprawdzianem jest logowanie przez Google na stronie logowania.",
       "googleSignIn_keys": "AUTH_GOOGLE_ID i AUTH_GOOGLE_SECRET nie są jeszcze wypełnione w Vercel.",
       "googleSignIn_id": "AUTH_GOOGLE_ID wygląda źle: kończy się na .apps.googleusercontent.com."
+    },
+    "mailSeen": "Co widzi strona (serwer:port · login · długość hasła):",
+    "mailHint": {
+      "resend_wins": "Wypełniony jest RESEND_API_KEY, więc strona wysyła przez Resend i pomija ustawienia Gmail. Usuń RESEND_API_KEY, jeśli ma być Gmail.",
+      "user_missing": "SMTP_USER jest pusty: wpisz w nim pełny adres Gmail.",
+      "user_is_name": "Wartością SMTP_USER jest samo słowo SMTP_USER. Wpisz adres Gmail w polu Value.",
+      "user_stray": "SMTP_USER ma spację, znak nowej linii albo cudzysłów dookoła. Wpisz go od nowa, bez niczego dookoła.",
+      "user_not_email": "SMTP_USER nie wygląda na pełny adres e-mail (potrzebna część @gmail.com).",
+      "pass_missing": "SMTP_PASS jest pusty: wpisz w nim hasło aplikacji z 16 liter.",
+      "pass_is_name": "Wartością SMTP_PASS jest samo słowo SMTP_PASS. Wpisz hasło aplikacji z 16 liter w polu Value.",
+      "pass_stray": "SMTP_PASS ma spację, znak nowej linii albo cudzysłów dookoła. Usuń wartość i wklej kod od nowa, bez niczego dookoła.",
+      "pass_length": "Hasło nie ma 16 znaków. Hasło aplikacji to dokładnie 16 małych liter: utwórz nowe i wklej w całości.",
+      "pass_chars": "W haśle są inne znaki niż małe litery. Hasło aplikacji to tylko 16 małych liter, więc to nie ono (najpewniej zwykłe hasło konta).",
+      "pass_spaces": "W haśle są spacje. Działa i tak, ale pewniej wkleić 16 liter z rzędu.",
+      "host_not_gmail": "Login to adres Gmail, a SMTP_HOST nie jest smtp.gmail.com.",
+      "port_not_gmail": "Dla smtp.gmail.com port musi być 465 (albo 587)."
     }
   },
   "touches": {

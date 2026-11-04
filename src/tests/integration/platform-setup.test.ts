@@ -111,7 +111,12 @@ describe("platform setup", () => {
     expect(await testPlatformProvider(boss, "mail")).toEqual({ ok: true, code: "mail_ok", detail: "boss@example.com" });
     expect(send).toHaveBeenLastCalledWith(expect.objectContaining({ to: "boss@example.com" }), { waits: [] });
     send.mockRejectedValueOnce(new MailError({ kind: "credentials", code: "535", detail: "535 5.7.8 BadCredentials" }));
-    expect(await testPlatformProvider(boss, "mail")).toEqual({ ok: false, code: "mail_credentials", detail: "535 5.7.8 BadCredentials" });
+    const bad = await testPlatformProvider(boss, "mail");
+    expect(bad).toMatchObject({ ok: false, code: "mail_credentials", detail: "535 5.7.8 BadCredentials" });
+    // and what looks wrong in the settings, without the password: here it is not 16 letters and the port is not Gmail's
+    expect(bad.hints).toEqual(["pass_length", "port_not_gmail"]);
+    expect(bad.seen).toBe("smtp.gmail.com:1025 · me***@gmail.com · 19");
+    expect(JSON.stringify(bad)).not.toContain("app-password-secret");
     send.mockRejectedValueOnce(new Error("socket hang up"));
     expect(await testPlatformProvider(boss, "mail")).toMatchObject({ ok: false, code: "mail_network" });
   });

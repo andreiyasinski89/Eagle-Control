@@ -8,6 +8,7 @@ import { jobsMode } from "@/server/jobs";
 import { db } from "@/server/db";
 import { classifyMailError } from "@/server/mail/errors";
 import { sendMail } from "@/server/mail";
+import { mailSettingsHints } from "@/server/mail/hints";
 import { requireSuperAdmin } from "./admin";
 
 export const PROVIDERS = ["mail", "googleSignIn", "inngest", "telegram", "google", "slack", "claude"] as const;
@@ -55,7 +56,8 @@ export async function recentMailFailures(now = new Date()) {
   return { count, last: last ? { kind: last.kind, code: last.code, detail: last.detail, at: last.at.toISOString() } : null };
 }
 
-export type SetupCheck = { ok: boolean; code: string; detail?: string | null };
+/** `seen` and `hints` are for the mail check only: what the site sees in its settings (no password) and what looks wrong in it. */
+export type SetupCheck = { ok: boolean; code: string; detail?: string | null; seen?: string; hints?: string[] };
 
 /**
  * A quick check of one service. It answers with a code that the page turns into plain words. Google and Slack can only be checked fully by
@@ -75,7 +77,8 @@ export async function testPlatformProvider(userId: string, provider: Provider): 
         return { ok: true, code: "mail_ok", detail: me.email };
       } catch (err) {
         const info = (err as { info?: ReturnType<typeof classifyMailError> }).info ?? classifyMailError(err);
-        return { ok: false, code: `mail_${info.kind}`, detail: info.detail };
+        const h = mailSettingsHints(e);
+        return { ok: false, code: `mail_${info.kind}`, detail: info.detail, seen: h.seen, hints: h.codes };
       }
     }
     case "googleSignIn": {

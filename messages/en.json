@@ -2317,6 +2317,22 @@
       "googleSignIn_ok": "The keys are in place. The real check is signing in with Google on the sign-in page.",
       "googleSignIn_keys": "AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET are not filled in Vercel yet.",
       "googleSignIn_id": "AUTH_GOOGLE_ID does not look right: it ends with .apps.googleusercontent.com."
+    },
+    "mailSeen": "What the site sees (server:port · login · password length):",
+    "mailHint": {
+      "resend_wins": "RESEND_API_KEY is filled in, so the site sends through Resend and ignores the Gmail settings. Delete RESEND_API_KEY if you want Gmail.",
+      "user_missing": "SMTP_USER is empty: put your full Gmail address in it.",
+      "user_is_name": "The value of SMTP_USER is the word SMTP_USER itself. Put your Gmail address in the Value field.",
+      "user_stray": "SMTP_USER has a space, a line break or quotation marks around it. Retype it plainly, with nothing around it.",
+      "user_not_email": "SMTP_USER is not a full e-mail address (it needs the @gmail.com part).",
+      "pass_missing": "SMTP_PASS is empty: put the 16-letter app password in it.",
+      "pass_is_name": "The value of SMTP_PASS is the word SMTP_PASS itself. Put the 16-letter app password in the Value field.",
+      "pass_stray": "SMTP_PASS has a space, a line break or quotation marks around it. Delete the value and paste the code again, with nothing around it.",
+      "pass_length": "The password is not 16 characters long. An app password is exactly 16 small letters; make a new one and paste it whole.",
+      "pass_chars": "The password has characters other than small letters. An app password is 16 small letters only, so this is not one (most likely the usual password of the account).",
+      "pass_spaces": "The password has spaces inside. It works either way, but it is safer to paste it as 16 letters in a row.",
+      "host_not_gmail": "The login is a Gmail address, but SMTP_HOST is not smtp.gmail.com.",
+      "port_not_gmail": "For smtp.gmail.com the port must be 465 (or 587)."
     }
   },
   "touches": {

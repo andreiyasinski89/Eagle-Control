@@ -20,6 +20,8 @@ interface Check {
   ok: boolean;
   code: string;
   detail?: string | null;
+  seen?: string;
+  hints?: string[];
 }
 
 /** The number of numbered steps each service needs; their words are in the messages as `setup.p.<id>.s1…`. */
@@ -184,6 +186,18 @@ export function PlatformSetup() {
                   <p role="status" className={cn("rounded-lg p-3 text-sm", r.ok ? "bg-[var(--health-green)]/15" : "bg-muted")} data-testid={`setup-result-${p.id}`} data-ok={r.ok}>
                     {t(`result.${r.code}`, { name: r.detail ?? "" })}
                     {!r.ok && r.detail && r.code.startsWith("mail_") && <code className="mt-1 block break-all text-xs text-muted-foreground">{r.detail}</code>}
+                    {!r.ok && r.seen && (
+                      <span className="mt-2 block text-xs" data-testid="setup-mail-seen">
+                        {t("mailSeen")} <code>{r.seen}</code>
+                      </span>
+                    )}
+                    {!r.ok && r.hints && r.hints.length > 0 && (
+                      <ul className="mt-1 list-disc pl-5 text-xs" data-testid="setup-mail-hints">
+                        {r.hints.map((h) => (
+                          <li key={h}>{t(`mailHint.${h}`)}</li>
+                        ))}
+                      </ul>
+                    )}
                   </p>
                 )}
               </div>

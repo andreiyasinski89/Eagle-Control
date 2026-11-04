@@ -272,3 +272,4 @@
 | 267 | Google sign-in is offered through the platform setup page, with Resend as the sturdier sender once there is a domain | It removes the e-mailed link for most people; Resend needs an own domain, which does not exist yet. |
 | 268 | The browser tests bring their own mailbox | They need a mailbox for the sign-in links; with Docker as a requirement they were not run for months and went stale unnoticed. |
 | 269 | Dependencies are updated in stages by risk, never with `npm audit fix --force` | The audit's own "fix" for next-auth is a 2021 version that would remove sign-in; none of the findings is reachable from outside, so there is time to do it carefully. |
+| 270 | The mail check lists likely mistakes in the settings instead of only repeating the server's refusal | "Username and Password not accepted" does not say whether the password is wrong, mistyped, pasted with a stray space or not an app password at all; the shape of the values does. |
