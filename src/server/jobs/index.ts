@@ -11,6 +11,7 @@ import { deliverDue, purgeDeliveries } from "@/server/webhooks";
 import { pollAll, pushEvent } from "@/server/integrations/google";
 import { recalcTemperatures } from "@/server/services/crm/temperature";
 import { closeYesterdays } from "@/server/services/crm/day-history";
+import { runDueAgents } from "../../../agent/schedule";
 import { announceEndedSprints, dispatchReminders, maintenance, refreshAllProjects } from "./tasks";
 
 /** Event name → what it does. Add integration jobs (calendar sync…) here; both runners pick them up. */
@@ -30,6 +31,8 @@ export const handlers = {
   "calendar/poll": async () => pollAll(),
   // Failed payments past their grace period, then trials, bonuses and gifts that have run out.
   "billing/expire": async () => ({ ...(await expireGrace()), ...(await expireTimed()), recomputed: (await recomputePlans()).changed }),
+  // The sales agent's clock: whoever has the agent on gets the morning briefing, the follow-up check every two hours and the evening report at their own times.
+  "agent/tick": async () => runDueAgents(),
   "account/erase": async () => runDueErasures(),
   /** Public demo only: puts the sample workspace back as it was. */
   "demo/reset": async () => (env().DEMO_MODE ? resetDemo() : { skipped: true }),

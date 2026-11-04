@@ -265,7 +265,7 @@ export async function createContact(userId: string, workspaceId: string, input: 
   });
 }
 
-export async function updateContactIn(tx: Tx, userId: string, contactId: string, patch: z.infer<typeof patchContactSchema>) {
+export async function updateContactIn(tx: Tx, userId: string, contactId: string, patch: z.infer<typeof patchContactSchema>, opts: { source?: string } = {}) {
   const node = await loadCrmNode(tx, userId, contactId, "CONTACT", true);
   const cur = await tx.contact.findUniqueOrThrow({ where: { nodeId: contactId } });
   await assertWorkspaceMember(tx, node.workspaceId, patch.ownerId);
@@ -308,16 +308,16 @@ export async function updateContactIn(tx: Tx, userId: string, contactId: string,
     nodeData.title = fullName(patch.firstName ?? cur.firstName, patch.lastName !== undefined ? patch.lastName : cur.lastName);
   }
   await tx.contact.update({ where: { nodeId: contactId }, data });
-  if (stageMoved) await tx.contactStageEvent.create({ data: { contactNodeId: contactId, workspaceId: node.workspaceId, fromStage: cur.stage, toStage: patch.stage as (typeof STAGES)[number], actorId: userId } });
+  if (stageMoved) await tx.contactStageEvent.create({ data: { contactNodeId: contactId, workspaceId: node.workspaceId, fromStage: cur.stage, toStage: patch.stage as (typeof STAGES)[number], actorId: userId, source: opts.source ?? null } });
   // The funnel moved or the hand-set temperature was cleared: the computed one takes over again at once.
   if (stageMoved || patch.temperature === null) await refreshTemperature(tx, contactId);
   if (Object.keys(nodeData).length) await tx.node.update({ where: { id: contactId }, data: nodeData });
   await logActivity(tx, { workspaceId: node.workspaceId, nodeId: contactId, actorId: userId, action: "contact.updated", diff: { fields: Object.keys(patch) } });
 }
 
-export async function updateContact(userId: string, contactId: string, patch: z.infer<typeof patchContactSchema>) {
+export async function updateContact(userId: string, contactId: string, patch: z.infer<typeof patchContactSchema>, opts: { source?: string } = {}) {
   return db.$transaction(async (tx) => {
-    await updateContactIn(tx, userId, contactId, patch);
+    await updateContactIn(tx, userId, contactId, patch, opts);
     return getContactIn(tx, userId, contactId);
   });
 }
@@ -344,6 +344,19 @@ export async function setConsent(userId: string, contactId: string, given: boole
       await tx.consentRecord.updateMany({ where: { contactNodeId: contactId, revokedAt: null }, data: { revokedAt: now } });
     }
     await logActivity(tx, { workspaceId: node.workspaceId, nodeId: contactId, actorId: userId, action: given ? "contact.consent_given" : "contact.consent_revoked" });
+    return getContactIn(tx, userId, contactId);
+  });
+}
+
+/**
+ * The person wrote back: the "replied" button. `repliedAt` stays until a touch of ours comes after it (see modules/crm/silence.ts),
+ * so a second press before we answered only moves the moment forward.
+ */
+export async function markReplied(userId: string, contactId: string, at = new Date()) {
+  return db.$transaction(async (tx) => {
+    const node = await loadCrmNode(tx, userId, contactId, "CONTACT", true);
+    await tx.contact.update({ where: { nodeId: contactId }, data: { repliedAt: at } });
+    await logActivity(tx, { workspaceId: node.workspaceId, nodeId: contactId, actorId: userId, action: "contact.replied" });
     return getContactIn(tx, userId, contactId);
   });
 }
@@ -460,6 +473,7 @@ export async function getContactIn(tx: Tx, userId: string, contactId: string) {
     consentGiven: c.consentGiven,
     consentAt: c.consentAt,
     lastContactedAt: c.lastContactedAt,
+    repliedAt: c.repliedAt,
     createdAt: node.createdAt,
     stage: c.stage,
     stageChangedAt: c.stageChangedAt,

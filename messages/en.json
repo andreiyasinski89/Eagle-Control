@@ -530,6 +530,8 @@
     "contactGone": "This contact no longer exists.",
     "lastContact": "Last contact: {date}",
     "neverContacted": "Never contacted",
+    "markReplied": "Replied",
+    "repliedWaiting": "Replied {date}: waiting for your answer",
     "birthday": "Birthday",
     "revoked": "revoked {date}",
     "noDeals": "No deals.",
@@ -1056,7 +1058,8 @@
     "materialCopied": "The link is copied: paste it into the chat.",
     "materialCopyFailed": "Could not copy. Open Materials and copy the link there.",
     "scriptOriginal": "Ready-made · follows your language",
-    "scriptFreezeHint": "This is a ready-made script and it follows the language of the screen. Once you save a change, it becomes your own and stays exactly as you wrote it."
+    "scriptFreezeHint": "This is a ready-made script and it follows the language of the screen. Once you save a change, it becomes your own and stays exactly as you wrote it.",
+    "tabDrafts": "Agent drafts"
   },
   "myday": {
     "title": "My day",
@@ -2566,5 +2569,39 @@
     "since": "The history is kept from {date}.",
     "empty": "The history starts to build up today: open My day and the numbers of each day are kept from now on. Days with nothing planned are not counted, they are not zeros.",
     "error": "Could not load the history."
+  },
+  "agentDrafts": {
+    "title": "Agent drafts",
+    "empty": "No drafts. The agent leaves them here and you send them.",
+    "copyOpen": "Copy and open {channel}",
+    "copyOnly": "Copy",
+    "edit": "Edit",
+    "reject": "Reject",
+    "save": "Save",
+    "cancel": "Cancel",
+    "approved": "Reviewed",
+    "noHandle": "The card has no {channel} contact: the text is copied, open the chat yourself.",
+    "consentLost": "The contact no longer has consent. Get it first.",
+    "settled": "This draft was already sent or rejected.",
+    "copyFailed": "Could not copy the text. The status is unchanged.",
+    "why": "Why today",
+    "count": "Waiting for you: {count}",
+    "textLabel": "Message text"
+  },
+  "agentSettings": {
+    "title": "Sales agent",
+    "hint": "The agent prepares the briefing, watches for silence and writes the evening report. It never sends messages to people: drafts only.",
+    "enabled": "Agent is on",
+    "briefingTime": "Morning briefing at",
+    "touchesPerDay": "Touches per day",
+    "meetingsPerDay": "Presentations per day",
+    "goal": "Goal",
+    "goalPlaceholder": "For example, Gold status",
+    "deadline": "Goal deadline",
+    "dailyRunLimit": "At most this many agent runs a day",
+    "limitNote": "The agent spends your plan's monthly AI allowance. The daily run limit guards against runaway cost.",
+    "save": "Save",
+    "saved": "Saved",
+    "failed": "Could not save"
   }
 }

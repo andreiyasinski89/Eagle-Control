@@ -169,7 +169,7 @@ describe("Telegram", () => {
       expect(await setTelegramWebhook()).toEqual({ url });
       const call = sent(/api\.telegram\.org\/bottg-token\/setWebhook/)[0]!;
       expect(call.method).toBe("POST");
-      expect(call.body).toEqual({ url, secret_token: "tg-secret", allowed_updates: ["message"] });
+      expect(call.body).toEqual({ url, secret_token: "tg-secret", allowed_updates: ["message", "callback_query"] });
     });
 
     it("says what Telegram is doing: connected, not connected, or unknown", async () => {
@@ -188,7 +188,7 @@ describe("Telegram", () => {
 
     it("reports a Telegram failure instead of pretending it worked", async () => {
       on(/setWebhook/, () => reply(400, { ok: false, description: "bad webhook: HTTPS url must be provided" }));
-      await expect(setTelegramWebhook()).rejects.toThrow(/telegram/i);
+      await expect(setTelegramWebhook()).rejects.toMatchObject({ status: 502, code: "telegram_rejected", message: expect.stringContaining("HTTPS url must be provided") });
     });
   });
 
