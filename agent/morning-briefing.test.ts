@@ -31,7 +31,7 @@ let foreignContactId: string;
 const VARS = { user_name: "Андрей", goal: "статус Gold", deadline: "31 декабря", touches_per_day: 20, meetings_per_day: 4, date: "2026-11-03" };
 
 const reply = (content: Block[], stopReason: ModelReply["stopReason"] = "tool_use"): ModelReply => ({ content, stopReason, inputTokens: 100, outputTokens: 50, model: "scripted" });
-const use = (id: string, name: string, input: Record<string, unknown>): Block => ({ type: "tool_use", id, name, input });
+const toolUse = (id: string, name: string, input: Record<string, unknown>): Block => ({ type: "tool_use", id, name, input });
 
 /** A model that plays a fixed script and sees what the agent loop sent it, like the real one would. */
 function scripted(steps: ((req: ModelRequest) => ModelReply)[]): AgentModel & { requests: ModelRequest[] } {
@@ -77,7 +77,7 @@ describe("Morning briefing role", () => {
   it("reads the CRM through the tools, answers from what it read, and logs the run", async () => {
     const activitiesBefore = await raw.crmActivity.count();
     const model = scripted([
-      () => reply([use("t1", "my_day", {}), use("t2", "get_calendar", { from: "2026-11-03", to: "2026-11-03", mine: "1" }), use("t3", "list_contacts", { stage: "WARMING" })]),
+      () => reply([toolUse("t1", "my_day", {}), toolUse("t2", "get_calendar", { from: "2026-11-03", to: "2026-11-03", mine: "1" }), toolUse("t3", "list_contacts", { stage: "WARMING" })]),
       (req) => {
         const results = lastResults(req);
         expect(results.map((r) => r.id)).toEqual(["t1", "t2", "t3"]);
@@ -132,8 +132,8 @@ describe("What the agent writes into the CRM", () => {
     const model = scripted([
       () =>
         reply([
-          use("w1", "log_activity", { type: "NOTE", subject: "Валентин хочет созвон про команду", body: "Договорились обсудить в четверг", contactId: valentinId }),
-          use("w2", "log_activity", { type: "NOTE", subject: "Не должно записаться", contactId: foreignContactId }),
+          toolUse("w1", "log_activity", { type: "NOTE", subject: "Валентин хочет созвон про команду", body: "Договорились обсудить в четверг", contactId: valentinId }),
+          toolUse("w2", "log_activity", { type: "NOTE", subject: "Не должно записаться", contactId: foreignContactId }),
         ]),
       (req) => {
         const [ok, foreign] = lastResults(req);
@@ -161,7 +161,7 @@ describe("What the agent writes into the CRM", () => {
     const deal = await createDeal(owner, ws.id, { title: "Валентин — команда", amount: 0, currency: "EUR", primaryContactId: valentinId });
     const target = stages.find((s) => s.id !== deal.stageId && !s.isLost && !s.isWon)!;
     const model = scripted([
-      () => reply([use("m1", "move_deal", { id: deal.id, stageId: target.id }), use("m2", "update_deal", { id: deal.id, nextStep: "Созвон про команду", nextStepAt: "2026-11-06T17:00:00.000Z", source: "hacked" })]),
+      () => reply([toolUse("m1", "move_deal", { id: deal.id, stageId: target.id }), toolUse("m2", "update_deal", { id: deal.id, nextStep: "Созвон про команду", nextStepAt: "2026-11-06T17:00:00.000Z", source: "hacked" })]),
       () => reply([{ type: "text", text: "Готово." }], "end_turn"),
     ]);
 
@@ -179,7 +179,7 @@ describe("What the agent writes into the CRM", () => {
 
   it("saves drafts only through create_draft: a draft with consent, a task without, nothing sent", async () => {
     const model = scripted([
-      () => reply([use("d1", "create_draft", { contactId: valentinId, channel: "TELEGRAM", text: "Валентин, привет! Как тебе вчерашняя презентация?", reason: "был на офлайн-презентации" }), use("d2", "create_draft", { contactId: annaId, text: "Анна, привет!" })]),
+      () => reply([toolUse("d1", "create_draft", { contactId: valentinId, channel: "TELEGRAM", text: "Валентин, привет! Как тебе вчерашняя презентация?", reason: "был на офлайн-презентации" }), toolUse("d2", "create_draft", { contactId: annaId, text: "Анна, привет!" })]),
       (req) => {
         const [withConsent, without] = lastResults(req).map((r) => JSON.parse(r.content) as Record<string, unknown>);
         expect(withConsent).toMatchObject({ status: "draft_created" });
@@ -199,10 +199,10 @@ describe("What the agent writes into the CRM", () => {
     const contactId = (await createContact(owner, ws.id, { emails: [], phones: [], messengers: {}, allowDuplicate: false, firstName: "Нона", consentGiven: false, stage: "WARMING", temperature: "WARM" })).id;
     const change = { id: contactId, stage: "PRESENTATION", temperature: "HOT", nextStep: "Презентация по видеозвонку", nextStepAt: "2026-11-05T17:00:00.000Z", consentGiven: true };
     const model = scripted([
-      () => reply([use("u1", "update_contact", change)]),
+      () => reply([toolUse("u1", "update_contact", change)]),
       (req) => {
         expect(lastResults(req)[0]).toMatchObject({ isError: true, content: expect.stringContaining("list_activities") });
-        return reply([use("u2", "list_activities", { contactId }), use("u3", "update_contact", change)]);
+        return reply([toolUse("u2", "list_activities", { contactId }), toolUse("u3", "update_contact", change)]);
       },
       (req) => {
         const [, applied] = lastResults(req);
@@ -234,7 +234,7 @@ describe("What the agent writes into the CRM", () => {
 });
 
 describe("A run that never says a word until it is told to", () => {
-  const call = (i: number) => reply([use(`c${i}`, "my_day", {})]);
+  const call = (i: number) => reply([toolUse(`c${i}`, "my_day", {})]);
 
   it("gets through 25 one-call turns and then answers", async () => {
     let n = 0;
@@ -265,7 +265,7 @@ describe("A run that never says a word until it is told to", () => {
     const model: AgentModel = {
       async complete(req) {
         seen.push(structuredClone(req));
-        return seen.length === 1 ? reply([use("a", "my_day", {})]) : seen.length === 2 ? reply([], "end_turn") : reply([{ type: "text", text: "Ответ со второй попытки." }], "end_turn");
+        return seen.length === 1 ? reply([toolUse("a", "my_day", {})]) : seen.length === 2 ? reply([], "end_turn") : reply([{ type: "text", text: "Ответ со второй попытки." }], "end_turn");
       },
     };
     const run = await runAgent({ userId: owner, workspaceId: ws.id, role: "morning_briefing", vars: VARS, model });
