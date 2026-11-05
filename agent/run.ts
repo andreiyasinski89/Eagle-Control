@@ -91,6 +91,8 @@ export async function runAgent(opts: RunOptions): Promise<RunResult> {
   let outTokens = 0;
   let modelName = "unknown";
   let output = "";
+  let lastStop = "none";
+  let steps = 0;
 
   const save = async (text: string) => {
     const run = await db.agentRun.create({
@@ -120,6 +122,8 @@ export async function runAgent(opts: RunOptions): Promise<RunResult> {
       inTokens += reply.inputTokens;
       outTokens += reply.outputTokens;
       modelName = reply.model;
+      lastStop = reply.stopReason;
+      steps++;
       messages.push({ role: "assistant", content: reply.content });
       const text = reply.content.filter((b): b is Extract<Block, { type: "text" }> => b.type === "text").map((b) => b.text).join("").trim();
       const uses = reply.content.filter((b): b is Extract<Block, { type: "tool_use" }> => b.type === "tool_use");
@@ -135,7 +139,20 @@ export async function runAgent(opts: RunOptions): Promise<RunResult> {
       }
       messages.push({ role: "user", content: results });
     }
-    if (!output) throw new ApiError(502, "agent_empty", "The agent finished without an answer. Try again.");
+    if (!output && messages.length > 1) {
+      // One more try with no tools allowed: the model has read what it needs and only has to say it.
+      const ask = "Ответь сейчас текстом по тому, что уже известно. Инструменты не вызывай.";
+      // An empty assistant message at the end would be refused by the API, so it is left out.
+      const base = messages.at(-1)?.role === "assistant" && Array.isArray(messages.at(-1)!.content) && (messages.at(-1)!.content as Block[]).length === 0 ? messages.slice(0, -1) : messages;
+      const last = base[base.length - 1]!;
+      const closing: Msg[] = last.role === "user" ? [...base.slice(0, -1), { role: "user", content: [...(typeof last.content === "string" ? [{ type: "text" as const, text: last.content }] : last.content), { type: "text", text: ask }] }] : [...base, { role: "user", content: ask }];
+      const reply = await model.complete({ system, messages: closing, tools, maxTokens: MAX_TOKENS, forbidTools: true });
+      inTokens += reply.inputTokens;
+      outTokens += reply.outputTokens;
+      lastStop = reply.stopReason;
+      output = reply.content.filter((b): b is Extract<Block, { type: "text" }> => b.type === "text").map((b) => b.text).join("").trim();
+    }
+    if (!output) throw new ApiError(502, "agent_empty", `The agent finished without an answer (last stop: ${lastStop}, steps: ${steps}, tool calls: ${toolCalls.length}). Try again.`);
   } catch (e) {
     await save(`[error] ${e instanceof Error ? e.message : "failed"}`);
     throw e;
