@@ -293,4 +293,4 @@
 | 286 | The move to Frankfurt is a copy into a new project, the old database stays untouched for two weeks | Going back is changing one variable; nothing is lost if the copy is bad. |
 | 287 | No keep-alive ping by default | On Neon's free plan it would use up the monthly compute hours; the app already retries a query on a sleeping database. |
 | 288 | Only what a person or an outside program reads is renamed; every identifier something else depends on stays | Renaming a webhook header, a storage key or the Google event key would break receivers, saved settings and synced events for no visible gain. |
-| 289 | The PDF guides keep the old name inside until they are rebuilt from the knowledge-base articles | Their source is not in the repository; patching a finished PDF would damage its layout. |
+| 289 | The PDF guides are rebuilt from the knowledge-base articles, not patched | Their source was not in the repository; the articles are the one source of truth, so the guide and the app cannot drift apart. |
