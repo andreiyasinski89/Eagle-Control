@@ -286,3 +286,5 @@
 | 281 | Every nightly dump is restored into a throwaway database and checked before it is kept | A backup that was never restored is a hope; this finds a broken one the same night. |
 | 282 | The database is read with a read-only role, over a direct connection | A leaked backup password must not be able to change or delete anything. |
 | 283 | Backblaze B2 for the copies | Another provider than the database, free for the first 10 GB, and the owner asked for the free one. |
+| 284 | `overrides` pins nodemailer to ^10 for the whole tree | Auth.js allows ^7 or ^8 for its own mail provider, which we do not use (our `sendVerificationRequest` sends through `server/mail`); one version avoids two mailers in the build and a stale one with known fixes missing. |
+| 285 | Dependencies are updated in stages, each verified (types, lint, tests, build, a real send) before the next | A login outage was already caused by mail; a big-bang update would hide which change broke what. |

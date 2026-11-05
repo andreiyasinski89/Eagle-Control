@@ -641,3 +641,9 @@
 - `scripts/backup/keygen.ts` makes the key pair on the owner's machine: the private key goes into a file (never printed), the public key is printed.
 - `.github/workflows/restore.yml`: by hand, into a new empty database, with the private key added as a secret only for those minutes.
 - `docs/BACKUP.ru.md`: the set-up (keys, Backblaze, the read-only role in Neon, seven GitHub secrets), the restore drill and the real restore, what the copy does not hold.
+
+## 0.59.0 — Dependencies brought up to date (stages 1 and 2)
+
+- Stage 1: every direct dependency moved to its latest minor/patch version (Next 15.5.29, Vitest 5.1, Tailwind 4.3, React Query 5.106, Tiptap 3.33, Resend 6.37, Inngest 4.26, Playwright 1.65, PGlite 0.5.15 and others). Type-check, lint, all 1374 tests and the production build are green.
+- Stage 2: `nodemailer` 8 → 10.3. Our SMTP settings (timeouts, STARTTLS) are unchanged; a real send through the new version into the local mailbox was checked (subject in Russian, link intact). An `overrides` entry makes the copy that Auth.js pulls in the same version, so there is one mailer in the build.
+- Stages 3–5 (zod 4, Next 16, Prisma 7) stay for later, one at a time, as planned in `docs/DEPENDENCIES.ru.md`.
