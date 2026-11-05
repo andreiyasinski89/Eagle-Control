@@ -279,3 +279,4 @@
 | 274 | The reminder about long silences is a morning digest of ten names, once per stretch of silence, to the bot and the app | One message per person would flood the chat; a digest in portions reaches everyone within a few days without repeating itself. |
 | 275 | No daily limit on the touch lists | The owner asked for none: the list holds what the person planned or pressed, and nothing else puts people into it. |
 | 276 | The pile of late dates is sorted out by the person in one confirmed action, not automatically | Dates written by hand and by the old rule cannot be told apart; the person says whether to take them off or move them. |
+| 277 | The e-mail texts are renamed, the sender name is the owner's setting (MAIL_FROM) | The words are code and safe to change; the sender name lives in the settings the owner asked not to touch until the domain move. |

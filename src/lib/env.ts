@@ -6,7 +6,7 @@ const schema = z.object({
   AUTH_SECRET: z.string().min(1),
   AUTH_GOOGLE_ID: z.string().optional(),
   AUTH_GOOGLE_SECRET: z.string().optional(),
-  MAIL_FROM: z.string().default("MeetOwl <noreply@meetowl.local>"),
+  MAIL_FROM: z.string().default("MLM CRM <noreply@meetowl.local>"),
   RESEND_API_KEY: z.string().optional(),
   SMTP_HOST: z.string().default("localhost"),
   SMTP_PORT: z.coerce.number().default(1025),

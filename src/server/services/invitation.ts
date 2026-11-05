@@ -68,9 +68,9 @@ export async function createInvitation(input: CreateInput) {
   const link = `${env().APP_URL}/invite/${token}`;
   await sendMail({
     to: email,
-    subject: `You are invited to ${workspace.name} on MeetOwl`,
-    text: `Join ${workspace.name} on MeetOwl: ${link}\n\nThe invitation expires in 7 days.`,
-    html: `<p>You are invited to <b>${escapeHtml(workspace.name)}</b> on MeetOwl.</p><p><a href="${link}">Accept invitation</a></p><p>The invitation expires in 7 days.</p>`,
+    subject: `You are invited to ${workspace.name} on MLM CRM`,
+    text: `Join ${workspace.name} on MLM CRM: ${link}\n\nThe invitation expires in 7 days.`,
+    html: `<p>You are invited to <b>${escapeHtml(workspace.name)}</b> on MLM CRM.</p><p><a href="${link}">Accept invitation</a></p><p>The invitation expires in 7 days.</p>`,
   });
   return invitation;
 }

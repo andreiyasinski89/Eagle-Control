@@ -68,7 +68,7 @@ registerChannel({
       to: r.email,
       subject: n.title,
       text: `${n.title}\n${n.body ? `\n${n.body}\n` : ""}\n${link}`,
-      html: `<p><b>${esc(n.title)}</b></p>${n.body ? `<p>${esc(n.body)}</p>` : ""}<p><a href="${link}">Open in MeetOwl</a></p>`,
+      html: `<p><b>${esc(n.title)}</b></p>${n.body ? `<p>${esc(n.body)}</p>` : ""}<p><a href="${link}">Open in MLM CRM</a></p>`,
     });
     return true;
   },

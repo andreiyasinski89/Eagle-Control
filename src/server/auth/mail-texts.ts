@@ -5,10 +5,10 @@ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&
 /** The e-mail with the sign-in link, in the language the person was using on the page. */
 export function signInMail(locale: SignupLocale, link: string): { subject: string; text: string; html: string } {
   const t = {
-    en: { subject: "Sign in to MeetOwl", lead: "Click to sign in to MeetOwl", button: "Sign in", note: "The link works once and expires in 15 minutes. If you did not ask for it, ignore this e-mail: nobody can sign in without it." },
-    ru: { subject: "Вход в MeetOwl", lead: "Нажмите, чтобы войти в MeetOwl", button: "Войти", note: "Ссылка работает один раз и действует 15 минут. Если вы её не запрашивали, просто проигнорируйте письмо: без неё войти нельзя." },
-    uk: { subject: "Вхід до MeetOwl", lead: "Натисніть, щоб увійти до MeetOwl", button: "Увійти", note: "Посилання працює один раз і діє 15 хвилин. Якщо ви його не запитували, просто проігноруйте лист: без нього увійти неможливо." },
-    pl: { subject: "Logowanie do MeetOwl", lead: "Kliknij, aby zalogować się do MeetOwl", button: "Zaloguj się", note: "Link działa jeden raz i wygasa po 15 minutach. Jeśli o niego nie prosiłeś, zignoruj tę wiadomość: bez niego nikt się nie zaloguje." },
+    en: { subject: "Sign in to MLM CRM", lead: "Click to sign in to MLM CRM", button: "Sign in", note: "The link works once and expires in 15 minutes. If you did not ask for it, ignore this e-mail: nobody can sign in without it." },
+    ru: { subject: "Вход в MLM CRM", lead: "Нажмите, чтобы войти в MLM CRM", button: "Войти", note: "Ссылка работает один раз и действует 15 минут. Если вы её не запрашивали, просто проигнорируйте письмо: без неё войти нельзя." },
+    uk: { subject: "Вхід до MLM CRM", lead: "Натисніть, щоб увійти до MLM CRM", button: "Увійти", note: "Посилання працює один раз і діє 15 хвилин. Якщо ви його не запитували, просто проігноруйте лист: без нього увійти неможливо." },
+    pl: { subject: "Logowanie do MLM CRM", lead: "Kliknij, aby zalogować się do MLM CRM", button: "Zaloguj się", note: "Link działa jeden raz i wygasa po 15 minutach. Jeśli o niego nie prosiłeś, zignoruj tę wiadomość: bez niego nikt się nie zaloguje." },
   }[locale];
   return {
     subject: t.subject,
@@ -21,7 +21,7 @@ export function signInMail(locale: SignupLocale, link: string): { subject: strin
 export function welcomeMail(locale: SignupLocale, name: string | null, workspace: string, startUrl: string): { subject: string; text: string; html: string } {
   const t = {
     en: {
-      subject: "Welcome to MeetOwl",
+      subject: "Welcome to MLM CRM",
       hi: name ? `Hello, ${name}!` : "Hello!",
       intro: `Your workspace “${workspace}” is ready. Three steps to begin:`,
       steps: ["Write down your dream and goal: it is the measure of the distance you cover.", "Add the people you know: paste a list of names, no need to fill anything else.", "Plan the next step for each: a day, a call, a message."],
@@ -29,7 +29,7 @@ export function welcomeMail(locale: SignupLocale, name: string | null, workspace
       outro: "The Knowledge base has a short guide for every step.",
     },
     ru: {
-      subject: "Добро пожаловать в MeetOwl",
+      subject: "Добро пожаловать в MLM CRM",
       hi: name ? `Здравствуйте, ${name}!` : "Здравствуйте!",
       intro: `Ваше пространство «${workspace}» готово. Три шага, чтобы начать:`,
       steps: ["Запишите мечту и цель: по ним считается пройденное расстояние.", "Добавьте людей, которых знаете: вставьте список имён, остальное заполнять не нужно.", "Назначьте каждому следующий шаг: день, звонок, сообщение."],
@@ -37,7 +37,7 @@ export function welcomeMail(locale: SignupLocale, name: string | null, workspace
       outro: "В «Базе знаний» есть короткий гайд по каждому шагу.",
     },
     uk: {
-      subject: "Ласкаво просимо до MeetOwl",
+      subject: "Ласкаво просимо до MLM CRM",
       hi: name ? `Вітаємо, ${name}!` : "Вітаємо!",
       intro: `Ваш простір «${workspace}» готовий. Три кроки, щоб почати:`,
       steps: ["Запишіть мрію і ціль: за ними рахується пройдена відстань.", "Додайте людей, яких знаєте: вставте список імен, решту заповнювати не потрібно.", "Призначте кожному наступний крок: день, дзвінок, повідомлення."],
@@ -45,7 +45,7 @@ export function welcomeMail(locale: SignupLocale, name: string | null, workspace
       outro: "У «Базі знань» є короткий гайд до кожного кроку.",
     },
     pl: {
-      subject: "Witaj w MeetOwl",
+      subject: "Witaj w MLM CRM",
       hi: name ? `Cześć, ${name}!` : "Cześć!",
       intro: `Twoja przestrzeń „${workspace}” jest gotowa. Trzy kroki na początek:`,
       steps: ["Zapisz marzenie i cel: od nich liczy się przebyty dystans.", "Dodaj ludzi, których znasz: wklej listę imion, reszty nie trzeba wypełniać.", "Zaplanuj każdemu następny krok: dzień, rozmowę, wiadomość."],

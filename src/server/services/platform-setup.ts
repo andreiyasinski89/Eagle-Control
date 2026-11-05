@@ -73,7 +73,7 @@ export async function testPlatformProvider(userId: string, provider: Provider): 
       const me = await db.user.findUnique({ where: { id: userId }, select: { email: true } });
       if (!me) return { ok: false, code: "mail_unknown" };
       try {
-        await sendMail({ to: me.email, subject: "MeetOwl: test", text: "The e-mail of MeetOwl works.", html: "<p>The e-mail of MeetOwl works.</p>" }, { waits: [] });
+        await sendMail({ to: me.email, subject: "MLM CRM: test", text: "The e-mail of MLM CRM works.", html: "<p>The e-mail of MLM CRM works.</p>" }, { waits: [] });
         return { ok: true, code: "mail_ok", detail: me.email };
       } catch (err) {
         const info = (err as { info?: ReturnType<typeof classifyMailError> }).info ?? classifyMailError(err);

@@ -145,7 +145,7 @@ describe("the first workspace", () => {
     expect(holder.sent[0]?.to).toBe("sponsor@x.io");
     await raw.user.update({ where: { id: sponsor }, data: { locale: "pl" } });
     await sendWelcome(sponsor, { name: "Sam's team", slug: ws.slug });
-    expect(holder.sent[1]?.subject).toBe("Witaj w MeetOwl");
+    expect(holder.sent[1]?.subject).toBe("Witaj w MLM CRM");
     await expect(sendWelcome("nobody", { name: "x", slug: "x" })).resolves.toBeUndefined();
   });
 });

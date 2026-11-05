@@ -24,3 +24,11 @@ describe("the name people see", () => {
     expect(read("public/offline.html")).not.toContain("🦉");
   });
 });
+
+describe("the name in e-mails", () => {
+  it("no e-mail text says the old name (sign-in, welcome, invitation, codes, deletion, test mail, the link under a notice)", () => {
+    for (const f of ["src/server/auth/mail-texts.ts", "src/server/services/invitation.ts", "src/server/services/platform-setup.ts"]) expect(read(f), f).not.toMatch(/MeetOwl/);
+    // account.ts and notify.ts keep the old name only in a comment (the technical export format is in lower case)
+    for (const f of ["src/server/services/account.ts", "src/server/services/notify.ts"]) expect(read(f).split("\n").filter((l) => /MeetOwl/.test(l) && !/^\s*(\*|\/\/|\/\*)/.test(l)), f).toEqual([]);
+  });
+});

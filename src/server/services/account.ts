@@ -44,10 +44,10 @@ export async function sendChallenge(userId: string, action: Sensitive, now = new
   const code = String(randomInt(100_000, 1_000_000));
   const expiresAt = new Date(now.getTime() + CHALLENGE_TTL_MS);
   await db.accountChallenge.create({ data: { userId, action, codeHash: hashCode(userId, action, code), expiresAt } });
-  const what = action === "export" ? "download a copy of your MeetOwl data" : action === "admin" ? "confirm sensitive actions in the MeetOwl platform admin for 10 minutes" : "delete your MeetOwl account";
+  const what = action === "export" ? "download a copy of your MLM CRM data" : action === "admin" ? "confirm sensitive actions in the MLM CRM platform admin for 10 minutes" : "delete your MLM CRM account";
   await sendMail({
     to: u.email,
-    subject: `Your MeetOwl confirmation code: ${code}`,
+    subject: `Your MLM CRM confirmation code: ${code}`,
     text: `Use this code to ${what}: ${code}\n\nIt works for 10 minutes. If you did not ask for it, ignore this e-mail and consider signing out of all devices.`,
     html: `<p>Use this code to ${what}:</p><p style="font-size:24px;letter-spacing:4px"><b>${code}</b></p><p>It works for 10 minutes. If you did not ask for it, ignore this e-mail.</p>`,
   });
@@ -180,9 +180,9 @@ export async function requestDeletion(userId: string, input: z.infer<typeof dele
   const when = new Date(now.getTime() + env().ACCOUNT_DELETION_GRACE_DAYS * 86_400_000);
   await sendMail({
     to: u.email,
-    subject: "Your MeetOwl account will be deleted",
-    text: env().ACCOUNT_DELETION_GRACE_DAYS === 0 ? "Your account is being deleted now." : `Your MeetOwl account is scheduled for deletion on ${when.toUTCString()}. Until then you can cancel in Settings → Account. After that it cannot be undone.`,
-    html: `<p>Your MeetOwl account is scheduled for deletion${env().ACCOUNT_DELETION_GRACE_DAYS === 0 ? " now" : ` on <b>${when.toUTCString()}</b>`}.</p><p>Until then you can cancel it in Settings → Account. After that it cannot be undone.</p>`,
+    subject: "Your MLM CRM account will be deleted",
+    text: env().ACCOUNT_DELETION_GRACE_DAYS === 0 ? "Your account is being deleted now." : `Your MLM CRM account is scheduled for deletion on ${when.toUTCString()}. Until then you can cancel in Settings → Account. After that it cannot be undone.`,
+    html: `<p>Your MLM CRM account is scheduled for deletion${env().ACCOUNT_DELETION_GRACE_DAYS === 0 ? " now" : ` on <b>${when.toUTCString()}</b>`}.</p><p>Until then you can cancel it in Settings → Account. After that it cannot be undone.</p>`,
   }).catch((e) => console.error("deletion notice not sent", e instanceof Error ? e.message : e));
   if (env().ACCOUNT_DELETION_GRACE_DAYS === 0) return { ...(await eraseAccount(userId, now)), immediate: true };
   return { result: "scheduled" as const, scheduledFor: when, immediate: false };
@@ -230,7 +230,7 @@ export async function eraseAccount(userId: string, now = new Date()): Promise<Er
   if (plan.blockers.length > 0) {
     await db.user.update({ where: { id: userId }, data: { deletionRequestedAt: null } });
     await record(userId, "deletion_blocked", { blockers: plan.blockers.map((b) => b.workspaceId) });
-    await sendMail({ to: u.email, subject: "Your MeetOwl account was not deleted", text: `The deletion was stopped because you are the only owner of: ${plan.blockers.map((b) => b.name).join(", ")}. Hand them over, then request deletion again.`, html: `<p>The deletion was stopped because you are the only owner of: ${plan.blockers.map((b) => b.name).join(", ")}.</p><p>Hand them over, then request deletion again.</p>` }).catch(() => undefined);
+    await sendMail({ to: u.email, subject: "Your MLM CRM account was not deleted", text: `The deletion was stopped because you are the only owner of: ${plan.blockers.map((b) => b.name).join(", ")}. Hand them over, then request deletion again.`, html: `<p>The deletion was stopped because you are the only owner of: ${plan.blockers.map((b) => b.name).join(", ")}.</p><p>Hand them over, then request deletion again.</p>` }).catch(() => undefined);
     return { result: "blocked", blockers: plan.blockers };
   }
   const gone = plan.willDelete.map((w) => w.workspaceId);
@@ -285,7 +285,7 @@ export async function eraseAccount(userId: string, now = new Date()): Promise<Er
 
   await Promise.all(keys.map((k) => deleteObject(k).catch(() => undefined))); // an orphaned object is harmless; the rows are gone
   await record(userId, "deleted", { workspacesDeleted: gone.length, commentsRemoved: !!options.alsoRemoveComments });
-  await sendMail({ to: u.email, subject: "Your MeetOwl account was deleted", text: "Your MeetOwl account and personal data were deleted. Work you did with others stays, shown as \"Deleted user\". Nothing else about you is kept except a record that the deletion happened.", html: "<p>Your MeetOwl account and personal data were deleted.</p><p>Work you did with others stays, shown as “Deleted user”. Nothing else about you is kept except a record that the deletion happened.</p>" }).catch((e) => console.error("deletion receipt not sent", e instanceof Error ? e.message : e));
+  await sendMail({ to: u.email, subject: "Your MLM CRM account was deleted", text: "Your MLM CRM account and personal data were deleted. Work you did with others stays, shown as \"Deleted user\". Nothing else about you is kept except a record that the deletion happened.", html: "<p>Your MLM CRM account and personal data were deleted.</p><p>Work you did with others stays, shown as “Deleted user”. Nothing else about you is kept except a record that the deletion happened.</p>" }).catch((e) => console.error("deletion receipt not sent", e instanceof Error ? e.message : e));
   return { result: "erased" };
 }
 

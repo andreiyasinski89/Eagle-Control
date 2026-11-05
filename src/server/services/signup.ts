@@ -222,7 +222,7 @@ export async function joinByInvite(person: NewPerson, code: string): Promise<{ i
   const ws = await db.membership.findFirst({ where: { userId: inviter.id, role: { not: "CLIENT" } }, orderBy: { createdAt: "asc" }, select: { workspaceId: true } });
   if (ws) {
     const first = person.firstName?.trim() || person.email.split("@")[0] || person.email;
-    await notify({ userId: inviter.id, workspaceId: ws.workspaceId, kind: "invite_joined", title: `${[first, person.lastName?.trim()].filter(Boolean).join(" ")} joined MeetOwl through your link`, body: "+1 bonus point", url: "/account", dedupeKey: `invite:${person.id}` }).catch(() => undefined);
+    await notify({ userId: inviter.id, workspaceId: ws.workspaceId, kind: "invite_joined", title: `${[first, person.lastName?.trim()].filter(Boolean).join(" ")} joined MLM CRM through your link`, body: "+1 bonus point", url: "/account", dedupeKey: `invite:${person.id}` }).catch(() => undefined);
   }
   return { inviterId: inviter.id };
 }

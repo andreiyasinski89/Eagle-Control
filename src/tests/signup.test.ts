@@ -42,9 +42,9 @@ describe("the e-mails", () => {
       expect(m.text).toContain("https://x.io/sign-in/confirm");
       expect(m.html).toContain("https://x.io/sign-in/confirm?next=a%26b");
     }
-    expect(signInMail("ru", "https://x.io/").subject).toBe("Вход в MeetOwl");
-    expect(signInMail("uk", "https://x.io/").subject).toBe("Вхід до MeetOwl");
-    expect(signInMail("en", "https://x.io/").subject).toBe("Sign in to MeetOwl");
+    expect(signInMail("ru", "https://x.io/").subject).toBe("Вход в MLM CRM");
+    expect(signInMail("uk", "https://x.io/").subject).toBe("Вхід до MLM CRM");
+    expect(signInMail("en", "https://x.io/").subject).toBe("Sign in to MLM CRM");
   });
   it("the welcome e-mail has three steps, the start link, and shows no markup typed in a name", () => {
     const m = welcomeMail("ru", "<b>Анна</b>", "Моя <команда>", "https://x.io/w/a/start");

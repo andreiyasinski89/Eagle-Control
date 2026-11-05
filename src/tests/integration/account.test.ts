@@ -216,7 +216,7 @@ describe("erasing an account", () => {
     await expect(authenticate(`Bearer ${apiTok.token}`)).rejects.toMatchObject({ status: 401 });
     await expect(deletionStatus(u.carol!)).rejects.toMatchObject({ status: 404 });
     expect(JSON.stringify(await holder.db.user.findMany())).not.toContain("carol@x.io");
-    expect(mail.sent.at(-1)).toMatchObject({ to: "carol@x.io", subject: "Your MeetOwl account was deleted" });
+    expect(mail.sent.at(-1)).toMatchObject({ to: "carol@x.io", subject: "Your MLM CRM account was deleted" });
     // the old address can be used again, as a brand new person
     const again = await holder.db.user.create({ data: { email: "carol@x.io", name: "New Carol" } });
     expect(again.id).not.toBe(u.carol);

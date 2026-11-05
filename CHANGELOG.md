@@ -610,3 +610,8 @@
 ## 0.55.1 — The log says what is wrong with the mail settings
 
 - A failed send now writes, besides the mail server's own words, what the site sees in its mail settings (server and port, the login half hidden, the length of the password, never the password) and what looks wrong in them. Found a mistake in the settings from the Vercel log alone, when nobody can sign in to open the admin check.
+
+## 0.56.0 — The e-mails say MLM CRM
+
+- All texts that go out by e-mail now use the new name: the sign-in link, the welcome e-mail (all four languages), the invitation to a workspace, the confirmation codes, the account deletion e-mails, the test e-mail of the admin check, the "open" link under notifications and the notice of a person who joined through a link.
+- Left as it was: the sender's display name, which is set by `MAIL_FROM` in Vercel (set it to `MLM CRM <your address>`), the technical format name of the data export, and the webhook headers.
