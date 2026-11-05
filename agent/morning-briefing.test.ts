@@ -233,6 +233,54 @@ describe("What the agent writes into the CRM", () => {
   });
 });
 
+describe("A run that never says a word until it is told to", () => {
+  const call = (i: number) => reply([use(`c${i}`, "my_day", {})]);
+
+  it("gets through 25 one-call turns and then answers", async () => {
+    let n = 0;
+    const model: AgentModel = { async complete() { n++; return n <= 25 ? call(n) : reply([{ type: "text", text: "Итог готов." }], "end_turn"); } };
+    const run = await runAgent({ userId: owner, workspaceId: ws.id, role: "morning_briefing", vars: VARS, model });
+    expect(run.output).toBe("Итог готов.");
+    expect(run.toolCalls).toHaveLength(25);
+  });
+
+  it("on its last turn may not call tools and is asked for the answer", async () => {
+    const seen: ModelRequest[] = [];
+    const model: AgentModel = {
+      async complete(req) {
+        seen.push(structuredClone(req));
+        return req.forbidTools ? reply([{ type: "text", text: "Вот что успел собрать." }], "end_turn") : call(seen.length);
+      },
+    };
+    const run = await runAgent({ userId: owner, workspaceId: ws.id, role: "morning_briefing", vars: VARS, model, maxTurns: 4 });
+    expect(run.output).toBe("Вот что успел собрать.");
+    expect(seen).toHaveLength(4);
+    expect(seen.slice(0, 3).every((r) => !r.forbidTools)).toBe(true);
+    expect(seen[3]!.forbidTools).toBe(true);
+    expect(JSON.stringify(seen[3]!.messages.at(-1))).toContain("Лимит шагов исчерпан");
+  });
+
+  it("asks once more, without tools, when the model ended with nothing", async () => {
+    const seen: ModelRequest[] = [];
+    const model: AgentModel = {
+      async complete(req) {
+        seen.push(structuredClone(req));
+        return seen.length === 1 ? reply([use("a", "my_day", {})]) : seen.length === 2 ? reply([], "end_turn") : reply([{ type: "text", text: "Ответ со второй попытки." }], "end_turn");
+      },
+    };
+    const run = await runAgent({ userId: owner, workspaceId: ws.id, role: "morning_briefing", vars: VARS, model });
+    expect(run.output).toBe("Ответ со второй попытки.");
+    expect(seen[2]!.forbidTools).toBe(true);
+    // The empty assistant message is not sent back: the API refuses those.
+    expect(seen[2]!.messages.some((m) => m.role === "assistant" && Array.isArray(m.content) && m.content.length === 0)).toBe(false);
+  });
+
+  it("says why when there is still nothing", async () => {
+    const model: AgentModel = { async complete() { return reply([], "refusal"); } };
+    await expect(runAgent({ userId: owner, workspaceId: ws.id, role: "morning_briefing", vars: VARS, model })).rejects.toThrow(/last stop: refusal/);
+  });
+});
+
 describe("Prompts", () => {
   it("fills every role from agent/prompts and leaves no placeholder behind", () => {
     const extra = { timers_table: "Паша — 2 дня", transcript: "разговор" };
