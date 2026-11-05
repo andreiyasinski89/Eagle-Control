@@ -9,7 +9,8 @@ import { timersTableFor } from "./timers";
 import { dayReportFor } from "./day-report";
 import { toolByName, toolDefs, type AgentContext } from "./tools";
 
-const MAX_TURNS = 12;
+// A briefing reads the day, the calendar and the contacts, then the history of ten people and saves ten drafts: a model that makes one call per turn needs 25+ turns.
+const MAX_TURNS = 30;
 const MAX_TOKENS = 4096;
 /** What one tool result may add to the conversation, and how much of it the log keeps. */
 const RESULT_LIMIT = 30_000;
@@ -91,6 +92,8 @@ export async function runAgent(opts: RunOptions): Promise<RunResult> {
   let outTokens = 0;
   let modelName = "unknown";
   let output = "";
+  let lastStop = "none";
+  let steps = 0;
 
   const save = async (text: string) => {
     const run = await db.agentRun.create({
@@ -108,11 +111,20 @@ export async function runAgent(opts: RunOptions): Promise<RunResult> {
   }
 
   try {
-    for (let turn = 0; turn < (opts.maxTurns ?? MAX_TURNS); turn++) {
-      const reply = await model.complete({ system, messages, tools, maxTokens: MAX_TOKENS });
+    const turns = opts.maxTurns ?? MAX_TURNS;
+    for (let turn = 0; turn < turns; turn++) {
+      // The last turn is for the answer: without this a model that keeps reading the CRM runs out of turns and leaves nothing to show.
+      const last = turn === turns - 1 && turn > 0;
+      if (last) {
+        const prev = messages[messages.length - 1];
+        if (prev && Array.isArray(prev.content)) prev.content = [...prev.content, { type: "text", text: "Лимит шагов исчерпан. Больше не вызывай инструменты: ответь сейчас текстом по тому, что уже собрано." }];
+      }
+      const reply = await model.complete({ system, messages, tools, maxTokens: MAX_TOKENS, ...(last ? { forbidTools: true } : {}) });
       inTokens += reply.inputTokens;
       outTokens += reply.outputTokens;
       modelName = reply.model;
+      lastStop = reply.stopReason;
+      steps++;
       messages.push({ role: "assistant", content: reply.content });
       const text = reply.content.filter((b): b is Extract<Block, { type: "text" }> => b.type === "text").map((b) => b.text).join("").trim();
       const uses = reply.content.filter((b): b is Extract<Block, { type: "tool_use" }> => b.type === "tool_use");
@@ -128,7 +140,20 @@ export async function runAgent(opts: RunOptions): Promise<RunResult> {
       }
       messages.push({ role: "user", content: results });
     }
-    if (!output) throw new ApiError(502, "agent_empty", "The agent finished without an answer. Try again.");
+    if (!output && messages.length > 1) {
+      // One more try with no tools allowed: the model has read what it needs and only has to say it.
+      const ask = "Ответь сейчас текстом по тому, что уже известно. Инструменты не вызывай.";
+      // An empty assistant message at the end would be refused by the API, so it is left out.
+      const base = messages.at(-1)?.role === "assistant" && Array.isArray(messages.at(-1)!.content) && (messages.at(-1)!.content as Block[]).length === 0 ? messages.slice(0, -1) : messages;
+      const last = base[base.length - 1]!;
+      const closing: Msg[] = last.role === "user" ? [...base.slice(0, -1), { role: "user", content: [...(typeof last.content === "string" ? [{ type: "text" as const, text: last.content }] : last.content), { type: "text", text: ask }] }] : [...base, { role: "user", content: ask }];
+      const reply = await model.complete({ system, messages: closing, tools, maxTokens: MAX_TOKENS, forbidTools: true });
+      inTokens += reply.inputTokens;
+      outTokens += reply.outputTokens;
+      lastStop = reply.stopReason;
+      output = reply.content.filter((b): b is Extract<Block, { type: "text" }> => b.type === "text").map((b) => b.text).join("").trim();
+    }
+    if (!output) throw new ApiError(502, "agent_empty", `The agent finished without an answer (last stop: ${lastStop}, steps: ${steps}, tool calls: ${toolCalls.length}). Try again.`);
   } catch (e) {
     await save(`[error] ${e instanceof Error ? e.message : "failed"}`);
     throw e;

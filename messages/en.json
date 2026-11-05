@@ -2618,6 +2618,12 @@
     "limitNote": "The agent spends your plan's monthly AI allowance. The daily run limit guards against runaway cost.",
     "save": "Save",
     "saved": "Saved",
-    "failed": "Could not save"
+    "failed": "Could not save",
+    "runNow": "Run the briefing now",
+    "running": "The agent is working, this can take a couple of minutes…",
+    "runNowHint": "Starts right away, without waiting for the briefing time or the pause after failures. The result shows here and goes to Telegram.",
+    "runFailed": "Could not start the agent",
+    "sentToTelegram": "Sent to Telegram",
+    "notSentToTelegram": "Not sent to Telegram (bot or chat not connected)"
   }
 }

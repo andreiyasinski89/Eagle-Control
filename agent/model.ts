@@ -23,6 +23,8 @@ export interface ModelRequest {
   messages: Msg[];
   tools: ToolDef[];
   maxTokens: number;
+  /** The model must answer in text now: it may not call a tool on this turn. */
+  forbidTools?: boolean;
 }
 
 export interface ModelReply {
@@ -49,7 +51,7 @@ export const anthropicModel: AgentModel = {
         method: "POST",
         timeoutMs: 120_000,
         headers: { "x-api-key": key, "anthropic-version": "2023-06-01" },
-        json: { model, max_tokens: req.maxTokens, system: req.system, messages: req.messages, ...(req.tools.length > 0 ? { tools: req.tools } : {}) },
+        json: { model, max_tokens: req.maxTokens, system: req.system, messages: req.messages, ...(req.tools.length > 0 ? { tools: req.tools, ...(req.forbidTools ? { tool_choice: { type: "none" } } : {}) } : {}) },
       });
       return { content: res.content ?? [], stopReason: res.stop_reason ?? "end_turn", inputTokens: res.usage?.input_tokens ?? 0, outputTokens: res.usage?.output_tokens ?? 0, model };
     } catch (e) {

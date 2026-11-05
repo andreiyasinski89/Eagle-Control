@@ -12,6 +12,7 @@ vi.mock("@/server/storage", () => ({ deleteObject: vi.fn(), presignUpload: vi.fn
 
 import { createWorkspace } from "@/server/services/workspace";
 import { agentSettingsSchema, saveAgentSettings } from "@/server/services/crm/agent-settings";
+import { runAgentNow } from "@/server/services/crm/agent-run-now";
 import { runDueAgents } from "./schedule";
 import type { AgentModel } from "./model";
 
@@ -121,5 +122,18 @@ describe("The agent's clock", () => {
     const r = await runDueAgents(new Date("2026-11-05T07:05:00.000Z"), { model });
     expect(r.runs.filter((x) => x.userId === flaky)).toEqual([{ userId: flaky, role: "morning_briefing", outcome: "skipped" }]);
     expect(await runsOf(flaky, new Date("2026-11-05T00:00:00.000Z"))).toEqual([]);
+  });
+});
+
+describe("Run now", () => {
+  it("runs at once for a person the clock has paused after three failures, and shows what the agent wrote", async () => {
+    const paused = await runDueAgents(at("07:05"), { model });
+    expect(paused.runs.filter((x) => x.userId === tired)).toEqual([]); // the clock leaves them alone
+    const r = await runAgentNow(tired, wsTired, "morning_briefing", at("07:06"), model);
+    expect(r).toMatchObject({ output: "Готово.", tokens: 15, delivered: false });
+  });
+
+  it("does not hide why it failed", async () => {
+    await expect(runAgentNow(tired, wsTired, "morning_briefing", at("07:07"), broken)).rejects.toThrow("the model is down");
   });
 });
