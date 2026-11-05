@@ -1,10 +1,10 @@
 import type { MetadataRoute } from "next";
 
-/** What a phone shows when MeetOwl is added to the home screen. */
+/** What a phone shows when the platform is added to the home screen. */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "MeetOwl",
-    short_name: "MeetOwl",
+    name: "MLM CRM",
+    short_name: "MLM CRM",
     description: "Agile mind map and CRM",
     id: "/",
     start_url: "/",

@@ -6,7 +6,7 @@ export default async function Terms() {
   return (
     <LegalPage title={t("terms")}>
       <h2 className="font-semibold">The service</h2>
-      <p>MeetOwl lets teams plan work on mind maps and manage customers. It is early software offered as is, without a promise of uninterrupted availability. Features may change.</p>
+      <p>MLM CRM lets teams plan work on mind maps and manage customers. It is early software offered as is, without a promise of uninterrupted availability. Features may change.</p>
       <h2 className="font-semibold">Your account</h2>
       <p>Use a real e-mail address you control and keep access to it: the sign-in link is the key to the account. You are responsible for what happens under it and for the people you invite.</p>
       <h2 className="font-semibold">Your content</h2>

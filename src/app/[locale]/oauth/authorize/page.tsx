@@ -1,3 +1,4 @@
+import { BrandLogo } from "@/components/brand";
 import { getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
 import { selectClass } from "@/components/ui/modal";
@@ -25,7 +26,9 @@ export default async function Authorize({ params, searchParams }: { params: Prom
 
   const shell = (children: React.ReactNode) => (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-5 px-4 py-10">
-      <h1 className="text-2xl font-semibold">🦉 MeetOwl</h1>
+      <h1 className="text-2xl font-semibold">
+        <BrandLogo />
+      </h1>
       {children}
     </main>
   );

@@ -1,3 +1,4 @@
+import { BrandMark } from "@/components/brand";
 import { getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
 import { isSignInTarget } from "@/server/http/signin-target";
@@ -12,7 +13,10 @@ export default async function ConfirmSignIn({ searchParams }: { searchParams: Pr
   return (
     <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 px-4">
       <div>
-        <h1 className="text-2xl font-semibold">🦉 {t("confirmTitle")}</h1>
+        <h1 className="flex items-center gap-2 text-2xl font-semibold">
+          <BrandMark className="size-7" />
+          {t("confirmTitle")}
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">{valid ? t("confirmHint") : t("confirmInvalid")}</p>
       </div>
       {valid && (

@@ -3,12 +3,12 @@ const fragment = {
     shell: { admin: "Platform admin" },
     notifications: { kind: { invite_joined: "Someone joins through my platform link" } },
     auth: {
-      invitedToPlatform: "{name} invites you to MeetOwl: your own workspace, client base, CRM, reports and projects.",
+      invitedToPlatform: "{name} invites you to MLM CRM: your own workspace, client base, CRM, reports and projects.",
       shareProgress: "{name} will see that you registered and how far you have got, but not your clients or projects.",
     },
     invite: {
       title: "Invite people to the platform",
-      hint: "Send this link to people who will work in MeetOwl on their own: each gets their own workspace, client base, CRM, reports and projects.",
+      hint: "Send this link to people who will work in MLM CRM on their own: each gets their own workspace, client base, CRM, reports and projects.",
       copy: "Copy",
       copied: "Copied",
       points: "points",
@@ -62,12 +62,12 @@ const fragment = {
     shell: { admin: "Администрирование платформы" },
     notifications: { kind: { invite_joined: "Кто-то регистрируется по моей ссылке на платформу" } },
     auth: {
-      invitedToPlatform: "{name} приглашает вас в MeetOwl: своё пространство, база клиентов, CRM, отчёты и проекты.",
+      invitedToPlatform: "{name} приглашает вас в MLM CRM: своё пространство, база клиентов, CRM, отчёты и проекты.",
       shareProgress: "{name} увидит, что вы зарегистрировались и как далеко продвинулись, но не ваших клиентов и не ваши проекты.",
     },
     invite: {
       title: "Пригласить людей на платформу",
-      hint: "Отправьте эту ссылку тем, кто будет работать в MeetOwl самостоятельно: у каждого своё пространство, база клиентов, CRM, отчёты и проекты.",
+      hint: "Отправьте эту ссылку тем, кто будет работать в MLM CRM самостоятельно: у каждого своё пространство, база клиентов, CRM, отчёты и проекты.",
       copy: "Копировать",
       copied: "Скопировано",
       points: "баллов",
@@ -121,12 +121,12 @@ const fragment = {
     shell: { admin: "Administracja platformy" },
     notifications: { kind: { invite_joined: "Ktoś rejestruje się przez mój link do platformy" } },
     auth: {
-      invitedToPlatform: "{name} zaprasza Cię do MeetOwl: własna przestrzeń, baza klientów, CRM, raporty i projekty.",
+      invitedToPlatform: "{name} zaprasza Cię do MLM CRM: własna przestrzeń, baza klientów, CRM, raporty i projekty.",
       shareProgress: "{name} zobaczy, że się zarejestrowałeś i jak daleko doszedłeś, ale nie Twoich klientów ani projektów.",
     },
     invite: {
       title: "Zaproś ludzi na platformę",
-      hint: "Wyślij ten link osobom, które będą pracować w MeetOwl samodzielnie: każda dostaje własną przestrzeń, bazę klientów, CRM, raporty i projekty.",
+      hint: "Wyślij ten link osobom, które będą pracować w MLM CRM samodzielnie: każda dostaje własną przestrzeń, bazę klientów, CRM, raporty i projekty.",
       copy: "Kopiuj",
       copied: "Skopiowano",
       points: "punktów",

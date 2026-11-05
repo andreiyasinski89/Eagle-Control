@@ -1,7 +1,7 @@
 const fragment = {
   en: {
     auth: {
-      signupTitle: "Create your MeetOwl account",
+      signupTitle: "Create your MLM CRM account",
       signupSubtitle: "Enter your name and e-mail: we send a magic link. No password needed.",
       tabSignIn: "Sign in",
       tabSignUp: "Create account",
@@ -9,7 +9,7 @@ const fragment = {
       firstName: "First name",
       lastName: "Last name (optional)",
       disposable: "Use your permanent e-mail address: temporary mailboxes are not accepted.",
-      invitedBy: "{name} invited you to MeetOwl.",
+      invitedBy: "{name} invited you to MLM CRM.",
       shareWithInviter: "{name} will see your name and e-mail as a new contact.",
     },
     onboarding: { firstName: "First name", lastName: "Last name (optional)", suggestion: "{name}'s workspace", limit: "The free plan includes one workspace of your own. Ask for an invitation to join another, or upgrade the plan." },
@@ -17,7 +17,7 @@ const fragment = {
   },
   ru: {
     auth: {
-      signupTitle: "Создайте аккаунт MeetOwl",
+      signupTitle: "Создайте аккаунт MLM CRM",
       signupSubtitle: "Укажите имя и почту: мы пришлём ссылку для входа. Пароль не нужен.",
       tabSignIn: "Войти",
       tabSignUp: "Создать аккаунт",
@@ -25,7 +25,7 @@ const fragment = {
       firstName: "Имя",
       lastName: "Фамилия (необязательно)",
       disposable: "Укажите постоянный адрес почты: временные ящики не принимаются.",
-      invitedBy: "{name} приглашает вас в MeetOwl.",
+      invitedBy: "{name} приглашает вас в MLM CRM.",
       shareWithInviter: "{name} увидит ваше имя и почту как нового контакта.",
     },
     onboarding: { firstName: "Имя", lastName: "Фамилия (необязательно)", suggestion: "Пространство: {name}", limit: "На бесплатном тарифе одно собственное пространство. Попросите приглашение в другое или перейдите на платный тариф." },
@@ -33,7 +33,7 @@ const fragment = {
   },
   pl: {
     auth: {
-      signupTitle: "Utwórz konto MeetOwl",
+      signupTitle: "Utwórz konto MLM CRM",
       signupSubtitle: "Podaj imię i e-mail: wyślemy link do logowania. Hasło nie jest potrzebne.",
       tabSignIn: "Zaloguj się",
       tabSignUp: "Utwórz konto",
@@ -41,7 +41,7 @@ const fragment = {
       firstName: "Imię",
       lastName: "Nazwisko (opcjonalnie)",
       disposable: "Podaj stały adres e-mail: tymczasowe skrzynki nie są akceptowane.",
-      invitedBy: "{name} zaprasza Cię do MeetOwl.",
+      invitedBy: "{name} zaprasza Cię do MLM CRM.",
       shareWithInviter: "{name} zobaczy Twoje imię i e-mail jako nowy kontakt.",
     },
     onboarding: { firstName: "Imię", lastName: "Nazwisko (opcjonalnie)", suggestion: "Przestrzeń: {name}", limit: "Plan darmowy obejmuje jedną własną przestrzeń. Poproś o zaproszenie do innej albo zmień plan." },

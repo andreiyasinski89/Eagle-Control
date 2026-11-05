@@ -584,3 +584,9 @@
 ## 0.53.2 — The mail check says what looks wrong in the settings
 
 - When the mail check fails, it also shows what the site sees in its mail settings (server:port, the login half hidden, the length of the password: never the password) and lists what looks wrong in plain words: the name of a variable typed as its value, a password that is not 16 small letters (so not an app password), quotation marks, spaces or a line break around a value, a Resend key that takes over from Gmail, a host or port that does not fit Gmail.
+
+## 0.54.0 — The platform is called MLM CRM (what people see)
+
+- Only what is visible changed. All screen texts in the four languages, the help articles, the terms page, the sign-in, account, admin and consent pages, the tab title, the name on a phone's home screen, the offline page, and the logo: the owl is replaced by a violet "M" mark (site icon, phone icons 180/192/512 px, headers).
+- Left as they were on purpose, so nothing stops working: every setting and name behind the scenes (e-mail sender name and texts, the webhook header names, the Telegram bot's username, the MCP and Inngest names, keys in the browser and in Google events, the demo addresses, the database, the downloadable guides and presentations in `public/guide/`, the documents in `docs/`). The owl stays as the small picture in the "nothing here yet" screens.
+- The cache of the offline shell has a new version, so phones that had installed the app get the new icon.

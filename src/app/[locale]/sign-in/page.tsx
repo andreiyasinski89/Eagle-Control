@@ -1,3 +1,4 @@
+import { BrandLogo } from "@/components/brand";
 import { getLocale, getTranslations } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
 import { auth } from "@/server/auth";
@@ -35,7 +36,7 @@ export default async function SignInPage({
         className="relative hidden flex-col justify-between overflow-hidden bg-[hsl(263_65%_36%)] p-12 text-white lg:flex"
         style={{ backgroundImage: "radial-gradient(circle at 15% 10%, color-mix(in srgb, white 22%, transparent), transparent 45%), radial-gradient(circle at 90% 95%, color-mix(in srgb, black 25%, transparent), transparent 50%)" }}
       >
-        <span className="text-xl font-semibold tracking-tight">🦉 MeetOwl</span>
+        <BrandLogo className="text-xl font-semibold tracking-tight" />
         <div className="max-w-md">
           <h2 className="text-4xl font-semibold leading-tight tracking-tight">{t("tagline")}</h2>
           <ul className="mt-8 flex flex-col gap-4 text-base opacity-95">
@@ -53,7 +54,7 @@ export default async function SignInPage({
       </aside>
       <section className="flex items-center justify-center px-6 py-12">
         <div className="flex w-full max-w-sm flex-col gap-6">
-          <span className="text-lg font-semibold lg:hidden">🦉 MeetOwl</span>
+          <BrandLogo className="text-lg font-semibold lg:hidden" />
           {sp.sent ? (
             <>
               <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>

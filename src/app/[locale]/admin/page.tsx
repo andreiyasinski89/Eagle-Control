@@ -1,3 +1,4 @@
+import { BrandLogo } from "@/components/brand";
 import { notFound } from "next/navigation";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { QueryProvider } from "@/components/query-provider";
@@ -19,7 +20,7 @@ export default async function AdminPage({ params }: { params: Promise<{ locale: 
     <div className="flex min-h-screen flex-col">
       <header className="flex h-14 items-center justify-between border-b border-border bg-card px-4">
         <Link href="/" className="font-semibold">
-          🦉 MeetOwl
+          <BrandLogo />
         </Link>
         <div className="flex items-center gap-2">
           <Link href="/" className="text-sm text-muted-foreground hover:underline">

@@ -1,6 +1,6 @@
 /* MeetOwl service worker: keeps the shell (scripts, styles, icons) so the app opens fast and shows a page of its own without a network.
  * It never touches /api: data always comes from the server, and nothing private is stored here. */
-const VERSION = "meetowl-shell-v1";
+const VERSION = "meetowl-shell-v2";
 const OFFLINE = "/offline.html";
 
 self.addEventListener("install", (event) => {

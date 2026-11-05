@@ -11,7 +11,7 @@ import "../globals.css";
 // One family that covers all three interface languages (Latin, Latin Extended for Polish, Cyrillic for Russian).
 const inter = Inter({ subsets: ["latin", "latin-ext", "cyrillic"], variable: "--font-inter", display: "swap" });
 
-export const metadata: Metadata = { title: "MeetOwl", description: "Agile mind map + CRM" };
+export const metadata: Metadata = { title: "MLM CRM", description: "Agile mind map + CRM" };
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));

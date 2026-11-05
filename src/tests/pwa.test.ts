@@ -7,7 +7,7 @@ const sw = readFileSync("public/sw.js", "utf8");
 describe("manifest", () => {
   const m = manifest();
   it("can be installed: a name, a start page, standalone display and the two icon sizes", () => {
-    expect(m.name).toBe("MeetOwl");
+    expect(m.name).toBe("MLM CRM");
     expect(m.start_url).toBe("/");
     expect(m.display).toBe("standalone");
     const sizes = (m.icons ?? []).map((i) => i.sizes);

@@ -1,3 +1,4 @@
+import { BrandMark } from "@/components/brand";
 import { getTranslations } from "next-intl/server";
 import { LogOut } from "lucide-react";
 import { DeletionBanner } from "@/components/layout/deletion-banner";
@@ -27,7 +28,8 @@ export default async function PortalLayout({ children, params }: { children: Rea
       <DeletionBanner requestedAt={(await db.user.findUnique({ where: { id: userId }, select: { deletionRequestedAt: true } }))?.deletionRequestedAt ?? null} />
       <header className="flex h-14 items-center justify-between border-b border-border bg-card px-4">
         <Link href={`/portal/${slug}`} className="font-semibold">
-          🦉 {m.workspace.name}
+          <BrandMark className="mr-2" />
+          {m.workspace.name}
           {m.role !== "CLIENT" && <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-xs font-normal">{t("preview")}</span>}
         </Link>
         <div className="flex items-center gap-2">

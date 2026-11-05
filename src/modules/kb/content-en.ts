@@ -250,11 +250,11 @@ In a person's card, the **"Partner"** block (it is at the top of the card), choo
 As a sponsor, or as the one who "works with" a person, you can choose **yourself**: the **"Me (my account)"** option. It is a link to your account, not a person's card: you do not need to make or see a card for yourself, and you are not in the lists. On the [network map](kb:network-map) such people hang straight from you, in the middle of the map.
 
 ## The "Team" tab
-CRM → [Team](app:/crm/team) shows the tree of partners: for each you see how many people they work with, how many are in their line and how many partners in it. The "In MeetOwl" tag marks those with their own account. Your **referral link** for people is here too ([Invitations and links](kb:invite-links)).
+CRM → [Team](app:/crm/team) shows the tree of partners: for each you see how many people they work with, how many are in their line and how many partners in it. The "In MLM CRM" tag marks those with their own account. Your **referral link** for people is here too ([Invitations and links](kb:invite-links)).
 
 ## Handing over contacts
 Tick people on the board and choose **"Hand to partner"** (up to 500 at a time), or choose the partner in the "Works with" field of the card. There are two ways to work with a partner:
-- **A partner with a MeetOwl account.** Link their account in the partner's card ("MeetOwl account"). The people handed over become theirs and appear in their lists.
+- **A partner with a MLM CRM account.** Link their account in the partner's card ("MLM CRM account"). The people handed over become theirs and appear in their lists.
 - **A partner without an account.** The people stay with you, and in their card the **"Handoff card"** button builds a ready text (contacts, stage, warmth, interests, next step, latest notes). Copy it into a messenger.
 
 Every handover is saved: who, to whom, when and with what note. You see it in the person's card. "Nobody" in "Works with" returns the person to you.
@@ -538,7 +538,7 @@ Related: [Partners](kb:partners), [Invitations and links](kb:invite-links).`,
 ## The link for prospective clients and partners
 It is on the CRM → [Team](app:/crm/team) tab (the card with the invitation link). A person opens it, gives a name and e-mail, and a card appears in your CRM: stage "New lead", source "Referral link", under you in the tree, and you get a notification. Use it in mailings and messages when you want the person to leave their contacts themselves.
 
-## The link for those who will work in MeetOwl themselves
+## The link for those who will work in MLM CRM themselves
 It is in **Account** (your name at the bottom left → Account, the invitation card). A person who comes through it gets **their own workspace** with their own client base, CRM, reports and projects. No card is created in your CRM: they are a separate user.
 - For each person who comes you get a **bonus point** and a notification.
 - You see how they progress: whether the first steps are done (made a workspace, added people).

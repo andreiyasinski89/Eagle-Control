@@ -1,3 +1,4 @@
+import { BrandLogo } from "@/components/brand";
 import { getTranslations } from "next-intl/server";
 import { LogOut } from "lucide-react";
 import { LocaleSwitcher } from "@/components/locale-switcher";
@@ -23,7 +24,7 @@ export default async function AccountPage({ params }: { params: Promise<{ locale
     <div className="flex min-h-screen flex-col">
       <header className="flex h-14 items-center justify-between border-b border-border bg-card px-4">
         <Link href="/" className="font-semibold">
-          🦉 MeetOwl
+          <BrandLogo />
         </Link>
         <div className="flex items-center gap-2">
           <Link href="/" className="text-sm text-muted-foreground hover:underline">
