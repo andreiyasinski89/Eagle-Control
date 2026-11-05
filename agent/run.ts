@@ -9,7 +9,8 @@ import { timersTableFor } from "./timers";
 import { dayReportFor } from "./day-report";
 import { toolByName, toolDefs, type AgentContext } from "./tools";
 
-const MAX_TURNS = 12;
+// A briefing reads the day, the calendar and the contacts, then the history of ten people and saves ten drafts: a model that makes one call per turn needs 25+ turns.
+const MAX_TURNS = 30;
 const MAX_TOKENS = 4096;
 /** What one tool result may add to the conversation, and how much of it the log keeps. */
 const RESULT_LIMIT = 30_000;
