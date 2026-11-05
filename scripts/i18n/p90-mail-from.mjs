@@ -1,0 +1,7 @@
+const fragment = {
+  en: { setup: { mailHint: { from_free: "Resend is on, but the sender (MAIL_FROM) is a free mailbox address such as @gmail.com. Resend sends only from a domain verified in it: set MAIL_FROM in Vercel to an address on your domain, for example noreply@mlmcrm.app (with the name MLM CRM before it in angle brackets), and redeploy." } } },
+  ru: { setup: { mailHint: { from_free: "Resend включён, но отправитель (MAIL_FROM) это адрес бесплатной почты вроде @gmail.com. Resend отправляет только с подтверждённого в нём домена: в Vercel поставьте MAIL_FROM с адресом на вашем домене, например noreply@mlmcrm.app (перед ним в угловых скобках имя MLM CRM), и сделайте Redeploy." } } },
+  pl: { setup: { mailHint: { from_free: "Resend jest włączony, ale nadawca (MAIL_FROM) to adres darmowej poczty, np. @gmail.com. Resend wysyła tylko z domeny zweryfikowanej w nim: w Vercel ustaw MAIL_FROM z adresem w twojej domenie, na przykład noreply@mlmcrm.app (przed nim w nawiasach kątowych nazwa MLM CRM), i zrób Redeploy." } } },
+  uk: { setup: { mailHint: { from_free: "Resend увімкнено, але відправник (MAIL_FROM) це адреса безкоштовної пошти на кшталт @gmail.com. Resend надсилає лише з підтвердженого в ньому домену: у Vercel поставте MAIL_FROM з адресою на вашому домені, наприклад noreply@mlmcrm.app (перед нею в кутових дужках ім'я MLM CRM), і зробіть Redeploy." } } },
+};
+export default fragment;

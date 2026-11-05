@@ -37,6 +37,12 @@ describe("what looks wrong in the mail settings", () => {
     expect(mailSettingsHints({ ...good, RESEND_API_KEY: "re_x" }).codes).toEqual([]);
     expect(mailSettingsHints({ ...good, RESEND_API_KEY: "re_x" }).seen).toContain("Resend");
     expect(mailSettingsHints({ SMTP_HOST: "localhost", SMTP_PORT: 1025, RESEND_API_KEY: "re_x" }).codes).toEqual(["resend_wins"]);
+    // Resend refuses a sender at a free mailbox domain: told before the person has to read Resend's refusal
+    expect(mailSettingsHints({ ...good, RESEND_API_KEY: "re_x", MAIL_FROM: "MeetOwl <me@gmail.com>" }).codes).toEqual(["from_free"]);
+    expect(mailSettingsHints({ ...good, RESEND_API_KEY: "re_x", MAIL_FROM: "MLM CRM <noreply@mlmcrm.app>" }).codes).toEqual([]);
+    expect(mailSettingsHints({ ...good, RESEND_API_KEY: "re_x", MAIL_FROM: "MLM CRM <noreply@mlmcrm.app>" }).seen).toContain("from @mlmcrm.app");
+    // without Resend the sender may well be the Gmail address
+    expect(mailSettingsHints({ ...good, MAIL_FROM: "MLM CRM <me@gmail.com>" }).codes).toEqual([]);
     expect(mailSettingsHints({ ...good, SMTP_HOST: "localhost" }).codes).toEqual(["host_not_gmail"]);
     expect(mailSettingsHints({ ...good, SMTP_PORT: 25 }).codes).toEqual(["port_not_gmail"]);
   });

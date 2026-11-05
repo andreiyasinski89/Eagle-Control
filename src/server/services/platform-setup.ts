@@ -75,7 +75,10 @@ export async function testPlatformProvider(userId: string, provider: Provider): 
       try {
         const sent = await sendMail({ to: me.email, subject: "MLM CRM: test", text: "The e-mail of MLM CRM works.", html: "<p>The e-mail of MLM CRM works.</p>" }, { waits: [] });
         // It arrived, but not the way it should: the first choice (Resend) refused and the mailbox took over. Said plainly, with Resend's own words.
-        if (sent?.fellBackFrom) return { ok: false, code: "mail_fallback", detail: sent.fellBackFrom };
+        if (sent?.fellBackFrom) {
+          const h = mailSettingsHints(e);
+          return { ok: false, code: "mail_fallback", detail: sent.fellBackFrom, seen: h.seen, hints: h.codes };
+        }
         return { ok: true, code: sent?.via === "resend" ? "mail_ok_resend" : "mail_ok", detail: me.email };
       } catch (err) {
         const info = (err as { info?: ReturnType<typeof classifyMailError> }).info ?? classifyMailError(err);

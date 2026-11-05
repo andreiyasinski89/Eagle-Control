@@ -621,3 +621,7 @@
 - If `RESEND_API_KEY` is set **and** the Gmail mailbox is set up beside it, a mail that Resend refuses (domain not verified yet, wrong key, the service down) goes through the mailbox instead, so adding Resend cannot cost anyone their sign-in links. `sendMail` now says how a mail went out (`via`, and why the first choice was passed over).
 - The mail check in `/admin/setup` tells whether the test mail went through Resend, or arrived through Gmail because Resend refused (with Resend's own words). The hint about Resend now applies only when there is no mailbox to fall back on.
 - `docs/MAIL.ru.md`: steps for Resend with `mlmcrm.app` (the DNS records in Vercel) and for Google sign-in, with the addresses for both the current and the new domain.
+
+## 0.57.1 — The check names the sender mistake
+
+- When Resend is on but the sender (`MAIL_FROM`) is a free mailbox address such as `@gmail.com`, the check says so in plain words ("Resend sends only from a domain verified in it: set MAIL_FROM to MLM CRM <noreply@mlmcrm.app>"), and shows the sender's domain in the line of what the site sees. The same hints now also come with the "arrived through Gmail" result.

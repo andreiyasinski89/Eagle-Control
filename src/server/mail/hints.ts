@@ -8,6 +8,8 @@ export interface MailSettings {
   SMTP_USER?: string | undefined;
   SMTP_PASS?: string | undefined;
   RESEND_API_KEY?: string | undefined;
+  /** The sender: "Name <address>" or an address. */
+  MAIL_FROM?: string | undefined;
 }
 
 export interface MailHints {
@@ -29,9 +31,13 @@ export function mailSettingsHints(s: MailSettings): MailHints {
   const bare = pass.replace(/\s/g, "");
 
   const resend = !!s.RESEND_API_KEY?.trim();
-  const tail = resend ? " · Resend" : "";
+  const fromDomain = (/<([^>]+)>/.exec(s.MAIL_FROM ?? "")?.[1] ?? s.MAIL_FROM ?? "").trim().split("@")[1]?.toLowerCase() ?? "";
+  const tail = `${resend ? " · Resend" : ""}${fromDomain ? ` · from @${fromDomain}` : ""}`;
+  // Resend sends only from a domain verified in it; a free mailbox address as the sender is refused ("the gmail.com domain is not verified").
+  const fromFree = resend && /^(gmail|googlemail|yahoo|outlook|hotmail|icloud|yandex|mail)\./.test(fromDomain);
   // Resend with no mailbox beside it has nothing to fall back on: its key and its verified domain are all the mail depends on. The mailbox is not judged then.
-  if (resend && !user.trim() && !pass) return { seen: `${s.SMTP_HOST}:${s.SMTP_PORT} · — · 0${tail}`, codes: ["resend_wins"] };
+  if (resend && !user.trim() && !pass) return { seen: `${s.SMTP_HOST}:${s.SMTP_PORT} · — · 0${tail}`, codes: [...(fromFree ? ["from_free"] : []), "resend_wins"] };
+  if (fromFree) codes.push("from_free");
   if (!user.trim()) codes.push("user_missing");
   else if (user.trim() === "SMTP_USER") codes.push("user_is_name");
   else if (user !== user.trim() || /["']/.test(user)) codes.push("user_stray");

@@ -2335,7 +2335,8 @@
       "pass_chars": "W haśle są inne znaki niż małe litery. Hasło aplikacji to tylko 16 małych liter, więc to nie ono (najpewniej zwykłe hasło konta).",
       "pass_spaces": "W haśle są spacje. Działa i tak, ale pewniej wkleić 16 liter z rzędu.",
       "host_not_gmail": "Login to adres Gmail, a SMTP_HOST nie jest smtp.gmail.com.",
-      "port_not_gmail": "Dla smtp.gmail.com port musi być 465 (albo 587)."
+      "port_not_gmail": "Dla smtp.gmail.com port musi być 465 (albo 587).",
+      "from_free": "Resend jest włączony, ale nadawca (MAIL_FROM) to adres darmowej poczty, np. @gmail.com. Resend wysyła tylko z domeny zweryfikowanej w nim: w Vercel ustaw MAIL_FROM z adresem w twojej domenie, na przykład noreply@mlmcrm.app (przed nim w nawiasach kątowych nazwa MLM CRM), i zrób Redeploy."
     }
   },
   "touches": {
