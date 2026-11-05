@@ -1,0 +1,66 @@
+name: Migrate database
+
+# Copies the whole production database into a NEW, EMPTY database (for example a new Neon project in another region).
+# By hand only, from the button "Run workflow". See docs/NEON-FRANKFURT.ru.md.
+# The source is only READ; nothing in it is changed. The log of a public repository is public: no address, password or row is printed.
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type MIGRATE to confirm: the target database must be new and empty'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    if: github.event.inputs.confirm == 'MIGRATE'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Install the PostgreSQL 18 client
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsS -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          . /etc/os-release
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list >/dev/null
+          sudo apt-get update -q
+          sudo apt-get install -y -q postgresql-client-18
+      - name: Dump, restore, compare
+        env:
+          SOURCE_URL: ${{ secrets.MIGRATE_SOURCE_URL }}
+          TARGET_URL: ${{ secrets.MIGRATE_TARGET_URL }}
+        run: |
+          set -euo pipefail
+          set +x
+          fail() { echo "::error title=Migration stopped::$1"; exit 1; }
+          hide() { sed -E 's#[a-z]+://[^ ]+#<address>#g; s#host=[^ ]+#host=<hidden>#g'; }
+          [ -n "$SOURCE_URL" ] && [ -n "$TARGET_URL" ] || fail "The secrets MIGRATE_SOURCE_URL and MIGRATE_TARGET_URL are not both set."
+          [ "$SOURCE_URL" != "$TARGET_URL" ] || fail "The source and the target are the same address."
+          count() { psql -tA -v ON_ERROR_STOP=1 "$1" -c "select count(*) from \"$2\"" | tr -d '[:space:]'; }
+          work="$RUNNER_TEMP/migrate"; mkdir -p "$work"; umask 077
+          trap 'rm -f "$work/db.pgdump"' EXIT
+
+          echo "1/5 checking that the target is new and empty"
+          already="$(psql -tA "$TARGET_URL" -c "select count(*) from information_schema.tables where table_schema='public'" 2>"$work/e1" | tr -d '[:space:]')" || { hide <"$work/e1" | head -3; fail "cannot connect to the target (see above)"; }
+          [ "$already" = "0" ] || fail "the target is not empty (it has $already tables). Use a brand new project."
+
+          echo "2/5 dumping the source (read only)"
+          pg_dump --format=custom --no-owner --no-privileges --compress=6 --file="$work/db.pgdump" "$SOURCE_URL" 2>"$work/e2" || { hide <"$work/e2" | head -5; fail "cannot read the source (see above)"; }
+          echo "    $(stat -c %s "$work/db.pgdump") bytes"
+
+          echo "3/5 restoring into the target"
+          pg_restore --no-owner --no-privileges --exit-on-error --dbname="$TARGET_URL" "$work/db.pgdump" 2>"$work/e3" || { hide <"$work/e3" | head -5; fail "the restore failed (see above)"; }
+
+          echo "4/5 comparing the two"
+          ts="$(psql -tA "$SOURCE_URL" -c "select count(*) from information_schema.tables where table_schema='public'" | tr -d '[:space:]')"
+          tt="$(psql -tA "$TARGET_URL" -c "select count(*) from information_schema.tables where table_schema='public'" | tr -d '[:space:]')"
+          [ "$ts" = "$tt" ] || fail "the number of tables differs: $ts and $tt"
+          for t in User Workspace Contact Membership Account Session _prisma_migrations; do
+            a="$(count "$SOURCE_URL" "$t")"; b="$(count "$TARGET_URL" "$t")"
+            # The source goes on being used while it is copied: it may be a little ahead, never behind.
+            [ "$b" -le "$a" ] && [ $((a - b)) -le 50 ] || fail "the number of rows in $t differs: $a and $b"
+          done
+          echo "5/5 done: $tt tables, and the row counts agree"
+          echo "Next: put the target address into DATABASE_URL in Vercel and redeploy (docs/NEON-FRANKFURT.ru.md). Then DELETE both secrets."

@@ -288,3 +288,7 @@
 | 283 | Backblaze B2 for the copies | Another provider than the database, free for the first 10 GB, and the owner asked for the free one. |
 | 284 | `overrides` pins nodemailer to ^10 for the whole tree | Auth.js allows ^7 or ^8 for its own mail provider, which we do not use (our `sendVerificationRequest` sends through `server/mail`); one version avoids two mailers in the build and a stale one with known fixes missing. |
 | 285 | Dependencies are updated in stages, each verified (types, lint, tests, build, a real send) before the next | A login outage was already caused by mail; a big-bang update would hide which change broke what. |
+| 286 | The move to Frankfurt is a copy into a new project, the old database stays untouched for two weeks | Going back is changing one variable; nothing is lost if the copy is bad. |
+| 287 | No keep-alive ping by default | On Neon's free plan it would use up the monthly compute hours; the app already retries a query on a sleeping database. |
+| 286 | The move to Frankfurt is a copy into a new project, the old database stays untouched for two weeks | Going back is changing one variable; nothing is lost if the copy is bad. |
+| 287 | No keep-alive ping by default | On Neon's free plan it would use up the monthly compute hours; the app already retries a query on a sleeping database. |

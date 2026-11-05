@@ -647,3 +647,8 @@
 - Stage 1: every direct dependency moved to its latest minor/patch version (Next 15.5.29, Vitest 5.1, Tailwind 4.3, React Query 5.106, Tiptap 3.33, Resend 6.37, Inngest 4.26, Playwright 1.65, PGlite 0.5.15 and others). Type-check, lint, all 1374 tests and the production build are green.
 - Stage 2: `nodemailer` 8 → 10.3. Our SMTP settings (timeouts, STARTTLS) are unchanged; a real send through the new version into the local mailbox was checked (subject in Russian, link intact). An `overrides` entry makes the copy that Auth.js pulls in the same version, so there is one mailer in the build.
 - Stages 3–5 (zod 4, Next 16, Prisma 7) stay for later, one at a time, as planned in `docs/DEPENDENCIES.ru.md`.
+
+## 0.60.0 — A way to move the database to another region (Frankfurt)
+
+- `.github/workflows/migrate-db.yml`: by hand, copies the production database into a new empty one (the source is only read), then compares table counts and the rows of the main tables. The log is public and shows no address, password or data.
+- `docs/NEON-FRANKFURT.ru.md`: step by step for the owner: a new Neon project in Frankfurt, two secrets, the button, switching `DATABASE_URL` (pooler host, `pgbouncer=true`, `connection_limit=5`), clean-up, and how to go back.
