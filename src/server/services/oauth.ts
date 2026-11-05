@@ -61,8 +61,8 @@ export const registerSchema = z.object({
   client_name: z.string().max(200).optional(),
   redirect_uris: z.array(z.string()).min(1).max(5),
   token_endpoint_auth_method: z.string().optional(),
-  grant_types: z.array(z.string()).optional(),
-  response_types: z.array(z.string()).optional(),
+  grant_types: z.array(z.string().max(100)).max(10).optional(),
+  response_types: z.array(z.string().max(100)).max(10).optional(),
 });
 
 /** RFC 7591. Anyone may register, which is the point; a client does nothing until a person approves it on the consent page. */

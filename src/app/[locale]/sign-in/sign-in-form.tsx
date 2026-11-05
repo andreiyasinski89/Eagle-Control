@@ -49,6 +49,7 @@ export function SignInForm({ googleEnabled, callbackUrl, initialMode, refCode, i
       const code = data?.error?.code;
       if (code === "rate_limited") return fail(t("rateLimited"));
       if (code === "disposable_email") return fail(t("disposable"));
+      if (code === "mail_unavailable") return fail(t("mailDown"));
       if (code || !res.ok || (data?.url ?? "").includes("error=")) return fail(t("sendFailed"));
       window.location.assign("/sign-in?sent=1");
     } catch {

@@ -566,3 +566,21 @@
 - Found in the sign-in e-mails of a new person (five links in 25 minutes, the later ones asked from inside their own workspace): they were signed in, but whenever the database was slow or asleep the session lookup failed, Auth.js answered "nobody", and the page sent them back to the sign-in page, where they asked for a new link, and so on round and round.
 - "Nobody" is now believed only when there is no session cookie, or the database confirms that the session does not exist or has expired. When the lookup fails the cookie is checked and the lookup repeated (0.3, 0.9 and 2 seconds); if it still fails the request fails honestly instead of signing anyone out.
 - The sign-in route may now run up to 60 seconds: the first sign-in of a new person makes the account and its first records, and on a database that has just woken up that can pass the default 10 seconds.
+
+## 0.53.0 — Sign-in mail: the real reason, honest messages, a check, and Google sign-in steps
+
+- Found: on 4 November sign-in links stopped going out for everybody. The server log said `535 5.7.8 BadCredentials`: Gmail refused the password of the app that sends the e-mails. See `docs/MAIL.ru.md` for the five-minute fix (a new app password in Vercel, then Redeploy).
+- Every failed send is now classified (refused password, limit, unreachable, rejected, not set up), logged with the server's own words (`[mail] not sent: ...`) and kept in a new table `MailFailure` (kind, code, words, only the domain of the address; migration 0040). Failures that may pass are tried again twice; a refused password is not.
+- The person at the form is told the truth ("our e-mail is not working, it is not your fault, try in 10–15 minutes") instead of "check the address".
+- Platform setup (`/admin/setup`) has two new sections: **E-mail for sign-in links** (the settings, a Check button that sends a test e-mail to the owner and shows the server's exact answer) and **Sign in with Google** (steps with the two addresses to paste, and a check of the keys). The admin page shows a red bar when sign-in e-mails failed in the last 24 hours.
+
+## 0.53.1 — Sign-in answer fixed, browser tests runnable, small tidy-ups
+
+- **Fixed (urgent, introduced in 0.53.0):** after Auth.js sent the sign-in e-mail the route tried to read the request's form a second time, which can be done only once, so the request failed with an error even though the e-mail had been sent, and the form showed "could not send the link". The address is now read before Auth.js takes the request. The unit test now consumes the body the way Auth.js does, so this cannot slip through again.
+- The two stale browser tests (sign-up by e-mailed link, project map) work again against the current screens: a shared helper signs in the way a person does (link from the mail, then the confirmation button), the config starts a small mailbox (`scripts/e2e-mailbox.mjs`) so Docker is not needed, waits are longer for a dev server that builds pages on first visit, and the expectations match the template (two goals with two sprints each).
+- `robots.txt` (the API, signed-in areas and personal links are closed to crawlers); `/uk/...` now redirects to `/ua/...` instead of a 404; the two lint warnings in the config files are gone; the six array schemas that had no `.max()` have one.
+- `docs/DEPENDENCIES.ru.md`: what the dependency audit found, what really matters, and the plan to update in five stages (small updates, nodemailer 10, zod 4, Next 16, Prisma 7).
+
+## 0.53.2 — The mail check says what looks wrong in the settings
+
+- When the mail check fails, it also shows what the site sees in its mail settings (server:port, the login half hidden, the length of the password: never the password) and lists what looks wrong in plain words: the name of a variable typed as its value, a password that is not 16 small letters (so not an app password), quotation marks, spaces or a line break around a value, a Resend key that takes over from Gmail, a host or port that does not fit Gmail.

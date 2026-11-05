@@ -70,6 +70,8 @@ export function AdminPanel() {
   const [error, setError] = useState<string | null>(null);
   const params = new URLSearchParams({ page: String(page), ...(q.trim() ? { q: q.trim() } : {}) });
   const list = useQuery({ queryKey: ["admin-users", params.toString()], placeholderData: (p) => p, queryFn: () => api.get<List>(`/api/v1/admin/users?${params}`) });
+  // Sign-in links that could not be sent are the one thing the owner must hear about at once: nobody new can come in.
+  const setup = useQuery({ queryKey: ["platform-setup"], staleTime: 30_000, queryFn: () => api.get<{ mailFailures?: { count: number; last: { kind: string; detail: string | null; at: string } | null } }>("/api/v1/admin/setup") });
   const detail = useQuery({ queryKey: ["admin-user", open], enabled: !!open, queryFn: () => api.get<Detail>(`/api/v1/admin/users/${open}`) });
   const day = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric" }) : "—");
 
@@ -128,6 +130,14 @@ export function AdminPanel() {
         </div>
       </header>
       <StepUp prompt={needStep} />
+      {setup.data?.mailFailures && setup.data.mailFailures.count > 0 && (
+        <p role="alert" className="rounded-xl border border-danger bg-danger/10 p-3 text-sm" data-testid="admin-mail-alert">
+          {t("mailAlert", { n: setup.data.mailFailures.count })}{" "}
+          <Link href="/admin/setup" className="font-medium underline">
+            {t("mailAlertLink")}
+          </Link>
+        </p>
+      )}
       {error && (
         <p role="alert" className="text-sm text-danger">
           {error}

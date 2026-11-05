@@ -3,13 +3,13 @@ import type { Health, NodeStatus, NodeType } from "@prisma/client";
 
 export const filterCriteriaSchema = z.object({
   q: z.string().trim().max(200).optional(),
-  statuses: z.array(z.enum(["BACKLOG", "TODO", "IN_PROGRESS", "IN_REVIEW", "DONE", "CANCELLED"])).default([]),
+  statuses: z.array(z.enum(["BACKLOG", "TODO", "IN_PROGRESS", "IN_REVIEW", "DONE", "CANCELLED"])).max(6).default([]),
   types: z
     .array(z.enum(["PROJECT", "EPIC", "SPRINT", "TASK", "SUBTASK", "DOCUMENT", "EVENT"]))
     .default([]),
-  assigneeIds: z.array(z.string()).default([]),
-  tagIds: z.array(z.string()).default([]),
-  healths: z.array(z.enum(["GREEN", "YELLOW", "RED"])).default([]),
+  assigneeIds: z.array(z.string()).max(500).default([]),
+  tagIds: z.array(z.string()).max(500).default([]),
+  healths: z.array(z.enum(["GREEN", "YELLOW", "RED"])).max(3).default([]),
   due: z.enum(["overdue", "this_week", "next_week"]).nullable().default(null),
 });
 

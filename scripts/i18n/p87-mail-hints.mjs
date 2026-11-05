@@ -1,0 +1,83 @@
+const fragment = {
+  en: {
+    setup: {
+      mailSeen: "What the site sees (server:port · login · password length):",
+      mailHint: {
+        resend_wins: "RESEND_API_KEY is filled in, so the site sends through Resend and ignores the Gmail settings. Delete RESEND_API_KEY if you want Gmail.",
+        user_missing: "SMTP_USER is empty: put your full Gmail address in it.",
+        user_is_name: "The value of SMTP_USER is the word SMTP_USER itself. Put your Gmail address in the Value field.",
+        user_stray: "SMTP_USER has a space, a line break or quotation marks around it. Retype it plainly, with nothing around it.",
+        user_not_email: "SMTP_USER is not a full e-mail address (it needs the @gmail.com part).",
+        pass_missing: "SMTP_PASS is empty: put the 16-letter app password in it.",
+        pass_is_name: "The value of SMTP_PASS is the word SMTP_PASS itself. Put the 16-letter app password in the Value field.",
+        pass_stray: "SMTP_PASS has a space, a line break or quotation marks around it. Delete the value and paste the code again, with nothing around it.",
+        pass_length: "The password is not 16 characters long. An app password is exactly 16 small letters; make a new one and paste it whole.",
+        pass_chars: "The password has characters other than small letters. An app password is 16 small letters only, so this is not one (most likely the usual password of the account).",
+        pass_spaces: "The password has spaces inside. It works either way, but it is safer to paste it as 16 letters in a row.",
+        host_not_gmail: "The login is a Gmail address, but SMTP_HOST is not smtp.gmail.com.",
+        port_not_gmail: "For smtp.gmail.com the port must be 465 (or 587).",
+      },
+    },
+  },
+  ru: {
+    setup: {
+      mailSeen: "Что видит сайт (сервер:порт · логин · длина пароля):",
+      mailHint: {
+        resend_wins: "Заполнен RESEND_API_KEY, поэтому сайт отправляет через Resend и игнорирует настройки Gmail. Удалите RESEND_API_KEY, если нужен Gmail.",
+        user_missing: "SMTP_USER пустой: впишите в него полный адрес Gmail.",
+        user_is_name: "В значении SMTP_USER написано само слово SMTP_USER. Впишите адрес Gmail в поле Value.",
+        user_stray: "У SMTP_USER есть пробел, перевод строки или кавычки вокруг. Введите его заново, без ничего вокруг.",
+        user_not_email: "SMTP_USER не похож на полный адрес почты (нужна часть @gmail.com).",
+        pass_missing: "SMTP_PASS пустой: впишите в него пароль приложения из 16 букв.",
+        pass_is_name: "В значении SMTP_PASS написано само слово SMTP_PASS. Впишите пароль приложения из 16 букв в поле Value.",
+        pass_stray: "У SMTP_PASS есть пробел, перевод строки или кавычки вокруг. Удалите значение и вставьте код заново, без ничего вокруг.",
+        pass_length: "Длина пароля не 16 символов. Пароль приложения это ровно 16 маленьких букв: создайте новый и вставьте целиком.",
+        pass_chars: "В пароле есть не только маленькие буквы. Пароль приложения состоит только из 16 маленьких букв, значит, это не он (скорее всего, обычный пароль аккаунта).",
+        pass_spaces: "Внутри пароля пробелы. Работает и так, но надёжнее вставить 16 букв подряд.",
+        host_not_gmail: "Логин это адрес Gmail, а SMTP_HOST не равен smtp.gmail.com.",
+        port_not_gmail: "Для smtp.gmail.com порт должен быть 465 (или 587).",
+      },
+    },
+  },
+  pl: {
+    setup: {
+      mailSeen: "Co widzi strona (serwer:port · login · długość hasła):",
+      mailHint: {
+        resend_wins: "Wypełniony jest RESEND_API_KEY, więc strona wysyła przez Resend i pomija ustawienia Gmail. Usuń RESEND_API_KEY, jeśli ma być Gmail.",
+        user_missing: "SMTP_USER jest pusty: wpisz w nim pełny adres Gmail.",
+        user_is_name: "Wartością SMTP_USER jest samo słowo SMTP_USER. Wpisz adres Gmail w polu Value.",
+        user_stray: "SMTP_USER ma spację, znak nowej linii albo cudzysłów dookoła. Wpisz go od nowa, bez niczego dookoła.",
+        user_not_email: "SMTP_USER nie wygląda na pełny adres e-mail (potrzebna część @gmail.com).",
+        pass_missing: "SMTP_PASS jest pusty: wpisz w nim hasło aplikacji z 16 liter.",
+        pass_is_name: "Wartością SMTP_PASS jest samo słowo SMTP_PASS. Wpisz hasło aplikacji z 16 liter w polu Value.",
+        pass_stray: "SMTP_PASS ma spację, znak nowej linii albo cudzysłów dookoła. Usuń wartość i wklej kod od nowa, bez niczego dookoła.",
+        pass_length: "Hasło nie ma 16 znaków. Hasło aplikacji to dokładnie 16 małych liter: utwórz nowe i wklej w całości.",
+        pass_chars: "W haśle są inne znaki niż małe litery. Hasło aplikacji to tylko 16 małych liter, więc to nie ono (najpewniej zwykłe hasło konta).",
+        pass_spaces: "W haśle są spacje. Działa i tak, ale pewniej wkleić 16 liter z rzędu.",
+        host_not_gmail: "Login to adres Gmail, a SMTP_HOST nie jest smtp.gmail.com.",
+        port_not_gmail: "Dla smtp.gmail.com port musi być 465 (albo 587).",
+      },
+    },
+  },
+  uk: {
+    setup: {
+      mailSeen: "Що бачить сайт (сервер:порт · логін · довжина пароля):",
+      mailHint: {
+        resend_wins: "Заповнено RESEND_API_KEY, тому сайт надсилає через Resend і ігнорує налаштування Gmail. Видаліть RESEND_API_KEY, якщо потрібен Gmail.",
+        user_missing: "SMTP_USER порожній: впишіть у нього повну адресу Gmail.",
+        user_is_name: "У значенні SMTP_USER написано саме слово SMTP_USER. Впишіть адресу Gmail у поле Value.",
+        user_stray: "У SMTP_USER є пробіл, перенесення рядка або лапки навколо. Введіть його заново, без нічого навколо.",
+        user_not_email: "SMTP_USER не схожий на повну адресу пошти (потрібна частина @gmail.com).",
+        pass_missing: "SMTP_PASS порожній: впишіть у нього пароль застосунку з 16 літер.",
+        pass_is_name: "У значенні SMTP_PASS написано саме слово SMTP_PASS. Впишіть пароль застосунку з 16 літер у поле Value.",
+        pass_stray: "У SMTP_PASS є пробіл, перенесення рядка або лапки навколо. Видаліть значення і вставте код заново, без нічого навколо.",
+        pass_length: "Довжина пароля не 16 символів. Пароль застосунку це рівно 16 малих літер: створіть новий і вставте повністю.",
+        pass_chars: "У паролі є не лише малі літери. Пароль застосунку складається лише з 16 малих літер, отже, це не він (найімовірніше, звичайний пароль акаунта).",
+        pass_spaces: "Усередині пароля пробіли. Працює й так, але надійніше вставити 16 літер поспіль.",
+        host_not_gmail: "Логін це адреса Gmail, а SMTP_HOST не дорівнює smtp.gmail.com.",
+        port_not_gmail: "Для smtp.gmail.com порт має бути 465 (або 587).",
+      },
+    },
+  },
+};
+export default fragment;

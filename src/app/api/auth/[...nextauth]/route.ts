@@ -3,6 +3,7 @@ import { handlers } from "@/server/auth";
 import { clientIp } from "@/server/http/limits";
 import { rateLimit } from "@/server/http/rate-limit";
 import { allowSignIn } from "@/server/services/signin-guard";
+import { takeSignInMailFailure } from "@/server/auth/mail-failures";
 
 // A first sign-in makes the account and its first records: on a database that has just woken up that can pass the default 10 seconds.
 export const maxDuration = 60;
@@ -17,9 +18,12 @@ const WINDOW = 15 * 60_000;
  */
 export async function POST(req: NextRequest): Promise<Response> {
   if (!rateLimit(`auth:ip:${clientIp(req.headers)}`, 30, WINDOW)) return NextResponse.json({ error: { code: "rate_limited", message: "Too many attempts. Try again later." } }, { status: 429, headers: { "retry-after": "900" } });
+  // The address is read before Auth.js takes the body of the request (it can be read only once), and kept for after.
+  let signInEmail = "";
   if (req.nextUrl.pathname.endsWith("/signin/email")) {
     const form = await req.clone().formData().catch(() => null);
     const email = String(form?.get("email") ?? "").trim().toLowerCase();
+    signInEmail = email;
     if (email && !rateLimit(`auth:mail:${email}`, 5, WINDOW)) return NextResponse.json({ error: { code: "rate_limited", message: "Too many sign-in e-mails for this address. Try again later." } }, { status: 429, headers: { "retry-after": "900" } });
     // The terms are agreed to before a link is sent; the form sends this field only when the box is ticked.
     if (form?.get("terms") !== "1") return NextResponse.json({ error: { code: "terms_required", message: "Agree to the terms and privacy policy to continue." } }, { status: 400 });
@@ -37,5 +41,11 @@ export async function POST(req: NextRequest): Promise<Response> {
       await saveSignupIntent({ email, locale: String(form?.get("locale") ?? "") }).catch(() => undefined);
     }
   }
-  return handlers.POST(req);
+  const res = await handlers.POST(req);
+  // The link could not be sent: say so plainly (the form shows "the mail service is not working, try again later"), instead of the bare Auth.js error.
+  if (signInEmail) {
+    const kind = takeSignInMailFailure(signInEmail);
+    if (kind) return NextResponse.json({ error: { code: "mail_unavailable", kind, message: "The e-mail service is not working right now. Try again in a few minutes." } }, { status: 503 });
+  }
+  return res;
 }

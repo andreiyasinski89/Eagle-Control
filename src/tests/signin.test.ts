@@ -13,8 +13,24 @@ vi.mock("nodemailer", () => ({
     },
   },
 }));
-const auth = vi.hoisted(() => ({ posts: 0 }));
-vi.mock("@/server/auth", () => ({ handlers: { GET: async () => new Response("ok"), POST: async () => (auth.posts++, new Response("sent")) } }));
+const auth = vi.hoisted(() => ({ posts: 0, failWith: null as string | null }));
+vi.mock("@/server/auth", () => ({
+  handlers: {
+    GET: async () => new Response("ok"),
+    POST: async (req: Request) => {
+      auth.posts++;
+      // Auth.js takes the body of the request, and it can be read only once: the route must not need it afterwards
+      const sent = await req.formData();
+      // what the real sender does when the mail cannot be sent: notes why, and Auth.js answers with its bare configuration error
+      if (auth.failWith) {
+        const { noteSignInMailFailure } = await import("@/server/auth/mail-failures");
+        noteSignInMailFailure(String(sent.get("email")), auth.failWith);
+        return Response.json({ url: "https://app.example.com/sign-in?error=Configuration" });
+      }
+      return new Response("sent");
+    },
+  },
+}));
 vi.mock("@/server/services/signin-guard", () => ({ allowSignIn: vi.fn(async () => ({ ok: true })) }));
 
 import { confirmLink } from "@/server/auth/confirm-link";
@@ -103,6 +119,19 @@ describe("requesting a sign-in link", () => {
     expect(auth.posts).toBe(before);
     expect((await request({ email: "x@gmail.com", terms: "1" }, "4.4.4.4")).status).toBe(200);
     expect(auth.posts).toBe(before + 1);
+  });
+});
+
+describe("when the link cannot be sent", () => {
+  const request = (email: string, ip: string) => authPost(new NextRequest("http://localhost/api/auth/signin/email", { method: "POST", body: new URLSearchParams({ email, terms: "1" }), headers: { "content-type": "application/x-www-form-urlencoded", "x-forwarded-for": ip } }));
+
+  it("the form is told the mail service is down (and why), not the bare Auth.js error; the next request is not affected", async () => {
+    auth.failWith = "credentials";
+    const res = await request("down@x.io", "7.7.7.7");
+    expect(res.status).toBe(503);
+    expect(await res.json()).toMatchObject({ error: { code: "mail_unavailable", kind: "credentials" } });
+    auth.failWith = null;
+    expect((await request("down@x.io", "7.7.7.7")).status).toBe(200);
   });
 });
 

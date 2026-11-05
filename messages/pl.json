@@ -68,7 +68,8 @@
     "linkError": "Ten link do logowania został już użyty lub wygasł (działa raz, przez 15 minut). Wpisz poniżej e-mail, a wyślemy nowy.",
     "rateLimited": "Dziś na ten adres lub z tej sieci wysłano zbyt wiele e-maili logowania. Poczekaj chwilę albo spróbuj jutro.",
     "accessDenied": "To konto nie może się teraz zalogować. Napisz do nas, jeśli to pomyłka.",
-    "signInFailed": "Nie udało się zalogować ({code}). Poproś poniżej o nowy link; jeśli się powtórzy, napisz do nas i podaj ten kod."
+    "signInFailed": "Nie udało się zalogować ({code}). Poproś poniżej o nowy link; jeśli się powtórzy, napisz do nas i podaj ten kod.",
+    "mailDown": "Wysyłanie e-maili u nas nie działa, więc nie możemy wysłać linku do logowania. To nie twoja wina, adres jest w porządku. Spróbuj za 10–15 minut albo napisz do osoby, która cię zaprosiła."
   },
   "onboarding": {
     "title": "Utwórz przestrzeń roboczą",
@@ -2184,7 +2185,9 @@
     "stepUpConfirm": "Potwierdź",
     "stepUpOpenUntil": "Niebezpieczne działania otwarte do {time}",
     "recomputeTemperatures": "Przelicz temperatury",
-    "temperaturesRecomputed": "Temperatury przeliczone: zmieniło się {changed} z {checked} osób."
+    "temperaturesRecomputed": "Temperatury przeliczone: zmieniło się {changed} z {checked} osób.",
+    "mailAlert": "W ciągu ostatniej doby nie udało się wysłać {n, plural, one {# e-maila z linkiem do logowania} few {# e-maili z linkiem do logowania} many {# e-maili z linkiem do logowania} other {# e-maila z linkiem do logowania}}: nowe osoby nie mogą wejść.",
+    "mailAlertLink": "Otwórz sprawdzanie poczty"
   },
   "sharing": {
     "title": "Pokazuj moją aktywność sponsorowi",
@@ -2214,7 +2217,9 @@
       "webhookUrl": "Adres webhooka Telegrama (aplikacja ustawi go sama)",
       "redirectUri": "Adres powrotu (Redirect URI)",
       "eventsUrl": "Adres zdarzeń (Request URL)",
-      "connectorUrl": "Adres dla Claude (custom connector)"
+      "connectorUrl": "Adres dla Claude (custom connector)",
+      "origin": "Authorised JavaScript origins (adres strony)",
+      "authRedirectUri": "Authorised redirect URIs (adres powrotu)"
     },
     "p": {
       "inngest": {
@@ -2263,6 +2268,26 @@
         "why": "Ludzie proszą Claude w czacie, a on pracuje w MeetOwl za nich. Niczego nie trzeba rejestrować.",
         "s1": "Nic do ustawienia: działa, gdy adres platformy zaczyna się od https.",
         "s2": "Ludzie kopiują adres z karty Claude na stronie „Integracje”. Naciśnij „Sprawdź”, aby się upewnić."
+      },
+      "mail": {
+        "title": "Poczta dla linków logowania",
+        "why": "Każdy link do logowania wychodzi z tej skrzynki. Jeśli przestanie działać, nowe osoby nie mogą wejść.",
+        "s1": "Otwórz myaccount.google.com/apppasswords, zalogowany na to samo konto Google, z którego wychodzą e-maile (weryfikacja dwuetapowa musi być włączona).",
+        "s2": "Usuń stare hasło aplikacji MeetOwl, jeśli jest, i utwórz nowe o nazwie MeetOwl.",
+        "s3": "Skopiuj 16 liter hasła (spacje nie mają znaczenia).",
+        "s4": "W Vercel, Settings, Environment Variables zamień wartość SMTP_PASS na nowe hasło. SMTP_HOST musi być smtp.gmail.com, SMTP_PORT 465, SMTP_USER twój adres Gmail.",
+        "s5": "W Vercel otwórz Deployments, przy ostatniej wersji kliknij trzy kropki i wybierz Redeploy. Bez tego nowe hasło nie zadziała.",
+        "s6": "Wróć tutaj i kliknij „Sprawdź”: na twoją skrzynkę przyjdzie testowy e-mail. Gdy będziesz mieć własną domenę, pewniejsze jest wysyłanie przez Resend (RESEND_API_KEY)."
+      },
+      "googleSignIn": {
+        "title": "Logowanie przez Google",
+        "why": "Jeden przycisk zamiast linku z e-maila: nie trzeba czekać i link nie może wygasnąć.",
+        "s1": "Otwórz console.cloud.google.com i utwórz projekt (albo weź ten, w którym jest już kalendarz).",
+        "s2": "APIs & Services, OAuth consent screen: typ External, nazwa MeetOwl, twój e-mail. Potem kliknij Publish app, żeby mogli się logować wszyscy, a nie tylko użytkownicy testowi.",
+        "s3": "Credentials, Create credentials, OAuth client ID, typ Web application.",
+        "s4": "Wklej dwa adresy poniżej: adres strony do Authorised JavaScript origins, adres powrotu do Authorised redirect URIs.",
+        "s5": "Skopiuj Client ID i Client secret do Vercel jako AUTH_GOOGLE_ID i AUTH_GOOGLE_SECRET.",
+        "s6": "Zrób Redeploy w Vercel i kliknij tutaj „Sprawdź”. Na stronie logowania pojawi się przycisk „Zaloguj się przez Google”."
       }
     },
     "result": {
@@ -2281,7 +2306,33 @@
       "google_ok": "Klucze są na miejscu. Pełnym sprawdzeniem jest pierwsze prawdziwe połączenie na stronie „Integracje”.",
       "slack_keys": "Jeden z trzech kluczy Slack nie został jeszcze dodany.",
       "slack_ok": "Klucze są na miejscu. Pełnym sprawdzeniem jest pierwsze prawdziwe połączenie na stronie „Integracje”.",
-      "claude_ok": "Gotowe: adres jest https, ludzie mogą łączyć Claude."
+      "claude_ok": "Gotowe: adres jest https, ludzie mogą łączyć Claude.",
+      "mail_ok": "Testowy e-mail wysłano na {name}. Zajrzyj do skrzynki: jeśli tam jest, linki do logowania też wyjdą.",
+      "mail_config": "Do wysyłania nie ustawiono żadnej skrzynki: ustawienia wciąż wskazują serwer testowy. Wypełnij SMTP_USER i SMTP_PASS (albo RESEND_API_KEY) w Vercel i zrób Redeploy.",
+      "mail_credentials": "Serwer poczty odrzucił login lub hasło. Utwórz nowe hasło aplikacji, zamień SMTP_PASS w Vercel i zrób Redeploy. Serwer odpowiedział:",
+      "mail_quota": "Serwer poczty prosi o poczekanie albo mówi, że dzisiejszy limit wyczerpany. Spróbuj później; dobowy limit trwa do jutra. Serwer odpowiedział:",
+      "mail_network": "Serwer poczty jest nieosiągalny. Sprawdź SMTP_HOST i SMTP_PORT i spróbuj jeszcze raz. Serwer odpowiedział:",
+      "mail_rejected": "Serwer poczty nie przyjął wiadomości. Serwer odpowiedział:",
+      "mail_unknown": "E-mail nie został wysłany z nieznanego nam powodu. Serwer odpowiedział:",
+      "googleSignIn_ok": "Klucze są na miejscu. Prawdziwym sprawdzianem jest logowanie przez Google na stronie logowania.",
+      "googleSignIn_keys": "AUTH_GOOGLE_ID i AUTH_GOOGLE_SECRET nie są jeszcze wypełnione w Vercel.",
+      "googleSignIn_id": "AUTH_GOOGLE_ID wygląda źle: kończy się na .apps.googleusercontent.com."
+    },
+    "mailSeen": "Co widzi strona (serwer:port · login · długość hasła):",
+    "mailHint": {
+      "resend_wins": "Wypełniony jest RESEND_API_KEY, więc strona wysyła przez Resend i pomija ustawienia Gmail. Usuń RESEND_API_KEY, jeśli ma być Gmail.",
+      "user_missing": "SMTP_USER jest pusty: wpisz w nim pełny adres Gmail.",
+      "user_is_name": "Wartością SMTP_USER jest samo słowo SMTP_USER. Wpisz adres Gmail w polu Value.",
+      "user_stray": "SMTP_USER ma spację, znak nowej linii albo cudzysłów dookoła. Wpisz go od nowa, bez niczego dookoła.",
+      "user_not_email": "SMTP_USER nie wygląda na pełny adres e-mail (potrzebna część @gmail.com).",
+      "pass_missing": "SMTP_PASS jest pusty: wpisz w nim hasło aplikacji z 16 liter.",
+      "pass_is_name": "Wartością SMTP_PASS jest samo słowo SMTP_PASS. Wpisz hasło aplikacji z 16 liter w polu Value.",
+      "pass_stray": "SMTP_PASS ma spację, znak nowej linii albo cudzysłów dookoła. Usuń wartość i wklej kod od nowa, bez niczego dookoła.",
+      "pass_length": "Hasło nie ma 16 znaków. Hasło aplikacji to dokładnie 16 małych liter: utwórz nowe i wklej w całości.",
+      "pass_chars": "W haśle są inne znaki niż małe litery. Hasło aplikacji to tylko 16 małych liter, więc to nie ono (najpewniej zwykłe hasło konta).",
+      "pass_spaces": "W haśle są spacje. Działa i tak, ale pewniej wkleić 16 liter z rzędu.",
+      "host_not_gmail": "Login to adres Gmail, a SMTP_HOST nie jest smtp.gmail.com.",
+      "port_not_gmail": "Dla smtp.gmail.com port musi być 465 (albo 587)."
     }
   },
   "touches": {

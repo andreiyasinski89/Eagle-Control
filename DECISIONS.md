@@ -266,3 +266,10 @@
 | 261 | A touch result gets a 30-second transaction | It is many sequential queries; on a distant or sleeping database the default 5 seconds ran out and the first press failed. |
 | 262 | Queries retry when the database connection is not there yet | A sleeping free database wakes within seconds; the first visitor should wait a moment, not meet a crash page. Only "cannot connect" errors are retried. |
 | 263 | "Nobody" from Auth.js is believed only when there is no cookie or the database says the session is gone | A failed lookup looked like a sign-out and sent signed-in people round the sign-in page in a loop. |
+| 264 | A failed mail is classified, logged with the server's words and kept (domain only, never the address) | "Not sent" with no reason cost days: the cause (a refused password) was one line in a log nobody opened. |
+| 265 | A refused password is never retried; unreachable and "wait" are, twice | A wrong password does not fix itself; a slow server does. A person is waiting, so the waits are short. |
+| 266 | The sign-in form is told "the mail service is down", not "check the address" | The address was never the problem; the wrong message sends people round in circles. |
+| 267 | Google sign-in is offered through the platform setup page, with Resend as the sturdier sender once there is a domain | It removes the e-mailed link for most people; Resend needs an own domain, which does not exist yet. |
+| 268 | The browser tests bring their own mailbox | They need a mailbox for the sign-in links; with Docker as a requirement they were not run for months and went stale unnoticed. |
+| 269 | Dependencies are updated in stages by risk, never with `npm audit fix --force` | The audit's own "fix" for next-auth is a 2021 version that would remove sign-in; none of the findings is reachable from outside, so there is time to do it carefully. |
+| 270 | The mail check lists likely mistakes in the settings instead of only repeating the server's refusal | "Username and Password not accepted" does not say whether the password is wrong, mistyped, pasted with a stray space or not an app password at all; the shape of the values does. |
