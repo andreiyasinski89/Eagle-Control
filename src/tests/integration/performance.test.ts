@@ -28,6 +28,8 @@ let owner: string;
 let ws: { id: string };
 const NOW = new Date("2026-11-10T12:00:00.000Z");
 const DAY = 86_400_000;
+// A shared runner on GitHub (many tests at once, a slower disk) takes several times as long as this machine: the limits are as promised here, and three times that there.
+const SLACK = process.env.CI ? 3 : 1;
 
 async function timed<T>(fn: () => Promise<T>): Promise<{ ms: number; out: T }> {
   const t0 = performance.now();
@@ -93,25 +95,25 @@ describe("speed", () => {
     const { ms, out } = await timed(() => getTouchQueue(owner, ws.id, NOW));
     console.log(`touch queue, 1000 people: ${ms} ms, ${out.items.length} cards`);
     expect(out.items.length).toBeGreaterThan(0);
-    expect(ms).toBeLessThan(1000);
+    expect(ms).toBeLessThan(1000 * SLACK);
   });
 
   it("builds the team tree for 300 partners (three levels, then a branch) quickly", async () => {
     const first = await timed(() => getTeamTree(owner, ws.id, { depth: 3 }, NOW));
     console.log(`team tree, 300 partners, 3 levels: ${first.ms} ms, ${first.out.nodes.length} nodes`);
     expect(first.out.nodes.length).toBeGreaterThan(10);
-    expect(first.ms).toBeLessThan(1500);
+    expect(first.ms).toBeLessThan(1500 * SLACK);
     const deep = await timed(() => getTeamTree(owner, ws.id, { depth: 6 }, NOW));
     console.log(`team tree, 300 partners, 6 levels: ${deep.ms} ms, ${deep.out.nodes.length} nodes`);
     expect(deep.out.nodes.length).toBe(300);
-    expect(deep.ms).toBeLessThan(3000);
+    expect(deep.ms).toBeLessThan(3000 * SLACK);
   });
 
   it("keeps My day and the people board fast with the same data", async () => {
     const day = await timed(() => getMyDay(owner, ws.id, NOW));
     const people = await timed(() => listPeople(owner, ws.id, listPeopleSchema.parse({}), NOW));
     console.log(`my day: ${day.ms} ms; people board: ${people.ms} ms`);
-    expect(day.ms).toBeLessThan(2000);
-    expect(people.ms).toBeLessThan(2000);
+    expect(day.ms).toBeLessThan(2000 * SLACK);
+    expect(people.ms).toBeLessThan(2000 * SLACK);
   });
 });

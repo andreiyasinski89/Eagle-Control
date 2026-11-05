@@ -629,3 +629,7 @@
 ## 0.57.2 — The automatic checks on GitHub run again
 
 - The checks that GitHub runs on every push (types, lint, tests, build) had stopped at the very first step, the install, on every run for days: they used Node 20, whose npm (10) refuses the lock file written by npm 11 ("Missing: @swc/helpers from lock file"). They now use Node 24, like the machine and Vercel. The lint step now covers the whole project (`eslint .`), not only `src`.
+
+## 0.57.3 — The speed tests allow for a shared runner
+
+- With the install fixed, the automatic checks on GitHub reached the tests, and one failed: the team map for 300 partners took 3.9 s against the promised 3 s, on a shared runner. The speed tests keep their promised limits on a normal machine and allow three times as much when run by the automatic checks (`CI`).
