@@ -108,8 +108,15 @@ export async function runAgent(opts: RunOptions): Promise<RunResult> {
   }
 
   try {
-    for (let turn = 0; turn < (opts.maxTurns ?? MAX_TURNS); turn++) {
-      const reply = await model.complete({ system, messages, tools, maxTokens: MAX_TOKENS });
+    const turns = opts.maxTurns ?? MAX_TURNS;
+    for (let turn = 0; turn < turns; turn++) {
+      // The last turn is for the answer: without this a model that keeps reading the CRM runs out of turns and leaves nothing to show.
+      const last = turn === turns - 1 && turn > 0;
+      if (last) {
+        const prev = messages[messages.length - 1];
+        if (prev && Array.isArray(prev.content)) prev.content = [...prev.content, { type: "text", text: "Лимит шагов исчерпан. Больше не вызывай инструменты: ответь сейчас текстом по тому, что уже собрано." }];
+      }
+      const reply = await model.complete({ system, messages, tools, maxTokens: MAX_TOKENS, ...(last ? { forbidTools: true } : {}) });
       inTokens += reply.inputTokens;
       outTokens += reply.outputTokens;
       modelName = reply.model;
