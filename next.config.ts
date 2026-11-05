@@ -39,7 +39,7 @@ const config: NextConfig = {
     ];
   },
   // The agent reads its prompts from agent/prompts/*.md at run time; without this the serverless bundle of the routes that start it would not contain them.
-  outputFileTracingIncludes: { "/api/inngest": ["./agent/prompts/**/*"], "/api/jobs/[name]": ["./agent/prompts/**/*"] },
+  outputFileTracingIncludes: { "/api/inngest": ["./agent/prompts/**/*"], "/api/jobs/[name]": ["./agent/prompts/**/*"], "/api/v1/workspaces/[id]/agent-run": ["./agent/prompts/**/*"] },
   async headers() {
     return [
       {

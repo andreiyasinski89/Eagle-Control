@@ -2618,6 +2618,12 @@
     "limitNote": "Agent zużywa miesięczny limit AI z Twojego planu. Dzienny limit uruchomień chroni przed zbędnymi kosztami.",
     "save": "Zapisz",
     "saved": "Zapisano",
-    "failed": "Nie udało się zapisać"
+    "failed": "Nie udało się zapisać",
+    "runNow": "Uruchom briefing teraz",
+    "running": "Agent pracuje, to może potrwać kilka minut…",
+    "runNowHint": "Start od razu, bez czekania na godzinę briefingu i bez przerwy po błędach. Wynik pojawi się tutaj i trafi do Telegrama.",
+    "runFailed": "Nie udało się uruchomić agenta",
+    "sentToTelegram": "Wysłano do Telegrama",
+    "notSentToTelegram": "Nie wysłano do Telegrama (bot lub czat nie jest połączony)"
   }
 }
