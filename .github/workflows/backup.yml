@@ -1,0 +1,115 @@
+name: Backup
+
+# The nightly copy of the production database (see docs/BACKUP.ru.md).
+#  - every night at 02:30 UTC and on the button "Run workflow": the real backup (job `backup`);
+#  - when this file or scripts/backup/ change: a self-test on a throwaway database (job `selftest`), which needs no secrets.
+# The log of a public repository is public: the scripts print no address, password or data.
+on:
+  schedule:
+    - cron: "30 2 * * *"
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/backup.yml"
+      - ".github/workflows/restore.yml"
+      - "scripts/backup/**"
+  pull_request:
+    paths:
+      - ".github/workflows/backup.yml"
+      - ".github/workflows/restore.yml"
+      - "scripts/backup/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup-${{ github.event_name }}
+  cancel-in-progress: false
+
+jobs:
+  selftest:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      source:
+        image: postgres:18
+        env: { POSTGRES_PASSWORD: ci, POSTGRES_DB: source }
+        ports: ["5432:5432"]
+        options: --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+      scratch:
+        image: postgres:18
+        env: { POSTGRES_PASSWORD: ci, POSTGRES_DB: scratch }
+        ports: ["5433:5432"]
+        options: --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm }
+      - run: npm ci
+      - name: Install the tools (the PostgreSQL 18 client, age)
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsS -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          . /etc/os-release
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list >/dev/null
+          sudo apt-get update -q
+          sudo apt-get install -y -q postgresql-client-18 age
+      - name: A throwaway database with the real schema and a row
+        env:
+          PGPASSWORD: ci
+        run: |
+          for f in $(ls prisma/migrations/*/migration.sql | sort); do psql -v ON_ERROR_STOP=1 -q -h localhost -U postgres -d source -f "$f" >/dev/null; done
+          psql -v ON_ERROR_STOP=1 -q -h localhost -U postgres -d source -c "insert into \"User\"(id, email) values ('selftest-1', 'selftest@example.com')"
+      - name: A key pair made by our own tool, checked by the real age
+        run: |
+          npx tsx scripts/backup/keygen.ts --out "$RUNNER_TEMP/selftest-key.txt" | tee "$RUNNER_TEMP/keygen.out"
+          grep -o 'age1[a-z0-9]*' "$RUNNER_TEMP/keygen.out" | tail -1 > "$RUNNER_TEMP/recipient.txt"
+          grep '^AGE-SECRET-KEY' "$RUNNER_TEMP/selftest-key.txt" > "$RUNNER_TEMP/identity.txt"
+      - name: Dump, restore, lock and unlock
+        env:
+          BACKUP_MODE: selftest
+          DATABASE_URL: postgresql://postgres:ci@localhost:5432/source
+          SCRATCH_URL: postgresql://postgres:ci@localhost:5433/scratch
+        run: |
+          export AGE_RECIPIENT="$(cat "$RUNNER_TEMP/recipient.txt")"
+          export AGE_IDENTITY_FILE="$RUNNER_TEMP/identity.txt"
+          bash scripts/backup/run.sh
+
+  backup:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      scratch:
+        image: postgres:18
+        env: { POSTGRES_PASSWORD: ci, POSTGRES_DB: scratch }
+        ports: ["5433:5432"]
+        options: --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the tools (the PostgreSQL 18 client, age)
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsS -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          . /etc/os-release
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list >/dev/null
+          sudo apt-get update -q
+          sudo apt-get install -y -q postgresql-client-18 age
+      - name: Back up the database
+        env:
+          BACKUP_MODE: real
+          DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+          SCRATCH_URL: postgresql://postgres:ci@localhost:5433/scratch
+          AGE_RECIPIENT: ${{ secrets.BACKUP_AGE_RECIPIENT }}
+          S3_ENDPOINT: ${{ secrets.BACKUP_S3_ENDPOINT }}
+          S3_BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
+          S3_REGION: ${{ secrets.BACKUP_S3_REGION }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.BACKUP_S3_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_S3_KEY }}
+        run: |
+          if [ -z "$DATABASE_URL" ] || [ -z "$AGE_RECIPIENT" ] || [ -z "$S3_ENDPOINT" ] || [ -z "$S3_BUCKET" ] || [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
+            echo "::error title=Backup is not set up::One or more secrets are missing (BACKUP_DATABASE_URL, BACKUP_AGE_RECIPIENT, BACKUP_S3_ENDPOINT, BACKUP_S3_BUCKET, BACKUP_S3_KEY_ID, BACKUP_S3_KEY). See docs/BACKUP.ru.md."
+            exit 1
+          fi
+          bash scripts/backup/run.sh

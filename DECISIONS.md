@@ -282,3 +282,7 @@
 | 277 | The e-mail texts are renamed, the sender name is the owner's setting (MAIL_FROM) | The words are code and safe to change; the sender name lives in the settings the owner asked not to touch until the domain move. |
 | 278 | Resend first, the Gmail mailbox as the way back | The owner lost sign-in for days because one mailbox setting went wrong; adding a second service must make mail sturdier, never make it depend on a new thing that can still fail. |
 | 279 | The automatic checks on GitHub run on Node 24 | The lock file is written by npm 11; Node 20 brings npm 10, which cannot read it, so every run failed at the install and nobody saw the real result of the checks. |
+| 280 | The backup is locked with a public key on the runner; the private key never leaves the owner | The repository is public and the dump holds other people's clients: nothing readable may rest on GitHub or in the storage, and a leaked secret of GitHub must not open the backups. |
+| 281 | Every nightly dump is restored into a throwaway database and checked before it is kept | A backup that was never restored is a hope; this finds a broken one the same night. |
+| 282 | The database is read with a read-only role, over a direct connection | A leaked backup password must not be able to change or delete anything. |
+| 283 | Backblaze B2 for the copies | Another provider than the database, free for the first 10 GB, and the owner asked for the free one. |

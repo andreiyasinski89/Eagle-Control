@@ -1,0 +1,59 @@
+name: Restore
+
+# Puts a backup into a NEW, EMPTY database (see "Восстановление" in docs/BACKUP.ru.md). By hand only, from the button "Run workflow".
+# It needs the private key for a few minutes: add it as the secret BACKUP_PRIVATE_KEY just before, and DELETE the secret right after.
+on:
+  workflow_dispatch:
+    inputs:
+      object:
+        description: "Which backup, e.g. daily/2026-11-05.dump.age (the folder and the file name as in the storage)"
+        required: true
+      confirm:
+        description: 'Type RESTORE to confirm: the target database must be new and empty'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  restore:
+    if: github.event.inputs.confirm == 'RESTORE'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Install the tools (the PostgreSQL 18 client, age)
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsS -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          . /etc/os-release
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list >/dev/null
+          sudo apt-get update -q
+          sudo apt-get install -y -q postgresql-client-18 age
+      - name: Download, unlock, restore
+        env:
+          TARGET_URL: ${{ secrets.RESTORE_DATABASE_URL }}
+          PRIVATE_KEY: ${{ secrets.BACKUP_PRIVATE_KEY }}
+          S3_ENDPOINT: ${{ secrets.BACKUP_S3_ENDPOINT }}
+          S3_BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.BACKUP_S3_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_S3_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.BACKUP_S3_REGION }}
+          OBJECT: ${{ github.event.inputs.object }}
+        run: |
+          set -euo pipefail
+          for v in TARGET_URL PRIVATE_KEY S3_ENDPOINT S3_BUCKET AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY; do
+            [ -n "${!v}" ] || { echo "::error title=Restore is not ready::The secret for $v is missing (RESTORE_DATABASE_URL, BACKUP_PRIVATE_KEY and the BACKUP_S3_* ones)."; exit 1; }
+          done
+          case "$OBJECT" in daily/*.dump.age|weekly/*.dump.age|monthly/*.dump.age) ;; *) echo "::error title=Wrong name::The name must look like daily/2026-11-05.dump.age"; exit 1;; esac
+          export AWS_REQUEST_CHECKSUM_CALCULATION=when_required AWS_RESPONSE_CHECKSUM_VALIDATION=when_required
+          umask 077
+          work="$RUNNER_TEMP/restore"; mkdir -p "$work"
+          printf '%s\n' "$PRIVATE_KEY" > "$work/key.txt"
+          aws s3 cp --only-show-errors --endpoint-url "$S3_ENDPOINT" "s3://$S3_BUCKET/$OBJECT" "$work/backup.age"
+          age -d -i "$work/key.txt" -o "$work/backup.pgdump" "$work/backup.age" || { echo "::error title=Cannot unlock::This private key does not unlock that backup."; exit 1; }
+          rm -f "$work/key.txt"
+          already="$(psql -tA "$TARGET_URL" -c "select count(*) from information_schema.tables where table_schema='public'" | tr -d '[:space:]')"
+          [ "$already" = "0" ] || { echo "::error title=The target is not empty::The database to restore into must be new and empty (it has $already tables)."; exit 1; }
+          pg_restore --no-owner --no-privileges --exit-on-error --dbname="$TARGET_URL" "$work/backup.pgdump"
+          tables="$(psql -tA "$TARGET_URL" -c "select count(*) from information_schema.tables where table_schema='public'" | tr -d '[:space:]')"
+          echo "Restored: $tables tables. Next: put the address of this database into DATABASE_URL in Vercel and redeploy, then DELETE the secret BACKUP_PRIVATE_KEY."

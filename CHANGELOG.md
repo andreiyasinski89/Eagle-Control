@@ -633,3 +633,11 @@
 ## 0.57.3 — The speed tests allow for a shared runner
 
 - With the install fixed, the automatic checks on GitHub reached the tests, and one failed: the team map for 300 partners took 3.9 s against the promised 3 s, on a shared runner. The speed tests keep their promised limits on a normal machine and allow three times as much when run by the automatic checks (`CI`).
+
+## 0.58.0 — Nightly encrypted backups of the database (set-up by the owner still to do)
+
+- `.github/workflows/backup.yml` and `scripts/backup/run.sh`: every night a full dump of the production database (read-only role), **restored into a throwaway empty database and checked** (tables, row counts), locked with a public key (`age`) and put into Backblaze B2 (`daily/`, `weekly/` on Sundays, `monthly/` on the 1st; kept 7 / 4 / 3 by the storage's own rules). A failing run e-mails the owner. The log is public and shows no address, password or data.
+- A self-test with no secrets runs whenever the backup files change: a real schema in a throwaway PostgreSQL 18, a dump, a restore, a lock with a key made by `scripts/backup/keygen.ts`, an unlock with the real `age`, and a comparison.
+- `scripts/backup/keygen.ts` makes the key pair on the owner's machine: the private key goes into a file (never printed), the public key is printed.
+- `.github/workflows/restore.yml`: by hand, into a new empty database, with the private key added as a secret only for those minutes.
+- `docs/BACKUP.ru.md`: the set-up (keys, Backblaze, the read-only role in Neon, seven GitHub secrets), the restore drill and the real restore, what the copy does not hold.
