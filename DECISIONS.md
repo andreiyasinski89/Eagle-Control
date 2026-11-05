@@ -281,3 +281,4 @@
 | 276 | The pile of late dates is sorted out by the person in one confirmed action, not automatically | Dates written by hand and by the old rule cannot be told apart; the person says whether to take them off or move them. |
 | 277 | The e-mail texts are renamed, the sender name is the owner's setting (MAIL_FROM) | The words are code and safe to change; the sender name lives in the settings the owner asked not to touch until the domain move. |
 | 278 | Resend first, the Gmail mailbox as the way back | The owner lost sign-in for days because one mailbox setting went wrong; adding a second service must make mail sturdier, never make it depend on a new thing that can still fail. |
+| 279 | The automatic checks on GitHub run on Node 24 | The lock file is written by npm 11; Node 20 brings npm 10, which cannot read it, so every run failed at the install and nobody saw the real result of the checks. |

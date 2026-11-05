@@ -625,3 +625,7 @@
 ## 0.57.1 — The check names the sender mistake
 
 - When Resend is on but the sender (`MAIL_FROM`) is a free mailbox address such as `@gmail.com`, the check says so in plain words ("Resend sends only from a domain verified in it: set MAIL_FROM to MLM CRM <noreply@mlmcrm.app>"), and shows the sender's domain in the line of what the site sees. The same hints now also come with the "arrived through Gmail" result.
+
+## 0.57.2 — The automatic checks on GitHub run again
+
+- The checks that GitHub runs on every push (types, lint, tests, build) had stopped at the very first step, the install, on every run for days: they used Node 20, whose npm (10) refuses the lock file written by npm 11 ("Missing: @swc/helpers from lock file"). They now use Node 24, like the machine and Vercel. The lint step now covers the whole project (`eslint .`), not only `src`.
