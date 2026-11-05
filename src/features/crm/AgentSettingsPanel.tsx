@@ -30,6 +30,9 @@ export function AgentSettingsPanel({ workspaceId }: { workspaceId: string }) {
     },
     onError: (e) => setNote(e instanceof ApiFailure ? e.message : t("failed")),
   });
+  const runNow = useMutation({
+    mutationFn: () => api.post<{ output: string; tokens: number; toolCalls: number; delivered: boolean }>(`/api/v1/workspaces/${workspaceId}/agent-run`, { role: "morning_briefing" }),
+  });
   const set = <K extends keyof AgentSettings>(k: K, v: AgentSettings[K]) => (setNote(null), setS((x) => ({ ...x, [k]: v })));
   const num = (v: string, fallback: number) => (v === "" || Number.isNaN(Number(v)) ? fallback : Number(v));
 
@@ -73,6 +76,23 @@ export function AgentSettingsPanel({ workspaceId }: { workspaceId: string }) {
         <Button type="button" className="min-h-11" disabled={save.isPending} onClick={() => save.mutate()} data-testid="agent-settings-save">
           {t("save")}
         </Button>
+      </div>
+      <div className="mt-4 border-t border-border pt-3">
+        <Button type="button" variant="outline" className="min-h-11" disabled={runNow.isPending} onClick={() => runNow.mutate()} data-testid="agent-run-now">
+          {runNow.isPending ? t("running") : t("runNow")}
+        </Button>
+        <p className="mt-1 text-xs text-muted-foreground">{t("runNowHint")}</p>
+        {runNow.isError && (
+          <p role="alert" className="mt-2 whitespace-pre-wrap break-words text-sm text-destructive" data-testid="agent-run-error">
+            {runNow.error instanceof ApiFailure ? runNow.error.message : t("runFailed")}
+          </p>
+        )}
+        {runNow.data && (
+          <div className="mt-2" data-testid="agent-run-result">
+            <p className="text-xs text-muted-foreground">{runNow.data.delivered ? t("sentToTelegram") : t("notSentToTelegram")}</p>
+            <pre className="mt-1 max-h-96 overflow-auto whitespace-pre-wrap rounded-md bg-muted p-3 text-sm">{runNow.data.output}</pre>
+          </div>
+        )}
       </div>
     </section>
   );
