@@ -39,7 +39,7 @@ export function openApiDocument(baseUrl: string) {
   }
   return {
     openapi: "3.0.3",
-    info: { title: "MeetOwl public API", version: "1.0.0", description: "Personal access tokens (Settings → Developers) act as their owner inside one workspace. Rate limit: 600 requests per minute per token (`X-RateLimit-*`)." },
+    info: { title: "MLM CRM public API", version: "1.0.0", description: "Personal access tokens (Settings → Developers) act as their owner inside one workspace. Rate limit: 600 requests per minute per token (`X-RateLimit-*`)." },
     servers: [{ url: `${baseUrl}/api/public/v1` }],
     components: {
       securitySchemes: { bearer: { type: "http", scheme: "bearer", description: "`Authorization: Bearer mo_…`" } },

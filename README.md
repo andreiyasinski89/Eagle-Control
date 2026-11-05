@@ -1,4 +1,4 @@
-# MeetOwl.ai
+# MLM CRM
 
 Agile mind map + CRM in one tree, for teams and their clients. Next.js (App Router), TypeScript strict, Prisma/Postgres, Auth.js, React Flow; English, Russian and Polish.
 

@@ -22,6 +22,7 @@ import { GroupsPanel, type GroupChoice } from "./GroupsPanel";
 import { ImportWizard } from "./ImportWizard";
 import { useGroups } from "./useGroups";
 import { usePartners } from "./usePartners";
+import { BrandMark } from "@/components/brand";
 
 export const TEMP_ICON: Record<Temp, string> = { HOT: "🔥", WARM: "🟡", COLD: "❄️" };
 
@@ -400,9 +401,7 @@ export function PeopleBoard({ workspaceId, slug, canWrite, canExport, canErase, 
       {data?.truncated && <p className="text-xs text-[var(--health-yellow)]">{t("peopleTruncated")}</p>}
       {data && data.totals.all === 0 && (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border bg-card p-10 text-center" data-testid="people-empty">
-          <span className="text-4xl" aria-hidden>
-            🦉
-          </span>
+          <BrandMark className="size-10" />
           <p className="font-medium">{t("peopleEmptyTitle")}</p>
           <p className="max-w-md text-sm text-muted-foreground">{t("peopleEmpty", { goal: LIST_GOAL })}</p>
           {canWrite && (

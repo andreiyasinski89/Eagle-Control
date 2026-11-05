@@ -158,7 +158,7 @@ export function DevelopersPanel({ workspaceId, canManageHooks }: { workspaceId: 
         <details className="text-sm">
           <summary className="cursor-pointer text-muted-foreground">{t("claudeCode")}</summary>
           <div className="mt-2 flex flex-col gap-2">
-            <CopyLine value={`claude mcp add --transport http meetowl ${origin}/api/mcp`} label={t("copy")} />
+            <CopyLine value={`claude mcp add --transport http mlm-crm ${origin}/api/mcp`} label={t("copy")} />
             <p className="text-xs text-muted-foreground">{t("claudeCodeHint")}</p>
           </div>
         </details>

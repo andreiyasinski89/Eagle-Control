@@ -10,6 +10,7 @@ import { Link } from "@/i18n/navigation";
 import { ContactDrawer } from "./ContactDrawer";
 import { ReferralCard } from "./ReferralCard";
 import { usePartners, type PartnerDto } from "./usePartners";
+import { BrandMark } from "@/components/brand";
 
 /**
  * The team: every partner under their sponsor, with the people they hold and the size of their line.
@@ -89,9 +90,7 @@ export function TeamView({ workspaceId, slug, canWrite, canExport, canErase, meI
       )}
       {data && data.length === 0 && (
         <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-border bg-card p-10 text-center" data-testid="team-empty">
-          <span className="text-4xl" aria-hidden>
-            🦉
-          </span>
+          <BrandMark className="size-10" />
           <p className="font-medium">{t("teamEmptyTitle")}</p>
           <p className="max-w-md text-sm text-muted-foreground">{t("teamEmpty")}</p>
           <Link href={`/w/${slug}/crm/people`} className="inline-flex min-h-11 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground" data-testid="team-empty-cta">

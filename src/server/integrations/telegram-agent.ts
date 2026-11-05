@@ -117,7 +117,7 @@ export async function handleAgentCallback(cq: CallbackQuery): Promise<void> {
   const [, action, draftId] = m as unknown as [string, "t" | "e" | "s", string];
 
   const link = await linkedUser(chatId);
-  if (!link) return void (await safe(answerCallbackQuery(cq.id, "Этот чат не привязан к MeetOwl.", true)));
+  if (!link) return void (await safe(answerCallbackQuery(cq.id, "Этот чат не привязан к MLM CRM.", true)));
 
   const settle = async (status: string) => {
     await safe(answerCallbackQuery(cq.id, status));

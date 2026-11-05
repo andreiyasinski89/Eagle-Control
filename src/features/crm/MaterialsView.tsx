@@ -12,6 +12,7 @@ import { guessKind, isLink, LANG_LABEL, MATERIAL_KINDS, MATERIAL_LANGS, QR_CORNE
 import { cn } from "@/lib/utils";
 import { copyToClipboard } from "./useScripts";
 import { storyWithQr, useMaterials, type MaterialDto } from "./useMaterials";
+import { BrandMark } from "@/components/brand";
 
 const ICON: Record<MaterialKind, typeof FileText> = { PRESENTATION: Presentation, VIDEO: Film, IMAGE: ImageIcon, PDF: FileText, OTHER: Link2 };
 const MAX_BYTES = 25 * 1024 * 1024;
@@ -94,9 +95,7 @@ export function MaterialsView({ workspaceId }: { workspaceId: string }) {
       {isLoading && <p className="text-sm text-muted-foreground">{t("loading")}</p>}
       {data && items.length === 0 && (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border bg-card p-10 text-center" data-testid="materials-empty">
-          <span className="text-4xl" aria-hidden>
-            🦉
-          </span>
+          <BrandMark className="size-10" />
           <p className="font-medium">{t("emptyTitle")}</p>
           <p className="max-w-md text-sm text-muted-foreground">{t("empty")}</p>
           <Button className="min-h-11" onClick={() => setEditing("new")}>

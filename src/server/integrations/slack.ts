@@ -132,7 +132,7 @@ export async function announceToSlack(workspaceId: string, event: SlackEvent, ms
     const channel = cur?.config.routes[event];
     if (!cur || !channel) return;
     const link = msg.url ? `${appUrl()}/w/${await slugOf(workspaceId)}${msg.url}` : null;
-    const text = `*${msg.title}*${msg.body ? `\n${msg.body}` : ""}${link ? `\n<${link}|Open in MeetOwl>` : ""}`;
+    const text = `*${msg.title}*${msg.body ? `\n${msg.body}` : ""}${link ? `\n<${link}|Open in MLM CRM>` : ""}`;
     const post = () => slackApi(cur.token, "chat.postMessage", { channel, text });
     try {
       await post();
@@ -158,7 +158,7 @@ export const slackChannel: ChannelAdapter = {
       throw e;
     });
     if (!found?.user) return false; // no Slack account with this e-mail: nothing to retry
-    await slackApi(cur.token, "chat.postMessage", { channel: found.user.id, text: `*${n.title}*${n.body ? `\n${n.body}` : ""}${n.url ? `\n<${appUrl()}${n.url}|Open in MeetOwl>` : ""}` });
+    await slackApi(cur.token, "chat.postMessage", { channel: found.user.id, text: `*${n.title}*${n.body ? `\n${n.body}` : ""}${n.url ? `\n<${appUrl()}${n.url}|Open in MLM CRM>` : ""}` });
     return true;
   },
 };

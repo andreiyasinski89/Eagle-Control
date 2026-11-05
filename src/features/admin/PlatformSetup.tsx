@@ -65,7 +65,7 @@ function CopyValue({ label, value }: { label: string; value: string }) {
 }
 
 /**
- * The platform owner's checklist for connecting MeetOwl to outside services. Each service is registered once, here: the page says what to
+ * The platform owner's checklist for connecting MLM CRM to outside services. Each service is registered once, here: the page says what to
  * click there, gives the addresses to paste, lists the settings to add in Vercel (ticking those that are in) and can test the result.
  * After this everyone else connects with one button.
  */

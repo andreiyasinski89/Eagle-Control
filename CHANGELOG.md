@@ -652,3 +652,10 @@
 
 - `.github/workflows/migrate-db.yml`: by hand, copies the production database into a new empty one (the source is only read), then compares table counts and the rows of the main tables. The log is public and shows no address, password or data.
 - `docs/NEON-FRANKFURT.ru.md`: step by step for the owner: a new Neon project in Frankfurt, two secrets, the button, switching `DATABASE_URL` (pooler host, `pgbouncer=true`, `connection_limit=5`), clean-up, and how to go back.
+
+## 0.61.0 — The old name is gone from what people and programs read
+
+- The public API (OpenAPI title), the MCP connector (title, instructions, sign-in challenge), the OAuth resource name, the webhook test message and its `User-Agent` (`MLM-CRM-Webhooks/1`), the AI assistant's prompt, the Slack, Telegram and Google texts, and the names of downloaded files (`mlm-crm-data-…`, the QR file) now say MLM CRM. The package is `mlm-crm`.
+- The owl in five empty screens (My day, Materials, Team, Team map, People) is replaced by the platform's mark.
+- The README and the guides in `docs/` say MLM CRM. The presentations in the knowledge base are renamed (`MLM-CRM-presentation-en/ru.pptx`) and their text updated; the PDF guides are renamed (`MLM-CRM-guide-en/ru.pdf`) but still carry the old name inside (see DECISIONS 289).
+- Left as they are on purpose, because outside programs know them: the webhook headers `MeetOwl-Event/-Delivery/-Signature`, the bot `MeetOwlBot`, the browser storage keys `meetowl:*`, the Google event key `meetowlNodeId`, the export format `meetowl-account-export/1`, the Inngest id, the demo addresses `@meetowl.local`, the database and bucket names, the Vercel project `meetowl-app`.

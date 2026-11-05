@@ -9,5 +9,5 @@ export const POST = route({}, async ({ req, userId }) => {
   const { code } = await parseBody(req, exportSchema);
   const data = await exportAccount(userId ?? "", code);
   const day = new Date().toISOString().slice(0, 10);
-  return new NextResponse(JSON.stringify(data, null, 2), { headers: { "content-type": "application/json; charset=utf-8", "content-disposition": `attachment; filename="meetowl-data-${day}.json"`, "cache-control": "no-store" } });
+  return new NextResponse(JSON.stringify(data, null, 2), { headers: { "content-type": "application/json; charset=utf-8", "content-disposition": `attachment; filename="mlm-crm-data-${day}.json"`, "cache-control": "no-store" } });
 });

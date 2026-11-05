@@ -97,7 +97,7 @@ export async function sendTest(userId: string, endpointId: string) {
   const e = await db.webhookEndpoint.findUnique({ where: { id: endpointId } });
   if (!e) throw notFound("endpoint");
   await admin(userId, e.workspaceId);
-  await db.webhookDelivery.create({ data: { endpointId, event: "ping", payload: envelope("ping", e.workspaceId, { message: "Hello from MeetOwl" }) as Prisma.InputJsonValue } });
+  await db.webhookDelivery.create({ data: { endpointId, event: "ping", payload: envelope("ping", e.workspaceId, { message: "Hello from MLM CRM" }) as Prisma.InputJsonValue } });
   return deliverDue(new Date(Date.now() + 1000)); // the row was stamped by the database a moment ago
 }
 
@@ -160,7 +160,7 @@ export async function deliverDue(now = new Date(), limit = 50): Promise<{ delive
       const res = await fetch(url, {
         method: "POST",
         redirect: "manual", // a redirect could point anywhere; treat it as a failure
-        headers: { "content-type": "application/json", "user-agent": "MeetOwl-Webhooks/1", "meetowl-event": d.event, "meetowl-delivery": d.id, "meetowl-signature": sign(decryptSecret(d.endpoint.secretEnc), body, Math.floor(now.getTime() / 1000)) },
+        headers: { "content-type": "application/json", "user-agent": "MLM-CRM-Webhooks/1", "meetowl-event": d.event, "meetowl-delivery": d.id, "meetowl-signature": sign(decryptSecret(d.endpoint.secretEnc), body, Math.floor(now.getTime() / 1000)) },
         body,
         signal: AbortSignal.timeout(10_000),
       });

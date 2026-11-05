@@ -83,11 +83,11 @@ export function KnowledgeView({ slug }: { slug: string }) {
           <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
         <div className="flex flex-wrap gap-2" data-testid="kb-downloads">
-          <a href={`/guide/MeetOwl-guide-${fileLang}.pdf`} download className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-card px-3 text-sm hover:border-primary hover:text-primary" data-testid="kb-download-pdf">
+          <a href={`/guide/MLM-CRM-guide-${fileLang}.pdf`} download className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-card px-3 text-sm hover:border-primary hover:text-primary" data-testid="kb-download-pdf">
             <Download className="size-4" aria-hidden />
             {t("downloadPdf")}
           </a>
-          <a href={`/guide/MeetOwl-presentation-${fileLang}.pptx`} download className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-card px-3 text-sm hover:border-primary hover:text-primary" data-testid="kb-download-slides">
+          <a href={`/guide/MLM-CRM-presentation-${fileLang}.pptx`} download className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-card px-3 text-sm hover:border-primary hover:text-primary" data-testid="kb-download-slides">
             <Download className="size-4" aria-hidden />
             {t("downloadSlides")}
           </a>

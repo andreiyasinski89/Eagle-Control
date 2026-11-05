@@ -97,13 +97,13 @@ describe("the downloadable guide", () => {
   const dir = join(process.cwd(), "public", "guide");
   it("has a PDF and a presentation for each language the knowledge base reads", () => {
     for (const l of ["ru", "en"]) {
-      for (const f of [`MeetOwl-guide-${l}.pdf`, `MeetOwl-presentation-${l}.pptx`]) expect(existsSync(join(dir, f)), f).toBe(true);
+      for (const f of [`MLM-CRM-guide-${l}.pdf`, `MLM-CRM-presentation-${l}.pptx`]) expect(existsSync(join(dir, f)), f).toBe(true);
     }
   });
   it("the PDFs are PDFs and the presentations are zip packages", () => {
     for (const l of ["ru", "en"]) {
-      expect(readFileSync(join(dir, `MeetOwl-guide-${l}.pdf`)).subarray(0, 5).toString()).toBe("%PDF-");
-      expect(readFileSync(join(dir, `MeetOwl-presentation-${l}.pptx`)).subarray(0, 2).toString()).toBe("PK");
+      expect(readFileSync(join(dir, `MLM-CRM-guide-${l}.pdf`)).subarray(0, 5).toString()).toBe("%PDF-");
+      expect(readFileSync(join(dir, `MLM-CRM-presentation-${l}.pptx`)).subarray(0, 2).toString()).toBe("PK");
     }
   });
 });

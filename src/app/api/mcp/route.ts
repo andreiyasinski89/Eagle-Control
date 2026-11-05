@@ -12,7 +12,7 @@ const baseUrl = () => env().APP_URL.replace(/\/$/, "");
 const noStore = { "cache-control": "no-store" };
 
 /** An MCP client that gets a 401 with this header knows where to start the OAuth sign-in. */
-const challenge = () => `Bearer realm="MeetOwl", resource_metadata="${baseUrl()}/.well-known/oauth-protected-resource"`;
+const challenge = () => `Bearer realm="MLM CRM", resource_metadata="${baseUrl()}/.well-known/oauth-protected-resource"`;
 
 /**
  * Model Context Protocol over Streamable HTTP, stateless: every POST is one JSON-RPC message (or a batch) and gets a JSON answer.

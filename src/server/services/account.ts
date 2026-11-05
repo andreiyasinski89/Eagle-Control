@@ -74,7 +74,7 @@ const record = (userId: string, action: string, detail?: Prisma.InputJsonValue) 
 export const exportSchema = z.object({ code: z.string().regex(/^\d{6}$/) });
 
 /**
- * Everything MeetOwl holds about the person, in one JSON document: their profile, what they created or wrote, and their settings.
+ * Everything MLM CRM holds about the person, in one JSON document: their profile, what they created or wrote, and their settings.
  * Other people's content is not included, and neither are secrets (token values, OAuth tokens, signing keys).
  */
 export async function exportAccount(userId: string, code: string, now = new Date()) {

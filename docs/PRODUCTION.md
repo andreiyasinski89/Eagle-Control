@@ -1,6 +1,6 @@
 # Going to production: checklist
 
-Work top to bottom. Items marked **blocker** stop a safe launch. Everything here is about running MeetOwl; what it does is in `README.md`.
+Work top to bottom. Items marked **blocker** stop a safe launch. Everything here is about running MLM CRM; what it does is in `README.md`.
 
 ## 1. Before the first deploy
 

@@ -185,7 +185,7 @@ describe("The buttons under a draft", () => {
     await handleUpdate(callback(PEER_CHAT, `ad:t:${d.id}`));
     expect(sent("answerCallbackQuery")[0]!.body.show_alert).toBe(true);
     await handleUpdate(callback("333", `ad:t:${d.id}`));
-    expect(sent("answerCallbackQuery")[1]!.body).toMatchObject({ show_alert: true, text: "Этот чат не привязан к MeetOwl." });
+    expect(sent("answerCallbackQuery")[1]!.body).toMatchObject({ show_alert: true, text: "Этот чат не привязан к MLM CRM." });
     expect((await raw.agentDraft.findUniqueOrThrow({ where: { id: d.id } })).status).toBe("PENDING");
     expect(await raw.crmActivity.count({ where: { contactId: valentin, body: "Только мой" } })).toBe(0);
   });

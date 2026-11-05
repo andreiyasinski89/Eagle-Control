@@ -32,3 +32,14 @@ describe("the name in e-mails", () => {
     for (const f of ["src/server/services/account.ts", "src/server/services/notify.ts"]) expect(read(f).split("\n").filter((l) => /MeetOwl/.test(l) && !/^\s*(\*|\/\/|\/\*)/.test(l)), f).toEqual([]);
   });
 });
+
+describe("the name in the code other programs and people read", () => {
+  it("API, MCP, webhooks, bots and downloads say MLM CRM; only the technical names stay", () => {
+    for (const f of ["src/server/mcp/server.ts", "src/server/public-api/openapi.ts", "src/server/integrations/slack.ts", "src/server/integrations/telegram.ts", "src/server/integrations/telegram-agent.ts", "src/server/integrations/google.ts", "src/modules/ai/prompts.ts", "src/app/api/mcp/route.ts"]) {
+      expect(read(f).split("\n").filter((l) => /MeetOwl/.test(l) && !/^\s*(\*|\/\/|\/\*)/.test(l)), f).toEqual([]);
+    }
+  });
+  it("the empty screens use the mark, not the owl", () => {
+    for (const f of ["MyDayView", "MaterialsView", "TeamView", "TeamMap", "PeopleBoard"]) expect(read(`src/features/crm/${f}.tsx`), f).not.toContain("🦉");
+  });
+});

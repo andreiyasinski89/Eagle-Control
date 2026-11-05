@@ -18,6 +18,7 @@ import { RankWidget } from "./RankWidget";
 import { ProductivityHistory } from "./ProductivityHistory";
 import { AddPeopleDialog } from "./AddPeopleDialog";
 import { NewEventDialog } from "@/features/views/NewEventDialog";
+import { BrandMark } from "@/components/brand";
 
 interface AgileTask {
   id: string;
@@ -460,9 +461,7 @@ export function MyDayView({ workspaceId, slug, workspaceName, userName, simple =
       )}
       {data && data.counts.total === 0 && (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border bg-card p-10 text-center" data-testid="myday-empty">
-          <span className="text-4xl" aria-hidden>
-            🦉
-          </span>
+          <BrandMark className="size-10" />
           <p className="font-medium">{t("allClearTitle")}</p>
           <p className="max-w-sm text-sm text-muted-foreground">{t("allClear")}</p>
           <Button asChild variant="soft" size="sm">

@@ -84,7 +84,7 @@ export async function googleCallback(code: string, state: string | null, userId:
   await loadWorkspaceMember(db, s.u, s.w, "workspace:read");
   await requireIntegrations(s.w);
   const t = await httpJson<TokenAnswer>("google", TOKEN_URL, form({ code, client_id: env().GOOGLE_CAL_CLIENT_ID as string, client_secret: env().GOOGLE_CAL_CLIENT_SECRET as string, redirect_uri: redirectUri(), grant_type: "authorization_code" }));
-  if (!t.refresh_token) throw new IntegrationError("google", "Google did not return offline access; remove MeetOwl from your Google account permissions and connect again");
+  if (!t.refresh_token) throw new IntegrationError("google", "Google did not return offline access; remove MLM CRM from your Google account permissions and connect again");
   const config: GoogleConfig = { calendarId: "primary", syncToken: null, error: null, watch: null };
   const data = { externalId: emailFrom(t.id_token), secretEnc: encryptJson({ refreshToken: t.refresh_token }), config: config as unknown as Prisma.InputJsonValue };
   const existing = await db.userIntegration.findFirst({ where: { userId: s.u, kind: "GOOGLE_CALENDAR", workspaceId: s.w } });
@@ -109,7 +109,7 @@ export async function disconnectGoogle(userId: string, workspaceId: string): Pro
   accessTokens.delete(row.id);
 }
 
-/** Tells Google to void the refresh token, so MeetOwl no longer appears in the person's connected apps with live access. */
+/** Tells Google to void the refresh token, so MLM CRM no longer appears in the person's connected apps with live access. */
 async function revokeGoogle(row: UserIntegration): Promise<void> {
   if (!row.secretEnc) return;
   const { refreshToken } = decryptJson<{ refreshToken: string }>(row.secretEnc);
@@ -141,7 +141,7 @@ const gcal = async <T>(row: UserIntegration, path: string, init: RequestInit & {
   return httpJson<T>("google", `${API}${path}`, { ...init, headers: { authorization: `Bearer ${token}`, ...(init.headers as Record<string, string> | undefined) } });
 };
 
-// ── push: MeetOwl → Google ─────────────────────────────────────────────────
+// ── push: MLM CRM → Google ─────────────────────────────────────────────────
 
 interface EventData {
   startsAt?: string;
@@ -229,7 +229,7 @@ export async function pushEvent(nodeId: string): Promise<"created" | "updated" |
   return link ? "updated" : "created";
 }
 
-// ── pull: Google → MeetOwl ─────────────────────────────────────────────────
+// ── pull: Google → MLM CRM ─────────────────────────────────────────────────
 
 interface EventList {
   items?: GoogleEvent[];
@@ -237,7 +237,7 @@ interface EventList {
   nextSyncToken?: string;
 }
 
-/** Window of the very first sync: only recent and future events matter for events created in MeetOwl. */
+/** Window of the very first sync: only recent and future events matter for events created in MLM CRM. */
 const INITIAL_LOOKBACK_MS = 7 * 86_400_000;
 
 async function startSync(row: UserIntegration): Promise<void> {
@@ -247,7 +247,7 @@ async function startSync(row: UserIntegration): Promise<void> {
 
 /**
  * Applies Google-side changes to linked events. Last write wins: if the node changed here after the last sync, our
- * version is pushed instead of being overwritten. Events that were not created from MeetOwl are never imported.
+ * version is pushed instead of being overwritten. Events that were not created from MLM CRM are never imported.
  */
 export async function pull(row: UserIntegration, initial = false): Promise<{ applied: number; deleted: number; pushedBack: number }> {
   const calendarId = encodeURIComponent(cfg(row).calendarId);

@@ -110,7 +110,7 @@ export { webhookState as telegramWebhookState };
 export async function disconnectTelegram(userId: string, workspaceId: string): Promise<void> {
   const row = await db.userIntegration.findFirst({ where: { userId, kind: "TELEGRAM", workspaceId } });
   if (!row) return;
-  if (row.externalId && telegramConfigured()) await sendTelegram(row.externalId, "MeetOwl is disconnected from this chat.").catch(() => undefined);
+  if (row.externalId && telegramConfigured()) await sendTelegram(row.externalId, "MLM CRM is disconnected from this chat.").catch(() => undefined);
   await db.userIntegration.delete({ where: { id: row.id } });
 }
 
@@ -150,7 +150,7 @@ export async function handleUpdate(raw: unknown, now = new Date()): Promise<void
     if (cmd === "/start" && arg) return await reply(await completeLink(chatId, arg, msg?.chat?.first_name ?? msg?.chat?.username ?? null, now));
 
     const link = await db.userIntegration.findFirst({ where: { kind: "TELEGRAM", externalId: chatId }, orderBy: { createdAt: "asc" } });
-    if (!link || !link.workspaceId) return await reply("This chat is not linked yet. In MeetOwl open Settings → Integrations → Telegram and press Connect.");
+    if (!link || !link.workspaceId) return await reply("This chat is not linked yet. In MLM CRM open Settings → Integrations → Telegram and press Connect.");
     await requireIntegrations(link.workspaceId);
 
     switch (cmd) {
@@ -178,7 +178,7 @@ async function completeLink(chatId: string, code: string, chatName: string | nul
     const p = (c.config as TelegramConfig).pending;
     return p && new Date(p.expiresAt) > now;
   });
-  if (!row) return "That link code is not valid or has expired. Create a new one in MeetOwl.";
+  if (!row) return "That link code is not valid or has expired. Create a new one in MLM CRM.";
   // A chat belongs to one person: re-linking elsewhere moves it.
   await db.userIntegration.deleteMany({ where: { kind: "TELEGRAM", externalId: chatId, NOT: { id: row.id } } });
   await db.userIntegration.update({ where: { id: row.id }, data: { externalId: chatId, config: { ...(row.config as TelegramConfig), pending: null, chatName } as Prisma.InputJsonValue } });

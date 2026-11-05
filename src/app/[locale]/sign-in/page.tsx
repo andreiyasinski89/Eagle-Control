@@ -26,7 +26,7 @@ export default async function SignInPage({
   const refCode = isRefCode(sp.ref) ? sp.ref : null;
   const inviter = refCode ? ((await referralInfo(refCode).catch(() => null))?.inviter ?? null) : null;
   const validRef = inviter ? refCode : null;
-  // A platform invitation (/i/<code>): the person comes to use MeetOwl themselves.
+  // A platform invitation (/i/<code>): the person comes to use MLM CRM themselves.
   const invCode = isRefCode(sp.inv) ? sp.inv : null;
   const platformInviter = invCode ? ((await inviteInfo(invCode).catch(() => null))?.inviter ?? null) : null;
   const validInv = platformInviter ? invCode : null;

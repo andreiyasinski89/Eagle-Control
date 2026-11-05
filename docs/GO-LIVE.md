@@ -21,7 +21,7 @@
 Обычный пароль Gmail для этого не подойдёт.
 
 1. Откройте myaccount.google.com → **Безопасность** → включите **двухэтапную аутентификацию**.
-2. Откройте myaccount.google.com/apppasswords, назовите пароль `MeetOwl`, нажмите **Создать**.
+2. Откройте myaccount.google.com/apppasswords, назовите пароль `MLM CRM`, нажмите **Создать**.
 3. Скопируйте 16 букв (пробелы не нужны). Это `SMTP_PASS`. Показывается один раз.
 
 ## 3. Проект на Vercel
@@ -37,7 +37,7 @@
 | `AUTH_TRUST_HOST` | `true` |
 | `AUTH_URL` | `https://<ваш-адрес>.vercel.app` (без слеша в конце) |
 | `APP_URL` | то же самое |
-| `MAIL_FROM` | `MeetOwl <ваш@gmail.com>` |
+| `MAIL_FROM` | `MLM CRM <ваш@gmail.com>` |
 | `SMTP_HOST` | `smtp.gmail.com` |
 | `SMTP_PORT` | `465` |
 | `SMTP_USER` | `ваш@gmail.com` |

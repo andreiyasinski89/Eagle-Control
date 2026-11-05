@@ -20,7 +20,7 @@ function back(redirectUri: string, state: string | undefined, extra: Record<stri
  */
 export const POST = route({ rateLimit: { limit: 30, windowMs: 60_000 } }, async ({ req, userId }) => {
   const appOrigin = new URL(env().APP_URL).origin;
-  if (req.headers.get("origin") !== appOrigin) throw new ApiError(403, "bad_origin", "This form must be sent from MeetOwl");
+  if (req.headers.get("origin") !== appOrigin) throw new ApiError(403, "bad_origin", "This form must be sent from MLM CRM");
 
   const form = await readForm(req);
   const raw: Record<string, string> = {};

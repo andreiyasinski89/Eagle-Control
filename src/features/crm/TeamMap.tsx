@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { ContactDrawer } from "./ContactDrawer";
 import { ScheduleDialog } from "./ScheduleDialog";
 import { TreeMap, type TreeMapNode } from "./TreeMap";
+import { BrandMark } from "@/components/brand";
 
 interface TeamNode {
   id: string;
@@ -228,9 +229,7 @@ export function TeamMap({ workspaceId, slug, canWrite, canExport, canErase, canL
           <Skeleton className="m-4 h-[calc(100%-2rem)] rounded-xl" />
         ) : data && all.length === 0 ? (
           <div className="flex flex-col items-center gap-2 p-10 text-center" data-testid="team-map-empty">
-            <span className="text-4xl" aria-hidden>
-              🦉
-            </span>
+            <BrandMark className="size-10" />
             <p className="font-medium">{t("teamEmptyTitle")}</p>
             <p className="max-w-md text-sm text-muted-foreground">{t("teamEmpty")}</p>
             <Link href={`/w/${slug}/crm/people`} className="inline-flex min-h-11 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground" data-testid="team-map-empty-cta">

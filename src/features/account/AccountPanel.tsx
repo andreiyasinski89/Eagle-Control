@@ -69,7 +69,7 @@ export function AccountPanel({ email, avatar, profile }: { email: string; avatar
       const url = URL.createObjectURL(await res.blob());
       const a = document.createElement("a");
       a.href = url;
-      a.download = `meetowl-data-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `mlm-crm-data-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
     },

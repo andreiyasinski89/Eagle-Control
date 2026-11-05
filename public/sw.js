@@ -1,4 +1,4 @@
-/* MeetOwl service worker: keeps the shell (scripts, styles, icons) so the app opens fast and shows a page of its own without a network.
+/* MLM CRM service worker: keeps the shell (scripts, styles, icons) so the app opens fast and shows a page of its own without a network.
  * It never touches /api: data always comes from the server, and nothing private is stored here. */
 const VERSION = "meetowl-shell-v3";
 const OFFLINE = "/offline.html";

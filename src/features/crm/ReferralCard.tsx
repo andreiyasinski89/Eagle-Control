@@ -49,7 +49,7 @@ export function ReferralCard({ workspaceId }: { workspaceId: string }) {
           {copied ? t("copied") : t("copy")}
         </Button>
       </div>
-      <ReferralQr url={link} name={data.name} fileName={`meetowl-${data.code}`} />
+      <ReferralQr url={link} name={data.name} fileName={`mlm-crm-${data.code}`} />
       <p className="text-xs text-muted-foreground" data-testid="referral-label">
         {t("label", { code: data.code })}
       </p>
