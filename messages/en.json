@@ -1150,7 +1150,8 @@
       "stale_deal": "A deal goes cold",
       "billing": "Billing and plan changes",
       "client_activity": "A client comments, uploads or answers",
-      "invite_joined": "Someone joins through my platform link"
+      "invite_joined": "Someone joins through my platform link",
+      "stale_people": "Out of touch for long (people with no date set)"
     }
   },
   "time": {
@@ -2392,7 +2393,7 @@
     "summaryDay": "Open My day",
     "summaryAgain": "Refresh the queue",
     "settings": "Touch settings",
-    "settingsHint": "After how many days to come back to a person, for each result.",
+    "settingsHint": "A touch does not put a person back into the list by itself. Press “Write again in 7 or 14 days” on the card; if you do not, the bot reminds you when the silence has lasted as long as chosen below.",
     "afterReply": "After a reply",
     "afterNoReply": "After no reply",
     "afterDecline": "After a no",
@@ -2404,7 +2405,23 @@
     "more": "There are more people than fit in one queue: finish this one, then refresh.",
     "copyFailed": "Could not copy: select the text and copy it by hand.",
     "waiting": "Wrote, waiting for a reply",
-    "summaryWaiting": "Waiting for a reply"
+    "summaryWaiting": "Waiting for a reply",
+    "again": "{n, plural, one {Write again in # day} other {Write again in # days}}",
+    "noDateNote": "No date is set: if you do not write to them for {n} days, the bot will remind you.",
+    "staleNote": "People with no date set whom you have not been in touch with for {n} days or more.",
+    "backToDay": "Back to today's list",
+    "staleLink": "Out of touch for long, with no date: {n}",
+    "staleEmptyTitle": "Nobody has been forgotten",
+    "staleEmptyText": "Everyone you work with has been in touch lately or has a date set.",
+    "staleAfter": "Remind about a person with no date after",
+    "overdueNote": "{n, plural, one {# date is late} other {# dates are late}}: they pile up in the list of the day.",
+    "overdueSort": "Sort out",
+    "overdueTitle": "{n, plural, one {# late date} other {# late dates}}",
+    "overdueHint": "Choose what to do with all of them at once. What was written as the next step stays, only the date changes. Nobody is lost: the bot reminds about long silences.",
+    "overdueClear": "Take the dates off (the bot reminds about long silences)",
+    "overdueIn": "Move all to {n} days from today",
+    "overdueApply": "Apply to {n}",
+    "overdueDone": "Done: {n, plural, one {# person} other {# people}} updated."
   },
   "mobile": {
     "nav": "Main sections",

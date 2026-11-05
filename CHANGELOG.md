@@ -597,3 +597,12 @@
 - `favicon.ico` (still the owl in browser tabs of older browsers) is the new mark.
 - The offline shell no longer keeps icons in a cache-first store forever: icons are taken from the network first, so a new picture reaches the phone at once (shell cache version 3).
 - To get the new icon on a phone that already has the old shortcut: remove the shortcut and add the site to the home screen again.
+
+## 0.55.0 — A touch no longer puts the person back into the list by itself
+
+- **No automatic date after a touch.** An answer, "wrote, waiting" and "no answer" used to set the next touch 1, 2 or 3 days ahead, and the undone ones piled up (143 people on one day). Now they set no date: the person is out of the list until the person themselves says when. A meeting that is set keeps its day, a no keeps its long wait (75 days), and three unanswered touches in a row still send a person quiet for 30 days.
+- **Two new buttons on the card: "Write in 7 days" and "Write in 14 days".** They record the touch ("wrote") and put the person back into the list on that day, with the reminder script. Nothing else sets a date.
+- **The bot reminds about long silences.** People you are working with (first contact to client) who have no date set and have not been touched for 14 days (7, 14, 21, 30 or up to 60 in the touch settings) are named in a morning message, from 9 o'clock of your own day, in the app and in the Telegram bot if it is connected: a new kind of notification, "out of touch for long" (`stale_people`). Each person is named once per stretch of silence, a long list is told in portions of ten names a day, and the same people do not come back every day. The job `crm/stale-people` runs hourly (Vercel cron and Inngest; `CRON_SECRET` is needed for the Vercel one, as for the other jobs).
+- **A second list on the touches page:** "Out of touch for long, with no date: N" shows those people one by one, to work through them when you have time. No limit on the lists.
+- **The pile of late dates can be sorted out in one go** ("Sort out" beside the count on the touches page): take all the dates off (the bot reminds about the long silences instead), or move them all to 7 or 14 days from today. What was written as the next step stays; the people at rest and the dates of today and later are not touched.
+- The old settings "after an answer / after no answer: 1 to 3 days" are gone; the touch settings now have "remind about a person with no date after N days", the pause after a no, and the meeting rule.

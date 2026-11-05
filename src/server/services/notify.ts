@@ -6,7 +6,7 @@ import type { Tx } from "./nodes/access";
 import { publishNotification } from "@/server/realtime";
 import { noticeHref } from "@/lib/notice-href";
 
-export const NOTIFY_KINDS = ["mention", "assigned", "lead", "deal_won", "project_red", "reminder", "sprint_ended", "due_today", "cold_contact", "stale_deal", "billing", "client_activity", "invite_joined"] as const;
+export const NOTIFY_KINDS = ["mention", "assigned", "lead", "deal_won", "project_red", "reminder", "sprint_ended", "due_today", "cold_contact", "stale_people", "stale_deal", "billing", "client_activity", "invite_joined"] as const;
 export type NotifyKind = (typeof NOTIFY_KINDS)[number];
 export type Channel = "app" | "email" | "slack" | "telegram";
 
@@ -21,6 +21,8 @@ export const DEFAULT_CHANNELS: Record<NotifyKind, Channel[]> = {
   sprint_ended: ["app", "slack"],
   due_today: ["app", "telegram"],
   cold_contact: ["app"],
+  // People with no date set who have not been touched for long: the morning reminder goes to the bot as well.
+  stale_people: ["app", "telegram"],
   stale_deal: ["app"],
   billing: ["app", "email"],
   client_activity: ["app", "email"],

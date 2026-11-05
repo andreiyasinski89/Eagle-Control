@@ -20,6 +20,7 @@ export const functions = [
   job("maintenance/run", { cron: "30 3 * * *" }),
   job("crm/temperature", { cron: "40 3 * * *" }),
   job("crm/day-scores", { cron: "50 3 * * *" }),
+  job("crm/stale-people", { cron: "0 * * * *" }), // hourly: each person is reminded from 9 o'clock of their own day, once a day
   job("billing/expire", { cron: "15 4 * * *" }),
   // Every 15 minutes: the tick works out per person which roles are due. Failures are handled inside, so the job itself retries once at most.
   job("agent/tick", { cron: "*/15 * * * *", retries: 1 }),

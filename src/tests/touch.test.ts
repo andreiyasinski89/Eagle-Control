@@ -26,27 +26,34 @@ describe("the order of the queue", () => {
 });
 
 describe("what a result does to the next step", () => {
-  it("an answer: the next touch tomorrow, and a new name becomes a first contact", () => {
-    expect(plan({ outcome: "REPLIED" })).toMatchObject({ nextStep: "Продолжить разговор: человек ответил", day: "2026-11-11", cooled: false });
+  it("an answer, wrote and waiting, no answer: no date at all, so nobody comes back into the list by themselves; a new name becomes a first contact", () => {
+    for (const outcome of ["REPLIED", "WAITING", "NO_REPLY"] as const) {
+      expect(plan({ outcome, unansweredInRow: 1 }), outcome).toMatchObject({ nextStep: null, day: null, cooled: false });
+      expect(plan({ outcome, unansweredInRow: 1 }).returnAt, outcome).toBeUndefined();
+    }
     expect(plan({ outcome: "REPLIED", stage: "NEW" }).stage).toBe("FIRST_CONTACT");
     expect(plan({ outcome: "REPLIED", stage: "WARMING" }).stage).toBeUndefined();
-  });
-
-  it("wrote and waiting: back in 2 days for a reminder, no stage change, no silence; a new name becomes a first contact", () => {
-    expect(plan({ outcome: "WAITING" })).toMatchObject({ day: "2026-11-12", cooled: false, nextStep: "Мягко напомнить, если человек так и не ответил" });
-    expect(plan({ outcome: "WAITING" }).stage).toBeUndefined();
-    expect(plan({ outcome: "WAITING" }).returnAt).toBeUndefined();
     expect(plan({ outcome: "WAITING", stage: "NEW" }).stage).toBe("FIRST_CONTACT");
-    // even after many unanswered touches it never cools the person
+    expect(plan({ outcome: "WAITING" }).stage).toBeUndefined();
+    // waiting never cools a person, however many touches went unanswered
     expect(plan({ outcome: "WAITING", unansweredInRow: 9 }).cooled).toBe(false);
-    // a quiet person who was written to stays quiet and comes back after the 2 days
-    expect(plan({ outcome: "WAITING", stage: "NO_REPLY" })).toMatchObject({ returnAt: "2026-11-12", day: "2026-11-12" });
-    expect(plan({ outcome: "WAITING", stage: "NO_REPLY" }).stage).toBeUndefined();
   });
 
-  it("no answer: the next touch in 3 days by default, in 2 if the person chose so", () => {
-    expect(plan({ outcome: "NO_REPLY", unansweredInRow: 1 })).toMatchObject({ day: "2026-11-13", cooled: false });
-    expect(plan({ outcome: "NO_REPLY", unansweredInRow: 2, settings: { ...DEFAULT_TOUCH_SETTINGS, noReplyDays: 2 } })).toMatchObject({ day: "2026-11-12", cooled: false });
+  it("the buttons \"write again in 7 / 14 days\" set the date, and only they", () => {
+    for (const outcome of ["REPLIED", "WAITING", "NO_REPLY"] as const) {
+      expect(plan({ outcome, nextInDays: 7, unansweredInRow: 1 }), outcome).toMatchObject({ day: "2026-11-17", nextStep: "Написать снова", cooled: false });
+      expect(plan({ outcome, nextInDays: 14, unansweredInRow: 1 }).day, outcome).toBe("2026-11-24");
+    }
+    expect(plan({ outcome: "WAITING", nextInDays: 7, locale: "en" }).nextStep).toBe("Write again");
+    // a no or a meeting keeps its own day, whatever was pressed
+    expect(plan({ outcome: "DECLINED", nextInDays: 7 }).day).toBe("2027-01-24");
+    expect(plan({ outcome: "MEETING_SET", nextInDays: 7, meetingDay: "2026-11-15" }).day).toBe("2026-11-15");
+  });
+
+  it("a person who rests (said no or went quiet) and is written to stays resting: a pause or the chosen day, never a day in the list tomorrow", () => {
+    expect(plan({ outcome: "WAITING", stage: "NO_REPLY" })).toMatchObject({ day: "2026-12-10", returnAt: "2026-12-10", nextStep: "Вернуться к человеку после паузы" });
+    expect(plan({ outcome: "WAITING", stage: "NO_REPLY" }).stage).toBeUndefined();
+    expect(plan({ outcome: "WAITING", stage: "DECLINED", nextInDays: 14 })).toMatchObject({ day: "2026-11-24", returnAt: "2026-11-24" });
   });
 
   it("the third touch in a row without an answer: the person goes quiet and comes back in 30 days", () => {
@@ -74,10 +81,10 @@ describe("what a result does to the next step", () => {
   });
 
   it("the next step is written in the language of the person", () => {
-    expect(plan({ outcome: "REPLIED", locale: "en" }).nextStep).toBe("Continue the conversation: they replied");
-    expect(plan({ outcome: "REPLIED", locale: "pl" }).nextStep).toBe("Kontynuować rozmowę: odpowiedział(a)");
-    expect(plan({ outcome: "REPLIED", locale: "uk" }).nextStep).toContain("відповіла");
-    expect(plan({ outcome: "REPLIED", locale: "de" }).nextStep).toBe("Continue the conversation: they replied");
+    expect(plan({ outcome: "WAITING", nextInDays: 7, locale: "en" }).nextStep).toBe("Write again");
+    expect(plan({ outcome: "WAITING", nextInDays: 7, locale: "pl" }).nextStep).toBe("Napisać ponownie");
+    expect(plan({ outcome: "WAITING", nextInDays: 7, locale: "uk" }).nextStep).toBe("Написати знову");
+    expect(plan({ outcome: "WAITING", nextInDays: 7, locale: "de" }).nextStep).toBe("Write again");
     expect(plan({ outcome: "MEETING_SET", locale: "en", meetingDay: "2026-11-15" }).nextStep).toBe("Meeting on 15.11: have the talk");
   });
 });
@@ -85,10 +92,13 @@ describe("what a result does to the next step", () => {
 describe("the settings of the queue", () => {
   it("keep what is allowed and put the rest back in range", () => {
     expect(cleanTouchSettings(undefined)).toEqual(DEFAULT_TOUCH_SETTINGS);
-    const s: TouchSettings = cleanTouchSettings({ replyDays: 10, noReplyDays: 1, declineDays: 400, meetingMovesStage: false, coolAfter: 1, coolDays: 1 });
-    expect(s).toEqual({ replyDays: 3, noReplyDays: 2, coolAfter: 3, coolDays: 30, declineDays: 90, meetingMovesStage: false });
+    const s: TouchSettings = cleanTouchSettings({ staleDays: 400, declineDays: 400, meetingMovesStage: false, coolAfter: 1, coolDays: 1, replyDays: 1, noReplyDays: 1 });
+    // the old settings of 1 to 3 days are gone: only the days of silence before the bot reminds, and the pauses, are kept
+    expect(s).toEqual({ staleDays: 60, coolAfter: 3, coolDays: 30, declineDays: 90, meetingMovesStage: false });
+    expect(cleanTouchSettings({ staleDays: 2 }).staleDays).toBe(7);
+    expect(cleanTouchSettings(undefined).staleDays).toBe(14);
     expect(cleanTouchSettings({ declineDays: 10 }).declineDays).toBe(60);
-    expect(cleanTouchSettings({ replyDays: "x", meetingMovesStage: "yes" })).toEqual(DEFAULT_TOUCH_SETTINGS);
+    expect(cleanTouchSettings({ staleDays: "x", meetingMovesStage: "yes" })).toEqual(DEFAULT_TOUCH_SETTINGS);
   });
 });
 

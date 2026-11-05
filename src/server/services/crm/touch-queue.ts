@@ -6,12 +6,13 @@ import type { Stage } from "@/modules/crm/people";
 import { cleanTouchSettings, OUTCOMES, orderQueue, planTouch, situationFor, type TouchSettings } from "@/modules/crm/touch";
 import { addDays } from "@/modules/crm/tracker";
 import { isValidTimeZone, todayIn, zonedParts, zonedToUtc } from "@/modules/views/tz";
-import { loadWorkspaceMember, type Tx } from "@/server/services/nodes/access";
+import { loadWorkspaceMember, logActivity, type Tx } from "@/server/services/nodes/access";
 import { getOrCreateReferralLink } from "@/server/services/signup";
 import { invalid, loadCrmNode } from "./common";
 import { scriptLocale, shownText } from "./scripts";
 import { updateContactIn } from "./contacts";
 import { contactScope, dueBefore, withScope } from "./scope";
+import { staleFilter } from "./stale-people";
 import { refreshTemperature } from "./temperature";
 
 /** The people shown in one queue; the rest wait for the next one. */
@@ -26,8 +27,7 @@ async function zoneOf(userId: string): Promise<{ tz: string; locale: string | nu
 // ── Settings ───────────────────────────────────────────────────────
 
 export const touchSettingsSchema = z.object({
-  replyDays: z.number().int().min(1).max(3),
-  noReplyDays: z.number().int().min(2).max(3),
+  staleDays: z.number().int().min(7).max(60),
   declineDays: z.number().int().min(60).max(90),
   meetingMovesStage: z.boolean(),
 });
@@ -54,15 +54,24 @@ const digits = (v: string | undefined | null) => ((v ?? "").replace(/\D/g, "").l
  * A card holds what is needed to write to the person without opening anything else: how they are, the last three things that happened,
  * how to reach them, and the words ready for this moment. Only the people the member keeps are in it.
  */
-export async function getTouchQueue(userId: string, workspaceId: string, now = new Date(), locale?: string | null) {
+export async function getTouchQueue(userId: string, workspaceId: string, now = new Date(), locale?: string | null, opts: { stale?: boolean } = {}) {
   const member = await loadWorkspaceMember(db, userId, workspaceId, "crm:read");
   const { tz, name: myName } = await zoneOf(userId);
   const today = todayIn(tz, now);
+  const dayStart = zonedToUtc(today, "00:00", tz);
   const dayEnd = zonedToUtc(addDays(today, 1), "00:00", tz);
   const scope = await contactScope(db, member);
+  const mine = { workspaceId, ownerId: userId, node: { archivedAt: null } } as const;
+  // Two numbers beside the list: people with no date who have not been touched for long (the bot's reminder is about them), and late dates to sort out.
+  const staleWhere = await staleFilter(userId, workspaceId, now);
+  const [staleCount, overdueCount] = await Promise.all([
+    db.contact.count({ where: staleWhere }),
+    db.contact.count({ where: withScope({ ...mine, stage: { notIn: ["DECLINED", "NO_REPLY"] }, nextStepAt: { lt: dayStart } }, scope) }),
+  ]);
   const rows = await db.contact.findMany({
-    where: withScope({ workspaceId, ownerId: userId, node: { archivedAt: null }, ...dueBefore(dayEnd) }, scope),
-    orderBy: [{ nextStepAt: { sort: "asc", nulls: "last" } }, { firstName: "asc" }],
+    // The list of the day is the people whose date has come; the other list is the people forgotten for long, oldest silence first.
+    where: opts.stale ? staleWhere : withScope({ ...mine, ...dueBefore(dayEnd) }, scope),
+    orderBy: opts.stale ? [{ lastContactedAt: { sort: "asc", nulls: "first" } }, { firstName: "asc" }] : [{ nextStepAt: { sort: "asc", nulls: "last" } }, { firstName: "asc" }],
     take: QUEUE_LIMIT,
     include: { company: { select: { legalName: true } } },
   });
@@ -112,7 +121,7 @@ export async function getTouchQueue(userId: string, workspaceId: string, now = n
       recent: list.slice(0, 3).map((a) => ({ id: a.id, type: a.type, subject: a.subject, body: a.body, outcome: a.outcome, at: a.completedAt ?? a.dueAt ?? a.createdAt })),
     };
   });
-  const ordered = orderQueue(items.map((i) => ({ ...i, day: i.day })));
+  const ordered = opts.stale ? items : orderQueue(items.map((i) => ({ ...i, day: i.day })));
 
   const [scripts, link] = await Promise.all([
     db.script.findMany({ where: { workspaceId, OR: [{ ownerId: null }, { ownerId: userId }] }, orderBy: [{ position: "asc" }, { createdAt: "asc" }], select: { id: true, title: true, stage: true, situation: true, body: true, ownerId: true, starterKey: true } }),
@@ -124,6 +133,9 @@ export async function getTouchQueue(userId: string, workspaceId: string, now = n
     total: ordered.length,
     truncated: rows.length >= QUEUE_LIMIT,
     items: ordered,
+    mode: opts.stale ? ("stale" as const) : ("due" as const),
+    staleCount,
+    overdueCount,
     scripts: scripts.map((s) => ({ id: s.id, ...shownText(s, lang), stage: s.stage, situation: s.situation, shared: s.ownerId === null })),
     me: { name: myName, link },
     settings: cleanTouchSettings(member.touchSettings),
@@ -140,6 +152,8 @@ export const touchResultSchema = z.object({
   /** For a meeting that was set: when. */
   meetingAt: z.string().datetime().optional(),
   durationMin: z.number().int().min(5).max(480).optional(),
+  /** "Write again in 7 / 14 days": the date that puts the person back into the list. Without it no date is set. */
+  nextInDays: z.union([z.literal(7), z.literal(14)]).optional(),
   /** For a no: why. */
   declineReason: z.enum(DECLINE_REASONS).optional(),
   signals: z.array(z.enum(["PRICE_QUESTION"])).max(3).optional(),
@@ -176,6 +190,7 @@ export async function recordTouchResult(userId: string, contactId: string, input
       today,
       settings: cleanTouchSettings(member.touchSettings),
       unansweredInRow: unanswered,
+      nextInDays: input.nextInDays,
       meetingDay: input.meetingAt ? zonedParts(new Date(input.meetingAt), tz).day : undefined,
       locale,
     });
@@ -203,12 +218,12 @@ export async function recordTouchResult(userId: string, contactId: string, input
     await updateContactIn(tx, userId, contactId, {
       ...(plan.stage && plan.stage !== c.stage ? { stage: plan.stage } : {}),
       nextStep: plan.nextStep,
-      nextStepAt: `${plan.day}T00:00:00.000Z`,
+      nextStepAt: plan.day ? `${plan.day}T00:00:00.000Z` : null,
       ...(input.outcome === "DECLINED" ? { declineReason: input.declineReason } : {}),
     });
     await tx.contact.update({ where: { nodeId: contactId }, data: { lastContactedAt: now, returnAt: plan.returnAt ? new Date(`${plan.returnAt}T00:00:00.000Z`) : null } });
     const temperature = await refreshTemperature(tx, contactId, now);
-    return { activityId: touch.id, outcome: input.outcome, stage: plan.stage ?? c.stage, nextStep: plan.nextStep, nextStepAt: `${plan.day}T00:00:00.000Z`, returnAt: plan.returnAt ?? null, cooled: plan.cooled, temperature };
+    return { activityId: touch.id, outcome: input.outcome, stage: plan.stage ?? c.stage, nextStep: plan.nextStep, nextStepAt: plan.day ? `${plan.day}T00:00:00.000Z` : null, returnAt: plan.returnAt ?? null, cooled: plan.cooled, temperature };
     // A result is dozens of small queries in one go. With the database far from the server (or waking up) they can pass the 5 seconds a transaction
     // is allowed by default, and the press then fails once and works the second time; so it is given room.
   }, { timeout: 30_000, maxWait: 15_000 });
@@ -224,4 +239,35 @@ async function unansweredInRow(tx: Tx, contactId: string): Promise<number> {
     n++;
   }
   return n;
+}
+
+// ── Sorting out the late dates ─────────────────────────────────────
+
+export const overdueSchema = z.object({
+  /** `clear`: take the date off (the person is not forgotten: the bot reminds when the silence gets long). `in7` / `in14`: write again in 7 / 14 days from today. */
+  mode: z.enum(["clear", "in7", "in14"]),
+  /** Only count, change nothing. */
+  dryRun: z.boolean().optional(),
+});
+
+/**
+ * The late dates of the member's own people (not those who rest, they have their own day to come back) in one go, once the person has said which way:
+ * dates taken off, or all moved to 7 or 14 days from today. What was written as the next step stays, only the date changes.
+ */
+export async function resolveOverdue(userId: string, workspaceId: string, input: z.infer<typeof overdueSchema>, now = new Date()) {
+  const member = await loadWorkspaceMember(db, userId, workspaceId, "crm:write");
+  const { tz } = await zoneOf(userId);
+  const today = todayIn(tz, now);
+  const dayStart = zonedToUtc(today, "00:00", tz);
+  const scope = await contactScope(db, member, { write: true });
+  const where = withScope({ workspaceId, ownerId: userId, node: { archivedAt: null }, stage: { notIn: ["DECLINED", "NO_REPLY"] }, nextStepAt: { lt: dayStart } }, scope);
+  const count = await db.contact.count({ where });
+  if (input.dryRun || count === 0) return { count, changed: 0 };
+  const date = input.mode === "clear" ? null : new Date(`${addDays(today, input.mode === "in7" ? 7 : 14)}T00:00:00.000Z`);
+  const done = await db.$transaction(async (tx) => {
+    const r = await tx.contact.updateMany({ where, data: { nextStepAt: date } });
+    await logActivity(tx, { workspaceId, nodeId: null, actorId: userId, action: "touches.overdue_resolved", diff: { mode: input.mode, changed: r.count } });
+    return r.count;
+  });
+  return { count, changed: done };
 }

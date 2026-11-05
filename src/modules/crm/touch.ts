@@ -13,17 +13,16 @@ export type TouchOutcome = (typeof OUTCOMES)[number];
 export const SITUATIONS = ["FIRST_TOUCH", "REMINDER", "AFTER_PRESENTATION", "RETURN"] as const;
 export type Situation = (typeof SITUATIONS)[number];
 
-/**
- * "Wrote, waiting for an answer": the message is out and the person has simply not had the time to reply. It is not a silence (it does not count towards
- * going quiet); the person comes back into the queue after this many days for a gentle reminder.
- */
-export const WAIT_DAYS = 2;
+/** The two buttons that set the next touch: "write again in 7 days" and "in 14 days". Nothing else puts a person back into the list by itself. */
+export const NEXT_IN_DAYS = [7, 14] as const;
+export type NextInDays = (typeof NEXT_IN_DAYS)[number];
+
+/** After how many days without a touch (and with no date set) the person gets a reminder from the bot. */
+export const STALE_DAY_CHOICES = [7, 14, 21, 30] as const;
 
 export interface TouchSettings {
-  /** After an answer: days until the next touch. */
-  replyDays: number;
-  /** After no answer: days until the next touch (2 or 3). */
-  noReplyDays: number;
+  /** A person with no date set and no touch for this many days is reminded of by the bot (7 to 60). */
+  staleDays: number;
   /** This many unanswered touches in a row and the person goes quiet. */
   coolAfter: number;
   /** A quiet person is written to again after this many days. */
@@ -34,7 +33,7 @@ export interface TouchSettings {
   meetingMovesStage: boolean;
 }
 
-export const DEFAULT_TOUCH_SETTINGS: TouchSettings = { replyDays: 1, noReplyDays: 3, coolAfter: 3, coolDays: 30, declineDays: 75, meetingMovesStage: true };
+export const DEFAULT_TOUCH_SETTINGS: TouchSettings = { staleDays: 14, coolAfter: 3, coolDays: 30, declineDays: 75, meetingMovesStage: true };
 
 const clamp = (v: unknown, min: number, max: number, fallback: number): number => (typeof v === "number" && Number.isFinite(v) ? Math.min(max, Math.max(min, Math.round(v))) : fallback);
 
@@ -43,8 +42,7 @@ export function cleanTouchSettings(raw: unknown): TouchSettings {
   const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
   const d = DEFAULT_TOUCH_SETTINGS;
   return {
-    replyDays: clamp(r.replyDays, 1, 3, d.replyDays),
-    noReplyDays: clamp(r.noReplyDays, 2, 3, d.noReplyDays),
+    staleDays: clamp(r.staleDays, 7, 60, d.staleDays),
     coolAfter: d.coolAfter,
     coolDays: d.coolDays,
     declineDays: clamp(r.declineDays, 60, 90, d.declineDays),
@@ -93,19 +91,20 @@ type Lang = "ru" | "en" | "pl" | "uk";
 const lang = (l: string | null | undefined): Lang => (l === "ru" || l === "pl" || l === "uk" ? l : "en");
 
 /** The next steps the queue writes, in the person's language: what to do, not "write a message". */
-const TEXT: Record<Lang, { replied: string; waiting: string; noReply: string; cooled: string; meeting: (date: string) => string; declined: string }> = {
-  ru: { replied: "Продолжить разговор: человек ответил", waiting: "Мягко напомнить, если человек так и не ответил", noReply: "Повторное касание: мягко напомнить о себе", cooled: "Вернуться к человеку после паузы", meeting: (d) => `Встреча ${d}: провести разговор`, declined: "Вернуться к разговору, если что-то изменилось" },
-  en: { replied: "Continue the conversation: they replied", waiting: "A gentle reminder if they have not answered", noReply: "Second touch: a gentle reminder", cooled: "Come back to them after the pause", meeting: (d) => `Meeting on ${d}: have the talk`, declined: "Come back to the conversation if something has changed" },
-  pl: { replied: "Kontynuować rozmowę: odpowiedział(a)", waiting: "Delikatnie przypomnieć, jeśli nie odpowiedział(a)", noReply: "Kolejny kontakt: delikatne przypomnienie", cooled: "Wrócić do osoby po przerwie", meeting: (d) => `Spotkanie ${d}: przeprowadzić rozmowę`, declined: "Wrócić do rozmowy, jeśli coś się zmieniło" },
-  uk: { replied: "Продовжити розмову: людина відповіла", waiting: "М'яко нагадати, якщо людина так і не відповіла", noReply: "Повторний дотик: м'яко нагадати про себе", cooled: "Повернутися до людини після паузи", meeting: (d) => `Зустріч ${d}: провести розмову`, declined: "Повернутися до розмови, якщо щось змінилося" },
+const TEXT: Record<Lang, { again: string; cooled: string; meeting: (date: string) => string; declined: string }> = {
+  ru: { again: "Написать снова", cooled: "Вернуться к человеку после паузы", meeting: (d) => `Встреча ${d}: провести разговор`, declined: "Вернуться к разговору, если что-то изменилось" },
+  en: { again: "Write again", cooled: "Come back to them after the pause", meeting: (d) => `Meeting on ${d}: have the talk`, declined: "Come back to the conversation if something has changed" },
+  pl: { again: "Napisać ponownie", cooled: "Wrócić do osoby po przerwie", meeting: (d) => `Spotkanie ${d}: przeprowadzić rozmowę`, declined: "Wrócić do rozmowy, jeśli coś się zmieniło" },
+  uk: { again: "Написати знову", cooled: "Повернутися до людини після паузи", meeting: (d) => `Зустріч ${d}: провести розмову`, declined: "Повернутися до розмови, якщо щось змінилося" },
 };
 
 export interface TouchPlan {
   /** The stage to move to, when it changes. */
   stage?: Stage;
-  nextStep: string;
-  /** The day of the next step (YYYY-MM-DD). */
-  day: string;
+  /** What to do next; null when no date is set (the person is not put back into the list: the bot reminds when the silence gets long). */
+  nextStep: string | null;
+  /** The day of the next step (YYYY-MM-DD); null for none. */
+  day: string | null;
   /** Set for someone who is out of the queue until then (said no, or went quiet). */
   returnAt?: string;
   /** The person went quiet after too many touches without an answer. */
@@ -120,6 +119,8 @@ export interface PlanInput {
   settings: TouchSettings;
   /** How many touches in a row went unanswered, this one included (for NO_REPLY). */
   unansweredInRow?: number;
+  /** The person pressed "write again in 7 / 14 days". */
+  nextInDays?: number;
   /** The day of the meeting that was set (YYYY-MM-DD), for MEETING_SET. */
   meetingDay?: string;
   locale?: string | null;
@@ -129,7 +130,11 @@ const ORDER: Stage[] = ["NEW", "FIRST_CONTACT", "WARMING", "PRESENTATION", "DECI
 const before = (a: Stage, b: Stage) => ORDER.indexOf(a) !== -1 && ORDER.indexOf(a) < ORDER.indexOf(b);
 const shortDate = (day: string) => `${day.slice(8, 10)}.${day.slice(5, 7)}`;
 
-/** The stage, the next step and its day after a touch, by the person's own settings. */
+/**
+ * The stage, the next step and its day after a touch, by the person's own settings.
+ * A touch no longer puts the person back into the list by itself, whatever came of it: only the person's own press of "write again in 7 / 14 days"
+ * does. Without it there is no date, and the bot reminds when the silence has lasted long enough. A meeting that is set keeps its day, a no keeps its long wait.
+ */
 export function planTouch(p: PlanInput): TouchPlan {
   const t = TEXT[lang(p.locale)];
   const s = p.settings;
@@ -137,21 +142,33 @@ export function planTouch(p: PlanInput): TouchPlan {
   const opened: Stage | undefined = p.stage === "NEW" ? "FIRST_CONTACT" : undefined;
   // Someone who was out of the queue and answers is back in the funnel.
   const revived: Stage | undefined = p.stage === "DECLINED" || p.stage === "NO_REPLY" ? "FIRST_CONTACT" : undefined;
+  const quiet = p.stage === "DECLINED" || p.stage === "NO_REPLY";
+  const chosen = p.nextInDays && p.nextInDays > 0 ? p.nextInDays : null;
+
+  /** Without a press: no date for a person in the funnel; a person who rests keeps resting, with a day to come back (the pause), not a day in the list. */
+  const dateless = (stage: Stage | undefined, resting: boolean): TouchPlan => {
+    if (chosen) {
+      const day = addDays(p.today, chosen);
+      return { stage, nextStep: t.again, day, ...(resting ? { returnAt: day } : {}), cooled: false };
+    }
+    if (resting) {
+      const day = addDays(p.today, s.coolDays);
+      return { stage, nextStep: t.cooled, day, returnAt: day, cooled: false };
+    }
+    return { stage, nextStep: null, day: null, cooled: false };
+  };
+
   switch (p.outcome) {
     case "REPLIED":
-      return { stage: revived ?? opened, nextStep: t.replied, day: addDays(p.today, s.replyDays), cooled: false };
-    case "WAITING": {
-      const day = addDays(p.today, WAIT_DAYS);
-      // A quiet person who was written to stays quiet, only the day to come back moves; nobody's stage changes, except that a new name is now a first contact.
-      const quiet = p.stage === "DECLINED" || p.stage === "NO_REPLY";
-      return { stage: opened, nextStep: t.waiting, day, ...(quiet ? { returnAt: day } : {}), cooled: false };
-    }
+      return dateless(revived ?? opened, false);
+    case "WAITING":
+      return dateless(opened, quiet);
     case "NO_REPLY": {
       if ((p.unansweredInRow ?? 1) >= s.coolAfter) {
         const day = addDays(p.today, s.coolDays);
         return { stage: "NO_REPLY", nextStep: t.cooled, day, returnAt: day, cooled: true };
       }
-      return { stage: revived ?? opened, nextStep: t.noReply, day: addDays(p.today, s.noReplyDays), cooled: false };
+      return dateless(revived ?? opened, quiet);
     }
     case "MEETING_SET": {
       const day = p.meetingDay ?? addDays(p.today, 1);

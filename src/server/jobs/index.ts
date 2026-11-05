@@ -11,6 +11,7 @@ import { deliverDue, purgeDeliveries } from "@/server/webhooks";
 import { pollAll, pushEvent } from "@/server/integrations/google";
 import { recalcTemperatures } from "@/server/services/crm/temperature";
 import { closeYesterdays } from "@/server/services/crm/day-history";
+import { dispatchStalePeople } from "@/server/services/crm/stale-people";
 import { runDueAgents } from "../../../agent/schedule";
 import { announceEndedSprints, dispatchReminders, maintenance, refreshAllProjects } from "./tasks";
 
@@ -22,6 +23,8 @@ export const handlers = {
   "maintenance/run": async () => maintenance(),
   // People cool as the days pass without a touch: the temperature is worked out again every night.
   "crm/temperature": async () => recalcTemperatures(),
+  // The morning reminder (from 9 o'clock of each person's own day) about people with no date set who have not been touched for long; each person once per stretch of silence.
+  "crm/stale-people": async () => dispatchStalePeople(),
   // The day plan of yesterday is closed for everybody who works with it, whether they opened the app or not.
   "crm/day-scores": async () => closeYesterdays(),
   /** One Google Calendar event per changed EVENT node; failures are logged, the next change or the poll fixes them. */

@@ -4,7 +4,8 @@ import { SendMaterial } from "./SendMaterial";
 import { MessengerButtons } from "./MessengerButtons";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, ClipboardCopy, Hourglass, Settings, SkipForward, X } from "lucide-react";
+import { CalendarClock, Check, ClipboardCopy, Hourglass, Settings, SkipForward, X } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +17,7 @@ import { useTimeZone } from "@/features/views/useTimeZone";
 import { cn } from "@/lib/utils";
 import { DECLINE_REASONS } from "@/modules/crm/decline";
 import type { Stage } from "@/modules/crm/people";
-import { cleanTouchSettings, type Situation, type TouchOutcome, type TouchSettings } from "@/modules/crm/touch";
+import { cleanTouchSettings, NEXT_IN_DAYS, STALE_DAY_CHOICES, type Situation, type TouchOutcome, type TouchSettings } from "@/modules/crm/touch";
 import { addDays, fillScript } from "@/modules/crm/tracker";
 import { todayIn, zoneLabel, zonedToUtc } from "@/modules/views/tz";
 import { copyToClipboard } from "./useScripts";
@@ -65,6 +66,10 @@ interface QData {
   total: number;
   truncated: boolean;
   items: QItem[];
+  /** The list of the day, or the people with no date who have not been touched for long. */
+  mode: "due" | "stale";
+  staleCount: number;
+  overdueCount: number;
   scripts: QScript[];
   me: { name: string; link: string | null };
   settings: TouchSettings;
@@ -74,8 +79,8 @@ interface Done {
   outcome: TouchOutcome;
 }
 interface Answer {
-  nextStep: string;
-  nextStepAt: string;
+  nextStep: string | null;
+  nextStepAt: string | null;
   returnAt: string | null;
   cooled: boolean;
 }
@@ -98,10 +103,12 @@ export function TouchQueue({ workspaceId, slug }: { workspaceId: string; slug: s
   const t = useTranslations("touches");
   const qc = useQueryClient();
   const locale = useLocale();
-  const key = ["touch-queue", workspaceId, locale];
-  const q = useQuery({ queryKey: key, staleTime: 0, refetchOnWindowFocus: false, queryFn: () => api.get<QData>(`/api/v1/workspaces/${workspaceId}/touch-queue?locale=${locale}`) });
+  const stale = useSearchParams().get("stale") === "1";
+  const key = ["touch-queue", workspaceId, locale, stale];
+  const q = useQuery({ queryKey: key, staleTime: 0, refetchOnWindowFocus: false, queryFn: () => api.get<QData>(`/api/v1/workspaces/${workspaceId}/touch-queue?locale=${locale}${stale ? "&stale=1" : ""}`) });
   const [session, setSession] = useState<{ ids: string[]; total: number; done: Done[]; skipped: string[] } | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [overdueOpen, setOverdueOpen] = useState(false);
 
   // One pass through the queue: its order is fixed when it starts, so a refresh does not shuffle the card under the thumb.
   useEffect(() => {
@@ -142,6 +149,31 @@ export function TouchQueue({ workspaceId, slug }: { workspaceId: string; slug: s
         </div>
       )}
 
+      {data.mode === "stale" ? (
+        <div className="flex flex-col gap-1 rounded-xl border border-border bg-muted/40 p-3 text-sm" data-testid="touch-stale-note">
+          <span>{t("staleNote", { n: data.settings.staleDays })}</span>
+          <Link href={`/w/${slug}/crm/touches`} className="w-fit text-primary hover:underline" data-testid="touch-back-to-day">
+            {t("backToDay")}
+          </Link>
+        </div>
+      ) : (
+        <>
+          {data.overdueCount > 0 && (
+            <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-muted/40 p-3 text-sm" data-testid="touch-overdue">
+              <span className="min-w-0 flex-1">{t("overdueNote", { n: data.overdueCount })}</span>
+              <Button type="button" size="sm" variant="outline" className="min-h-11" onClick={() => setOverdueOpen(true)} data-testid="touch-overdue-open">
+                {t("overdueSort")}
+              </Button>
+            </div>
+          )}
+          {data.staleCount > 0 && (
+            <Link href={`/w/${slug}/crm/touches?stale=1`} className="flex min-h-11 items-center rounded-xl border border-border px-3 text-sm text-primary hover:bg-muted" data-testid="touch-stale-link">
+              {t("staleLink", { n: data.staleCount })}
+            </Link>
+          )}
+        </>
+      )}
+
       {current ? (
         <TouchCard
           workspaceId={workspaceId}
@@ -153,22 +185,23 @@ export function TouchQueue({ workspaceId, slug }: { workspaceId: string; slug: s
           onSkip={() => setSession((s) => (s ? { ...s, skipped: [...s.skipped, current.id] } : s))}
         />
       ) : session.total === 0 ? (
-        <Empty slug={slug} />
+        <Empty slug={slug} stale={data.mode === "stale"} />
       ) : (
         <Summary workspaceId={workspaceId} slug={slug} done={session.done} skipped={session.skipped.length} truncated={data.truncated} onAgain={restart} />
       )}
 
+      {overdueOpen && <OverdueDialog workspaceId={workspaceId} count={data.overdueCount} onClose={() => setOverdueOpen(false)} onDone={restart} />}
       {settingsOpen && <SettingsDialog workspaceId={workspaceId} initial={data.settings} onClose={() => setSettingsOpen(false)} />}
     </div>
   );
 }
 
-function Empty({ slug }: { slug: string }) {
+function Empty({ slug, stale }: { slug: string; stale: boolean }) {
   const t = useTranslations("touches");
   return (
     <section className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border p-8 text-center" data-testid="touch-empty">
-      <h2 className="text-lg font-semibold">{t("emptyTitle")}</h2>
-      <p className="text-sm text-muted-foreground">{t("emptyText")}</p>
+      <h2 className="text-lg font-semibold">{stale ? t("staleEmptyTitle") : t("emptyTitle")}</h2>
+      <p className="text-sm text-muted-foreground">{stale ? t("staleEmptyText") : t("emptyText")}</p>
       <Button asChild>
         <Link href={`/w/${slug}/crm/people`}>{t("openPeople")}</Link>
       </Button>
@@ -209,12 +242,21 @@ function TouchCard({ workspaceId, item, data, slug, onDone, onSkip }: { workspac
   }
 
   const result = useMutation({
-    mutationFn: (body: { outcome: TouchOutcome; meetingAt?: string; declineReason?: string }) => api.post<Answer>(`/api/v1/contacts/${item.id}/touch`, { ...body, message: text.trim() || undefined, channel, locale }),
+    mutationFn: (body: { outcome: TouchOutcome; meetingAt?: string; declineReason?: string; nextInDays?: 7 | 14 }) => api.post<Answer>(`/api/v1/contacts/${item.id}/touch`, { ...body, message: text.trim() || undefined, channel, locale }),
     onSuccess: (r, body) => {
       setDialog(null);
       setError(null);
-      const when = dateOf(r.nextStepAt);
-      say(body.outcome === "DECLINED" ? t("declineNote", { date: dateOf(r.returnAt ?? r.nextStepAt) }) : r.cooled ? t("cooledNote", { date: dateOf(r.returnAt ?? r.nextStepAt) }) : `${t("saved")} ${t("nextStepIs", { step: r.nextStep, date: when })}`, 5000);
+      const back = r.returnAt ?? r.nextStepAt;
+      say(
+        body.outcome === "DECLINED" && back
+          ? t("declineNote", { date: dateOf(back) })
+          : r.cooled && back
+            ? t("cooledNote", { date: dateOf(back) })
+            : r.nextStepAt && r.nextStep
+              ? `${t("saved")} ${t("nextStepIs", { step: r.nextStep, date: dateOf(r.nextStepAt) })}`
+              : `${t("saved")} ${t("noDateNote", { n: data.settings.staleDays })}`,
+        5000,
+      );
       for (const k of ["my-day", "people", "contacts", "tracker", "contact"]) void qc.invalidateQueries({ queryKey: [k] });
       onDone(body.outcome);
     },
@@ -304,7 +346,13 @@ function TouchCard({ workspaceId, item, data, slug, onDone, onSkip }: { workspac
           </p>
         )}
         <div className="grid grid-cols-2 gap-2">
-          <Button type="button" variant="soft" className="col-span-2 min-h-12 gap-2" disabled={result.isPending} onClick={() => result.mutate({ outcome: "WAITING" })} data-testid="touch-waiting">
+          {NEXT_IN_DAYS.map((n) => (
+            <Button key={n} type="button" variant="soft" className="min-h-12 gap-2" disabled={result.isPending} onClick={() => result.mutate({ outcome: "WAITING", nextInDays: n })} data-testid={`touch-again-${n}`}>
+              <CalendarClock className="size-4" />
+              {t("again", { n })}
+            </Button>
+          ))}
+          <Button type="button" variant="outline" className="col-span-2 min-h-12 gap-2" disabled={result.isPending} onClick={() => result.mutate({ outcome: "WAITING" })} data-testid="touch-waiting">
             <Hourglass className="size-4" />
             {t("waiting")}
           </Button>
@@ -448,14 +496,14 @@ function SettingsDialog({ workspaceId, initial, onClose }: { workspaceId: string
   const [s, setS] = useState<TouchSettings>(() => cleanTouchSettings(initial));
   const [saved, setSaved] = useState(false);
   const save = useMutation({
-    mutationFn: () => api.put(`/api/v1/workspaces/${workspaceId}/touch-settings`, { replyDays: s.replyDays, noReplyDays: s.noReplyDays, declineDays: s.declineDays, meetingMovesStage: s.meetingMovesStage }),
+    mutationFn: () => api.put(`/api/v1/workspaces/${workspaceId}/touch-settings`, { staleDays: s.staleDays, declineDays: s.declineDays, meetingMovesStage: s.meetingMovesStage }),
     onSuccess: () => {
       setSaved(true);
       void qc.invalidateQueries({ queryKey: ["touch-queue", workspaceId] });
     },
   });
   const pick = <K extends keyof TouchSettings>(k: K, v: TouchSettings[K]) => (setSaved(false), setS((x) => ({ ...x, [k]: v })));
-  const choose = (label: string, value: number, options: number[], k: "replyDays" | "noReplyDays" | "declineDays") => (
+  const choose = (label: string, value: number, options: number[], k: "staleDays" | "declineDays") => (
     <FormField label={label}>
       <select className="min-h-11 w-full rounded-md border border-border bg-card px-2 text-sm" value={value} onChange={(e) => pick(k, Number(e.target.value))} data-testid={`touch-setting-${k}`}>
         {options.map((n) => (
@@ -469,8 +517,7 @@ function SettingsDialog({ workspaceId, initial, onClose }: { workspaceId: string
   return (
     <Modal open onClose={onClose} title={t("settings")}>
       <p className="text-sm text-muted-foreground">{t("settingsHint")}</p>
-      {choose(t("afterReply"), s.replyDays, [1, 2, 3], "replyDays")}
-      {choose(t("afterNoReply"), s.noReplyDays, [2, 3], "noReplyDays")}
+      {choose(t("staleAfter"), s.staleDays, [...STALE_DAY_CHOICES], "staleDays")}
       {choose(t("afterDecline"), s.declineDays, [60, 75, 90], "declineDays")}
       <label className="flex min-h-11 items-center gap-3 text-sm">
         <input type="checkbox" checked={s.meetingMovesStage} onChange={(e) => pick("meetingMovesStage", e.target.checked)} data-testid="touch-setting-meeting" />
@@ -486,6 +533,65 @@ function SettingsDialog({ workspaceId, initial, onClose }: { workspaceId: string
         <Button type="button" className="min-h-11" disabled={save.isPending} onClick={() => save.mutate()} data-testid="touch-settings-save">
           {t("settingsSave")}
         </Button>
+      </div>
+    </Modal>
+  );
+}
+
+/** The late dates, sorted out in one go: taken off (the bot reminds about the long silences), or moved to 7 or 14 days from today. */
+function OverdueDialog({ workspaceId, count: shown, onClose, onDone }: { workspaceId: string; count: number; onClose: () => void; onDone: () => void }) {
+  const t = useTranslations("touches");
+  const qc = useQueryClient();
+  // The number on the page is as it was when the list was opened; the dialog asks for the number as it is now.
+  const live = useQuery({ queryKey: ["touch-overdue-count", workspaceId], staleTime: 0, gcTime: 0, queryFn: () => api.post<{ count: number }>(`/api/v1/workspaces/${workspaceId}/touch-queue/overdue`, { mode: "clear", dryRun: true }) });
+  const count = live.data?.count ?? shown;
+  const [mode, setMode] = useState<"clear" | "in7" | "in14">("clear");
+  const [changed, setChanged] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const run = useMutation({
+    mutationFn: () => api.post<{ count: number; changed: number }>(`/api/v1/workspaces/${workspaceId}/touch-queue/overdue`, { mode }),
+    onSuccess: (r) => {
+      setChanged(r.changed);
+      for (const k of ["touch-queue", "my-day", "people", "contacts"]) void qc.invalidateQueries({ queryKey: [k] });
+      onDone();
+    },
+    onError: () => setError(t("failed")),
+  });
+  const options: ["clear" | "in7" | "in14", string][] = [
+    ["clear", t("overdueClear")],
+    ["in7", t("overdueIn", { n: 7 })],
+    ["in14", t("overdueIn", { n: 14 })],
+  ];
+  return (
+    <Modal open onClose={onClose} title={t("overdueTitle", { n: count })}>
+      <p className="text-sm text-muted-foreground">{t("overdueHint")}</p>
+      <div role="radiogroup" aria-label={t("overdueTitle", { n: count })} className="flex flex-col gap-2">
+        {options.map(([k, label]) => (
+          <label key={k} className="flex min-h-11 items-center gap-3 rounded-lg border border-border px-3 text-sm">
+            <input type="radio" name="overdue-mode" checked={mode === k} onChange={() => setMode(k)} data-testid={`touch-overdue-${k}`} />
+            {label}
+          </label>
+        ))}
+      </div>
+      {error && (
+        <p role="alert" className="text-sm text-danger">
+          {error}
+        </p>
+      )}
+      {changed !== null && (
+        <p role="status" className="text-sm" data-testid="touch-overdue-done">
+          {t("overdueDone", { n: changed })}
+        </p>
+      )}
+      <div className="flex items-center justify-end gap-3">
+        <Button type="button" variant="ghost" className="min-h-11" onClick={onClose}>
+          {t("close")}
+        </Button>
+        {changed === null && (
+          <Button type="button" className="min-h-11" disabled={run.isPending} onClick={() => run.mutate()} data-testid="touch-overdue-apply">
+            {t("overdueApply", { n: count })}
+          </Button>
+        )}
       </div>
     </Modal>
   );

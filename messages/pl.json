@@ -1150,7 +1150,8 @@
       "stale_deal": "Szansa stygnie",
       "billing": "Płatności i zmiany planu",
       "client_activity": "Klient komentuje, przesyła plik lub odpowiada",
-      "invite_joined": "Ktoś rejestruje się przez mój link do platformy"
+      "invite_joined": "Ktoś rejestruje się przez mój link do platformy",
+      "stale_people": "Dawno bez kontaktu (osoby bez daty)"
     }
   },
   "time": {
@@ -2392,7 +2393,7 @@
     "summaryDay": "Otwórz „Mój dzień”",
     "summaryAgain": "Odśwież kolejkę",
     "settings": "Ustawienia kontaktów",
-    "settingsHint": "Po ilu dniach wracać do osoby, dla każdego wyniku.",
+    "settingsHint": "Kontakt sam nie wraca osoby na listę. Naciśnij na karcie „Napisać za 7 lub 14 dni”; jeśli nie naciśniesz, bot przypomni, gdy cisza potrwa tyle, ile wybierzesz poniżej.",
     "afterReply": "Po odpowiedzi",
     "afterNoReply": "Po braku odpowiedzi",
     "afterDecline": "Po odmowie",
@@ -2404,7 +2405,23 @@
     "more": "Osób jest więcej, niż mieści jedna kolejka: skończ tę, potem odśwież.",
     "copyFailed": "Nie udało się skopiować: zaznacz tekst i skopiuj ręcznie.",
     "waiting": "Napisałem(am), czekam na odpowiedź",
-    "summaryWaiting": "Czekam na odpowiedź"
+    "summaryWaiting": "Czekam na odpowiedź",
+    "again": "{n, plural, one {Napisać za # dzień} few {Napisać za # dni} many {Napisać za # dni} other {Napisać za # dnia}}",
+    "noDateNote": "Nie ustawiono daty: jeśli nie napiszesz do tej osoby przez {n} dni, bot przypomni.",
+    "staleNote": "Osoby bez daty, z którymi nie miałeś(aś) kontaktu od {n} dni lub dłużej.",
+    "backToDay": "Wróć do listy na dziś",
+    "staleLink": "Dawno bez kontaktu i bez daty: {n}",
+    "staleEmptyTitle": "Nikt nie został zapomniany",
+    "staleEmptyText": "Z każdym, z kim pracujesz, niedawno był kontakt albo ma ustawioną datę.",
+    "staleAfter": "Przypominaj o osobie bez daty po",
+    "overdueNote": "{n, plural, one {# data jest przeterminowana} few {# daty są przeterminowane} many {# dat jest przeterminowanych} other {# daty są przeterminowane}}: kumulują się na liście dnia.",
+    "overdueSort": "Uporządkuj",
+    "overdueTitle": "{n, plural, one {# przeterminowana data} few {# przeterminowane daty} many {# przeterminowanych dat} other {# przeterminowanej daty}}",
+    "overdueHint": "Wybierz, co zrobić ze wszystkimi naraz. To, co zapisano jako następny krok, zostaje, zmienia się tylko data. Nikt nie przepadnie: bot przypomni o długiej ciszy.",
+    "overdueClear": "Zdejmij daty (bot przypomni o długiej ciszy)",
+    "overdueIn": "Przenieś wszystkie na {n} dni od dziś",
+    "overdueApply": "Zastosuj do {n}",
+    "overdueDone": "Gotowe: zaktualizowano {n, plural, one {# osobę} few {# osoby} many {# osób} other {# osoby}}."
   },
   "mobile": {
     "nav": "Główne sekcje",
