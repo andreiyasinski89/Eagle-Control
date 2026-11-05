@@ -615,3 +615,9 @@
 
 - All texts that go out by e-mail now use the new name: the sign-in link, the welcome e-mail (all four languages), the invitation to a workspace, the confirmation codes, the account deletion e-mails, the test e-mail of the admin check, the "open" link under notifications and the notice of a person who joined through a link.
 - Left as it was: the sender's display name, which is set by `MAIL_FROM` in Vercel (set it to `MLM CRM <your address>`), the technical format name of the data export, and the webhook headers.
+
+## 0.57.0 — Resend with a way back, and the check says how the mail went
+
+- If `RESEND_API_KEY` is set **and** the Gmail mailbox is set up beside it, a mail that Resend refuses (domain not verified yet, wrong key, the service down) goes through the mailbox instead, so adding Resend cannot cost anyone their sign-in links. `sendMail` now says how a mail went out (`via`, and why the first choice was passed over).
+- The mail check in `/admin/setup` tells whether the test mail went through Resend, or arrived through Gmail because Resend refused (with Resend's own words). The hint about Resend now applies only when there is no mailbox to fall back on.
+- `docs/MAIL.ru.md`: steps for Resend with `mlmcrm.app` (the DNS records in Vercel) and for Google sign-in, with the addresses for both the current and the new domain.

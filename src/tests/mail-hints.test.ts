@@ -33,7 +33,10 @@ describe("what looks wrong in the mail settings", () => {
 
   it("missing values, a Resend key that takes over, a host or port that does not fit Gmail", () => {
     expect(mailSettingsHints({ SMTP_HOST: "smtp.gmail.com", SMTP_PORT: 465 }).codes).toEqual(["user_missing", "pass_missing"]);
-    expect(mailSettingsHints({ ...good, RESEND_API_KEY: "re_x" }).codes).toEqual(["resend_wins"]);
+    // Resend beside a good mailbox is the safe setup (the mailbox is the way back); Resend alone is told as such
+    expect(mailSettingsHints({ ...good, RESEND_API_KEY: "re_x" }).codes).toEqual([]);
+    expect(mailSettingsHints({ ...good, RESEND_API_KEY: "re_x" }).seen).toContain("Resend");
+    expect(mailSettingsHints({ SMTP_HOST: "localhost", SMTP_PORT: 1025, RESEND_API_KEY: "re_x" }).codes).toEqual(["resend_wins"]);
     expect(mailSettingsHints({ ...good, SMTP_HOST: "localhost" }).codes).toEqual(["host_not_gmail"]);
     expect(mailSettingsHints({ ...good, SMTP_PORT: 25 }).codes).toEqual(["port_not_gmail"]);
   });

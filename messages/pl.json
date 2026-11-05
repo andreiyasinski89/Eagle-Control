@@ -2317,11 +2317,13 @@
       "mail_unknown": "E-mail nie został wysłany z nieznanego nam powodu. Serwer odpowiedział:",
       "googleSignIn_ok": "Klucze są na miejscu. Prawdziwym sprawdzianem jest logowanie przez Google na stronie logowania.",
       "googleSignIn_keys": "AUTH_GOOGLE_ID i AUTH_GOOGLE_SECRET nie są jeszcze wypełnione w Vercel.",
-      "googleSignIn_id": "AUTH_GOOGLE_ID wygląda źle: kończy się na .apps.googleusercontent.com."
+      "googleSignIn_id": "AUTH_GOOGLE_ID wygląda źle: kończy się na .apps.googleusercontent.com.",
+      "mail_ok_resend": "Testowy e-mail wysłano na {name} przez Resend. Zajrzyj do skrzynki: jeśli tam jest, linki do logowania też wyjdą.",
+      "mail_fallback": "Testowy e-mail dotarł, ale przez skrzynkę Gmail: Resend go nie przyjął. Sprawdź klucz i czy domena jest zweryfikowana w Resend (Domains). Resend odpowiedział:"
     },
     "mailSeen": "Co widzi strona (serwer:port · login · długość hasła):",
     "mailHint": {
-      "resend_wins": "Wypełniony jest RESEND_API_KEY, więc strona wysyła przez Resend i pomija ustawienia Gmail. Usuń RESEND_API_KEY, jeśli ma być Gmail.",
+      "resend_wins": "Wypełniony jest RESEND_API_KEY, a skrzynki Gmail obok nie ma, więc nie ma drogi zapasowej: poczta zależy od klucza i od zweryfikowanej domeny w Resend. Zostaw też ustawienia Gmail (SMTP_USER, SMTP_PASS): jeśli Resend odmówi, wiadomości pójdą przez Gmail.",
       "user_missing": "SMTP_USER jest pusty: wpisz w nim pełny adres Gmail.",
       "user_is_name": "Wartością SMTP_USER jest samo słowo SMTP_USER. Wpisz adres Gmail w polu Value.",
       "user_stray": "SMTP_USER ma spację, znak nowej linii albo cudzysłów dookoła. Wpisz go od nowa, bez niczego dookoła.",

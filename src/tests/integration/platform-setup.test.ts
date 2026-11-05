@@ -107,8 +107,14 @@ describe("platform setup", () => {
 
   it("tests the mail: a test e-mail to the owner, and when it fails the owner is told why, in the server's own words", async () => {
     const send = vi.mocked(sendMail);
-    send.mockResolvedValueOnce(undefined);
+    send.mockResolvedValueOnce({ via: "smtp" });
     expect(await testPlatformProvider(boss, "mail")).toEqual({ ok: true, code: "mail_ok", detail: "boss@example.com" });
+    // through Resend
+    send.mockResolvedValueOnce({ via: "resend" });
+    expect(await testPlatformProvider(boss, "mail")).toEqual({ ok: true, code: "mail_ok_resend", detail: "boss@example.com" });
+    // it arrived, but Resend refused and the mailbox took over: said, with Resend's words
+    send.mockResolvedValueOnce({ via: "smtp", fellBackFrom: "Resend: The mlmcrm.app domain is not verified" });
+    expect(await testPlatformProvider(boss, "mail")).toEqual({ ok: false, code: "mail_fallback", detail: "Resend: The mlmcrm.app domain is not verified" });
     expect(send).toHaveBeenLastCalledWith(expect.objectContaining({ to: "boss@example.com" }), { waits: [] });
     send.mockRejectedValueOnce(new MailError({ kind: "credentials", code: "535", detail: "535 5.7.8 BadCredentials" }));
     const bad = await testPlatformProvider(boss, "mail");

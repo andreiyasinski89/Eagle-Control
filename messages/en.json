@@ -2317,11 +2317,13 @@
       "mail_unknown": "The e-mail was not sent, for a reason not known to us. The server said:",
       "googleSignIn_ok": "The keys are in place. The real check is signing in with Google on the sign-in page.",
       "googleSignIn_keys": "AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET are not filled in Vercel yet.",
-      "googleSignIn_id": "AUTH_GOOGLE_ID does not look right: it ends with .apps.googleusercontent.com."
+      "googleSignIn_id": "AUTH_GOOGLE_ID does not look right: it ends with .apps.googleusercontent.com.",
+      "mail_ok_resend": "A test e-mail was sent to {name} through Resend. Check the mailbox: if it is there, sign-in links will be sent too.",
+      "mail_fallback": "The test e-mail arrived, but through the Gmail mailbox: Resend refused it. Check the key and that the domain is verified in Resend (Domains). Resend said:"
     },
     "mailSeen": "What the site sees (server:port · login · password length):",
     "mailHint": {
-      "resend_wins": "RESEND_API_KEY is filled in, so the site sends through Resend and ignores the Gmail settings. Delete RESEND_API_KEY if you want Gmail.",
+      "resend_wins": "RESEND_API_KEY is filled in and there is no Gmail mailbox beside it, so there is nothing to fall back on: the mail depends on the key and on the domain being verified in Resend. Keep the Gmail settings (SMTP_USER, SMTP_PASS) too: if Resend ever refuses, the mail goes through Gmail.",
       "user_missing": "SMTP_USER is empty: put your full Gmail address in it.",
       "user_is_name": "The value of SMTP_USER is the word SMTP_USER itself. Put your Gmail address in the Value field.",
       "user_stray": "SMTP_USER has a space, a line break or quotation marks around it. Retype it plainly, with nothing around it.",

@@ -2317,11 +2317,13 @@
       "mail_unknown": "Письмо не отправлено по причине, которую мы не знаем. Сервер ответил:",
       "googleSignIn_ok": "Ключи на месте. Настоящая проверка это вход через Google на странице входа.",
       "googleSignIn_keys": "AUTH_GOOGLE_ID и AUTH_GOOGLE_SECRET в Vercel ещё не заполнены.",
-      "googleSignIn_id": "AUTH_GOOGLE_ID выглядит неправильно: он заканчивается на .apps.googleusercontent.com."
+      "googleSignIn_id": "AUTH_GOOGLE_ID выглядит неправильно: он заканчивается на .apps.googleusercontent.com.",
+      "mail_ok_resend": "Пробное письмо отправлено на {name} через Resend. Загляните в ящик: если оно там, ссылки для входа тоже уйдут.",
+      "mail_fallback": "Пробное письмо дошло, но через ящик Gmail: Resend его не принял. Проверьте ключ и то, что домен подтверждён в Resend (Domains). Resend ответил:"
     },
     "mailSeen": "Что видит сайт (сервер:порт · логин · длина пароля):",
     "mailHint": {
-      "resend_wins": "Заполнен RESEND_API_KEY, поэтому сайт отправляет через Resend и игнорирует настройки Gmail. Удалите RESEND_API_KEY, если нужен Gmail.",
+      "resend_wins": "Заполнен RESEND_API_KEY, а ящика Gmail рядом нет, поэтому запасного пути нет: почта зависит от ключа и от подтверждённого домена в Resend. Оставьте и настройки Gmail (SMTP_USER, SMTP_PASS): если Resend откажет, письма уйдут через Gmail.",
       "user_missing": "SMTP_USER пустой: впишите в него полный адрес Gmail.",
       "user_is_name": "В значении SMTP_USER написано само слово SMTP_USER. Впишите адрес Gmail в поле Value.",
       "user_stray": "У SMTP_USER есть пробел, перевод строки или кавычки вокруг. Введите его заново, без ничего вокруг.",

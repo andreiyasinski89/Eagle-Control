@@ -73,8 +73,10 @@ export async function testPlatformProvider(userId: string, provider: Provider): 
       const me = await db.user.findUnique({ where: { id: userId }, select: { email: true } });
       if (!me) return { ok: false, code: "mail_unknown" };
       try {
-        await sendMail({ to: me.email, subject: "MLM CRM: test", text: "The e-mail of MLM CRM works.", html: "<p>The e-mail of MLM CRM works.</p>" }, { waits: [] });
-        return { ok: true, code: "mail_ok", detail: me.email };
+        const sent = await sendMail({ to: me.email, subject: "MLM CRM: test", text: "The e-mail of MLM CRM works.", html: "<p>The e-mail of MLM CRM works.</p>" }, { waits: [] });
+        // It arrived, but not the way it should: the first choice (Resend) refused and the mailbox took over. Said plainly, with Resend's own words.
+        if (sent?.fellBackFrom) return { ok: false, code: "mail_fallback", detail: sent.fellBackFrom };
+        return { ok: true, code: sent?.via === "resend" ? "mail_ok_resend" : "mail_ok", detail: me.email };
       } catch (err) {
         const info = (err as { info?: ReturnType<typeof classifyMailError> }).info ?? classifyMailError(err);
         const h = mailSettingsHints(e);

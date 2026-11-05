@@ -21,6 +21,28 @@
 - Человек, которому не ушло письмо, видит честное сообщение: «у нас не работает отправка писем, это не ваша вина, попробуйте через 10–15 минут», а не «проверьте адрес».
 - Сбои, которые проходят сами (сервер не ответил, просит подождать), повторяются два раза автоматически. Отказ в пароле не повторяется: он сам не пройдёт.
 
+## Resend с доменом mlmcrm.app (надёжная почта)
+
+Сайт отправляет через Resend, если задан `RESEND_API_KEY`. Если Resend отказал (домен ещё не подтверждён, ключ неверен, сервис недоступен) **и рядом настроен ящик Gmail** (`SMTP_USER`, `SMTP_PASS`), письмо уходит через Gmail. Поэтому Gmail оставляйте настроенным, и добавление Resend не может отрезать людей от входа.
+
+1. Зарегистрируйтесь на https://resend.com.
+2. **Domains → Add Domain** → `mlmcrm.app` → Add. Resend покажет 3–4 записи DNS: обычно `MX` и `TXT` для имени `send`, `TXT` (длинный ключ DKIM) для имени `resend._domainkey`, по желанию `TXT` для `_dmarc`.
+3. Добавьте каждую в Vercel: **Domains → mlmcrm.app → DNS Records → Add**. Поля Name, Type и Value копируйте из Resend как есть (для `MX` ещё Priority). Имя пишется без `.mlmcrm.app`.
+4. В Resend нажмите **Verify**, пока домен не станет **Verified** (от минут до часа).
+5. **API Keys → Create API Key**, право **Sending access**. Скопируйте ключ `re_...`.
+6. В Vercel → Environment Variables (Production): `RESEND_API_KEY` = ключ, `MAIL_FROM` = `MLM CRM <noreply@mlmcrm.app>`. Redeploy.
+7. В MLM CRM `/admin/setup` → «Почта для ссылок входа» → «Проверить»: «через Resend» значит всё хорошо; «дошло через Gmail, Resend отказал» значит ищите причину по приписанному ответу Resend.
+
+## Вход через Google
+
+Одна кнопка вместо письма. В Google Cloud (console.cloud.google.com/apis/credentials):
+1. Создайте проект, **OAuth consent screen**: External, название «MLM CRM», ваша почта. Нажмите **Publish app**, чтобы входили все, а не только добавленные тестовые пользователи.
+2. **Create credentials → OAuth client ID → Web application**.
+3. **Authorised JavaScript origins:** `https://meetowl-app.vercel.app` (и `https://mlmcrm.app`, когда домен станет основным).
+4. **Authorised redirect URIs:** `https://meetowl-app.vercel.app/api/auth/callback/google` (и `https://mlmcrm.app/api/auth/callback/google`).
+5. В Vercel (Production): `AUTH_GOOGLE_ID` (кончается на `.apps.googleusercontent.com`), `AUTH_GOOGLE_SECRET`. Redeploy.
+6. На странице входа появится «Войти через Google». Человек с тем же адресом почты, что уже есть в системе, входит в свой прежний кабинет (аккаунты связываются по адресу, Google его подтверждает).
+
 ## Почему Gmail ненадёжен и что делать дальше
 
 Gmail как почтовый сервер для сайта подводит по трём причинам: суточный лимит (около 500 писем, у новых ящиков меньше), блокировки при частых входах с серверов Vercel и отзыв пароля приложения при любой смене настроек безопасности.
