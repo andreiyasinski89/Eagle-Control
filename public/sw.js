@@ -1,6 +1,6 @@
 /* MeetOwl service worker: keeps the shell (scripts, styles, icons) so the app opens fast and shows a page of its own without a network.
  * It never touches /api: data always comes from the server, and nothing private is stored here. */
-const VERSION = "meetowl-shell-v2";
+const VERSION = "meetowl-shell-v3";
 const OFFLINE = "/offline.html";
 
 self.addEventListener("install", (event) => {
@@ -28,8 +28,24 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Built files never change under the same name, and icons rarely: the cache first.
-  if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/icons/")) {
+  // Icons: the network first, so a new picture reaches the phone at once; the copy kept here is only for when there is no network.
+  if (url.pathname.startsWith("/icons/")) {
+    event.respondWith(
+      fetch(req)
+        .then((res) => {
+          if (res.ok) {
+            const copy = res.clone();
+            caches.open(VERSION).then((c) => c.put(req, copy));
+          }
+          return res;
+        })
+        .catch(() => caches.match(req)),
+    );
+    return;
+  }
+
+  // Built files never change under the same name: the cache first.
+  if (url.pathname.startsWith("/_next/static/")) {
     event.respondWith(
       caches.match(req).then(
         (hit) =>

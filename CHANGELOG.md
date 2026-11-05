@@ -590,3 +590,10 @@
 - Only what is visible changed. All screen texts in the four languages, the help articles, the terms page, the sign-in, account, admin and consent pages, the tab title, the name on a phone's home screen, the offline page, and the logo: the owl is replaced by a violet "M" mark (site icon, phone icons 180/192/512 px, headers).
 - Left as they were on purpose, so nothing stops working: every setting and name behind the scenes (e-mail sender name and texts, the webhook header names, the Telegram bot's username, the MCP and Inngest names, keys in the browser and in Google events, the demo addresses, the database, the downloadable guides and presentations in `public/guide/`, the documents in `docs/`). The owl stays as the small picture in the "nothing here yet" screens.
 - The cache of the offline shell has a new version, so phones that had installed the app get the new icon.
+
+## 0.54.1 — The home-screen icon is made robust
+
+- After the rename the app's icon on a phone's home screen could show up blank. The site's icons were only plain rounded pictures with transparent corners; now there are also full-square "maskable" icons (192 and 512 px), which is what Android needs to cut its own shape out of the picture, and the iPhone icon is an opaque full square (iOS shows transparency as black).
+- `favicon.ico` (still the owl in browser tabs of older browsers) is the new mark.
+- The offline shell no longer keeps icons in a cache-first store forever: icons are taken from the network first, so a new picture reaches the phone at once (shell cache version 3).
+- To get the new icon on a phone that already has the old shortcut: remove the shortcut and add the site to the home screen again.

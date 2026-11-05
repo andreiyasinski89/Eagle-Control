@@ -14,6 +14,13 @@ describe("manifest", () => {
     expect(sizes).toContain("192x192");
     expect(sizes).toContain("512x512");
   });
+  it("has icons that every phone can use: plain ones, and full-square ones for phones that cut their own shape", () => {
+    const icons = m.icons ?? [];
+    for (const size of ["192x192", "512x512"]) {
+      expect(icons.some((i) => i.sizes === size && i.purpose === undefined && i.type === "image/png"), `any ${size}`).toBe(true);
+      expect(icons.some((i) => i.sizes === size && i.purpose === "maskable"), `maskable ${size}`).toBe(true);
+    }
+  });
   it("points at icons that exist", () => {
     for (const i of m.icons ?? []) if (i.src.startsWith("/icons/")) expect(existsSync(`public${i.src}`)).toBe(true);
   });
