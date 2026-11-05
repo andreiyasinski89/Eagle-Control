@@ -3,6 +3,7 @@ import { Resend } from "resend";
 import { env } from "@/lib/env";
 import { db } from "@/server/db";
 import { classifyMailError, isRetryable, MailError } from "./errors";
+import { mailSettingsHints } from "./hints";
 
 export { MailError } from "./errors";
 export type { MailFailureKind } from "./errors";
@@ -48,7 +49,10 @@ export async function sendMail(mail: Mail, opts: { waits?: readonly number[] } =
         await nap(wait);
         continue;
       }
-      console.error(`[mail] not sent: ${info.kind} ${info.code ?? ""} ${info.detail}`);
+      // With the server's own words, what the site sees in its mail settings (the login half hidden, the length of the password, never the password)
+      // and what looks wrong in them: enough to find a mistake in the settings from the log alone, when nobody can sign in to look at the admin page.
+      const h = mailSettingsHints(env());
+      console.error(`[mail] not sent: ${info.kind} ${info.code ?? ""} ${info.detail} | settings: ${h.seen} | check: ${h.codes.join(",") || "nothing looks wrong"}`);
       await recordMailFailure(info, mail.to);
       throw new MailError(info);
     }
