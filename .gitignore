@@ -8,3 +8,6 @@ test-results
 playwright-report
 .pglite
 scripts/guide/kb.json
+
+# private working notes (owner and assistant only)
+docs/context/
