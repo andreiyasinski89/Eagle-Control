@@ -302,3 +302,6 @@
 | 295 | "Awaits answer" is one rule (reply after our last touch) shown in every list and at the top of My Day | A reply seen only inside the card was missed in the lists, where the work is done. |
 | 296 | Feeds load 30 more at a time up to 200 instead of a hard 30 | Older records silently disappeared; 200 is plenty for a card, the Activities tab has all. |
 | 297 | Activity times are relative words and short dates in the user time zone, no seconds | Seconds were noise, and the browser zone could differ from the one set in the account. |
+| 298 | A chat-button press in the queue records "wrote, waiting" itself and moves on, with Undo | Right after sending there is no answer yet; the second press was always the same one. Undo restores from a snapshot the touch itself returns, only own fresh WAITING touches. |
+| 299 | Sent messages, e-mails and notes are not calendar items | The calendar is for plans; recorded touches made busy hours unreadable. |
+| 300 | Quick meeting times are fixed (today 19, tomorrow 12 and 19) rather than learned | Covers the usual presentation times now; learning from history can come later. |

@@ -2449,7 +2449,15 @@
     "overdueClear": "Zdejmij daty (bot przypomni o długiej ciszy)",
     "overdueIn": "Przenieś wszystkie na {n} dni od dziś",
     "overdueApply": "Zastosuj do {n}",
-    "overdueDone": "Gotowe: zaktualizowano {n, plural, one {# osobę} few {# osoby} many {# osób} other {# osoby}}."
+    "overdueDone": "Gotowe: zaktualizowano {n, plural, one {# osobę} few {# osoby} many {# osób} other {# osoby}}.",
+    "sentSaving": "Zapisuję: {name}…",
+    "sentSaved": "{name}: napisane, czekam na odpowiedź. Następna osoba.",
+    "sentFailed": "Nie udało się zapisać kontaktu z {name}; osoba wróciła na listę.",
+    "undo": "Cofnij",
+    "meetingToday": "Dziś {time}",
+    "meetingTomorrow": "Jutro {time}",
+    "meetingOther": "Albo wybierz inny dzień i godzinę:",
+    "keysHint": "Klawisze: 1 odpowiedź · 2 brak odpowiedzi · 3 spotkanie · 4 odmowa · 5 napisane, czekam · → następna"
   },
   "mobile": {
     "nav": "Główne sekcje",

@@ -141,8 +141,8 @@ export async function deleteActivity(userId: string, id: string) {
     const a = await loadActivity(tx, userId, id, "crm:write");
     await tx.crmActivity.delete({ where: { id } });
     // A touch that is taken back must not leave the person looking as if they had been written to: the last touch goes back to the one before it.
-    if (a.contactId && TOUCH_TYPES.includes(a.type) && a.completedAt) {
-      const last = await tx.crmActivity.findFirst({ where: { contactId: a.contactId, type: { in: TOUCH_TYPES }, completedAt: { not: null } }, orderBy: { completedAt: "desc" }, select: { completedAt: true } });
+    if (a.contactId && TOUCH_TYPES.includes(a.type) && a.completedAt && !a.signals.includes("INBOUND")) {
+      const last = await tx.crmActivity.findFirst({ where: { contactId: a.contactId, type: { in: TOUCH_TYPES }, completedAt: { not: null }, NOT: { signals: { has: "INBOUND" } } }, orderBy: { completedAt: "desc" }, select: { completedAt: true } });
       await tx.contact.update({ where: { nodeId: a.contactId }, data: { lastContactedAt: last?.completedAt ?? null } });
       await refreshTemperature(tx, a.contactId, new Date());
     }

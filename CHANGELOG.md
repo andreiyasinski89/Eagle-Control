@@ -693,3 +693,12 @@
 - The activity feed of a person and of a company shows the 30 latest records and a "Show more (N)" button that adds 30 at a time (up to 200), so older records no longer silently disappear.
 - Activity dates read "today, 23:11", "yesterday, 09:05", "6 Nov, 23:11" (the year only when it is another year), without seconds and in the person’s own time zone: in the feeds, the Activities list and the deal card (`whenLabel`).
 - Texts in four languages; tests for the rule, the dates and My Day.
+
+## 0.63.0 — Wave 1: fewer presses in the touch queue
+
+- **Sent = written down.** In the touch queue a press on Telegram, WhatsApp or Instagram is the touch: it is recorded at once as "wrote, waiting for an answer" with the text sent, and the next person comes up. A note at the bottom says so, with **Undo** for 15 seconds (puts the stage, next step, day to come back and last touch back exactly and returns the person to the list) and, when the chat could not open directly, the link to the browser version. One press per person instead of two; the result buttons stay for calls and later answers.
+- **A meeting in two presses.** "Meeting set" offers "Today 19:00" (until 18:00), "Tomorrow 12:00", "Tomorrow 19:00"; one press saves. The day and time fields stay below for anything else.
+- **The calendar shows what is planned.** Messages and e-mails already sent and notes no longer appear in the hour grid (they were the cause of the 25 slivers on 2 Nov: every touch recorded with its moment). Meetings, calls and tasks stay.
+- **Keys on a computer** in the queue: 1 replied, 2 no reply, 3 meeting, 4 said no, 5 wrote and wait, → next person (not while typing).
+- Taking back a touch, or deleting one, no longer counts an incoming reply as our last touch.
+- Texts in four languages; tests for undo, its limits, the calendar and the meeting times.

@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { Prisma } from "@prisma/client";
 import { db } from "@/server/db";
 import { DECLINE_REASONS } from "@/modules/crm/decline";
-import type { Stage } from "@/modules/crm/people";
+import { STAGES, type Stage } from "@/modules/crm/people";
 import { cleanTouchSettings, OUTCOMES, orderQueue, planTouch, situationFor, type TouchSettings } from "@/modules/crm/touch";
 import { addDays } from "@/modules/crm/tracker";
 import { isValidTimeZone, todayIn, zonedParts, zonedToUtc } from "@/modules/views/tz";
@@ -224,7 +224,9 @@ export async function recordTouchResult(userId: string, contactId: string, input
     });
     await tx.contact.update({ where: { nodeId: contactId }, data: { lastContactedAt: now, returnAt: plan.returnAt ? new Date(`${plan.returnAt}T00:00:00.000Z`) : null } });
     const temperature = await refreshTemperature(tx, contactId, now);
-    return { activityId: touch.id, outcome: input.outcome, stage: plan.stage ?? c.stage, nextStep: plan.nextStep, nextStepAt: plan.day ? `${plan.day}T00:00:00.000Z` : null, returnAt: plan.returnAt ?? null, cooled: plan.cooled, temperature };
+    // How the person stood before this touch, so a touch written down by a mistaken press can be taken back exactly (see undoTouch).
+    const before = { stage: c.stage, stageChangedAt: c.stageChangedAt.toISOString(), nextStep: c.nextStep, nextStepAt: c.nextStepAt?.toISOString() ?? null, returnAt: c.returnAt?.toISOString() ?? null };
+    return { before, activityId: touch.id, outcome: input.outcome, stage: plan.stage ?? c.stage, nextStep: plan.nextStep, nextStepAt: plan.day ? `${plan.day}T00:00:00.000Z` : null, returnAt: plan.returnAt ?? null, cooled: plan.cooled, temperature };
     // A result is dozens of small queries in one go. With the database far from the server (or waking up) they can pass the 5 seconds a transaction
     // is allowed by default, and the press then fails once and works the second time; so it is given room.
   }, { timeout: 30_000, maxWait: 15_000 });
@@ -271,4 +273,42 @@ export async function resolveOverdue(userId: string, workspaceId: string, input:
     return r.count;
   });
   return { count, changed: done };
+}
+
+// ── Taking a touch back ─────────────────────────────────────────────
+
+export const undoTouchSchema = z.object({
+  activityId: z.string().min(1),
+  /** The person as they were before the touch, as the touch itself reported it. */
+  before: z.object({
+    stage: z.string(),
+    stageChangedAt: z.string().datetime(),
+    nextStep: z.string().max(200).nullable(),
+    nextStepAt: z.string().datetime().nullable(),
+    returnAt: z.string().datetime().nullable(),
+  }),
+});
+
+const UNDO_WINDOW_MS = 15 * 60_000;
+
+/**
+ * "Undo" after a touch that was written down by itself (the chat button in the queue). Only one's own "wrote, waiting" touch, only for a short while:
+ * the record goes, the person's stage, next step and day to come back are put back, and the last touch and temperature are counted again.
+ */
+export async function undoTouch(userId: string, contactId: string, input: z.infer<typeof undoTouchSchema>, now = new Date()) {
+  return db.$transaction(async (tx) => {
+    await loadCrmNode(tx, userId, contactId, "CONTACT", true);
+    const a = await tx.crmActivity.findUnique({ where: { id: input.activityId } });
+    if (!a || a.contactId !== contactId || a.ownerId !== userId || a.outcome !== "WAITING" || now.getTime() - a.createdAt.getTime() > UNDO_WINDOW_MS) throw invalid("cannot_undo", "This touch can no longer be taken back");
+    const b = input.before;
+    if (!(STAGES as readonly string[]).includes(b.stage)) throw invalid("cannot_undo", "Unknown stage");
+    await tx.crmActivity.delete({ where: { id: a.id } });
+    const last = await tx.crmActivity.findFirst({ where: { contactId, type: { in: ["CALL", "EMAIL", "MEETING", "MESSAGE"] }, completedAt: { not: null }, NOT: { signals: { has: "INBOUND" } } }, orderBy: { completedAt: "desc" }, select: { completedAt: true } });
+    await tx.contact.update({
+      where: { nodeId: contactId },
+      data: { stage: b.stage as Stage, stageChangedAt: new Date(b.stageChangedAt), nextStep: b.nextStep, nextStepAt: b.nextStepAt ? new Date(b.nextStepAt) : null, returnAt: b.returnAt ? new Date(b.returnAt) : null, lastContactedAt: last?.completedAt ?? null },
+    });
+    await refreshTemperature(tx, contactId, now);
+    return { undone: true };
+  });
 }

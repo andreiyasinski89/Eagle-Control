@@ -2449,7 +2449,15 @@
     "overdueClear": "Take the dates off (the bot reminds about long silences)",
     "overdueIn": "Move all to {n} days from today",
     "overdueApply": "Apply to {n}",
-    "overdueDone": "Done: {n, plural, one {# person} other {# people}} updated."
+    "overdueDone": "Done: {n, plural, one {# person} other {# people}} updated.",
+    "sentSaving": "Writing down: {name}…",
+    "sentSaved": "{name}: wrote, waiting for an answer. Next person.",
+    "sentFailed": "Could not write down the touch for {name}; the person is back in the list.",
+    "undo": "Undo",
+    "meetingToday": "Today {time}",
+    "meetingTomorrow": "Tomorrow {time}",
+    "meetingOther": "Or pick another day and time:",
+    "keysHint": "Keys: 1 replied · 2 no reply · 3 meeting · 4 said no · 5 wrote, waiting · → next"
   },
   "mobile": {
     "nav": "Main sections",

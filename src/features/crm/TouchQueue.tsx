@@ -22,6 +22,8 @@ import { cleanTouchSettings, NEXT_IN_DAYS, STALE_DAY_CHOICES, type Situation, ty
 import { addDays, fillScript } from "@/modules/crm/tracker";
 import { todayIn, zoneLabel, zonedToUtc } from "@/modules/views/tz";
 import { copyToClipboard } from "./useScripts";
+import { buildMessengerLink, CHANNELS, type Channel } from "@/modules/crm/messenger";
+import { meetingChoices } from "@/modules/crm/meeting-times";
 
 interface Recent {
   id: string;
@@ -80,7 +82,16 @@ interface Done {
   id: string;
   outcome: TouchOutcome;
 }
+interface Before {
+  stage: string;
+  stageChangedAt: string;
+  nextStep: string | null;
+  nextStepAt: string | null;
+  returnAt: string | null;
+}
 interface Answer {
+  activityId: string;
+  before: Before;
   nextStep: string | null;
   nextStepAt: string | null;
   returnAt: string | null;
@@ -103,6 +114,7 @@ export function scriptsFor(item: Pick<QItem, "stage" | "situation">, scripts: re
  */
 export function TouchQueue({ workspaceId, slug }: { workspaceId: string; slug: string }) {
   const t = useTranslations("touches");
+  const tm = useTranslations("messenger");
   const qc = useQueryClient();
   const locale = useLocale();
   const stale = useSearchParams().get("stale") === "1";
@@ -111,6 +123,44 @@ export function TouchQueue({ workspaceId, slug }: { workspaceId: string; slug: s
   const [session, setSession] = useState<{ ids: string[]; total: number; done: Done[]; skipped: string[] } | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [overdueOpen, setOverdueOpen] = useState(false);
+  // A press on a chat button is the touch: it is written down as "wrote, waiting" at once and the next person comes up. "Undo" takes it back.
+  const [sent, setSent] = useState<{ item: QItem; state: "saving" | "saved" | "error" | "undoing"; answer?: Answer; web?: string } | null>(null);
+  const sentTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => void (sentTimer.current && clearTimeout(sentTimer.current)), []);
+  const refreshAfterTouch = () => {
+    for (const k of ["my-day", "people", "contacts", "tracker", "contact", "activities", "calendar"]) void qc.invalidateQueries({ queryKey: [k] });
+  };
+  const putBack = (item: QItem) => setSession((s) => (s ? { ...s, done: s.done.filter((d) => d.id !== item.id), ids: [item.id, ...s.ids.filter((id) => id !== item.id)] } : s));
+  async function autoRecord(item: QItem, channel: string, text: string) {
+    if (sentTimer.current) clearTimeout(sentTimer.current);
+    setSession((s) => (s ? { ...s, done: [...s.done, { id: item.id, outcome: "WAITING" }], ids: s.ids.filter((id) => id !== item.id) } : s));
+    // When the chat could not be opened directly (no username), the way to the browser version stays here, since the card has moved on.
+    const web = (CHANNELS as readonly string[]).includes(channel) ? buildMessengerLink(channel as Channel, item, text).webFallback : undefined;
+    setSent({ item, state: "saving", web });
+    try {
+      const answer = await api.post<Answer>(`/api/v1/contacts/${item.id}/touch`, { outcome: "WAITING", message: text.trim() || undefined, channel, locale });
+      setSent((cur) => (cur?.item.id === item.id ? { ...cur, state: "saved", answer } : cur));
+      refreshAfterTouch();
+      sentTimer.current = setTimeout(() => setSent((cur) => (cur?.item.id === item.id && cur.state === "saved" ? null : cur)), web ? 30_000 : 15_000);
+    } catch {
+      setSent((cur) => (cur?.item.id === item.id ? { item, state: "error" } : cur));
+      putBack(item);
+    }
+  }
+  async function undoSent() {
+    if (!sent?.answer) return;
+    const { item, answer } = sent;
+    if (sentTimer.current) clearTimeout(sentTimer.current);
+    setSent({ ...sent, state: "undoing" });
+    try {
+      await api.post(`/api/v1/contacts/${item.id}/touch/undo`, { activityId: answer.activityId, before: answer.before });
+      putBack(item);
+      setSent(null);
+      refreshAfterTouch();
+    } catch {
+      setSent({ ...sent, state: "error" });
+    }
+  }
 
   // One pass through the queue: its order is fixed when it starts, so a refresh does not shuffle the card under the thumb.
   useEffect(() => {
@@ -185,6 +235,7 @@ export function TouchQueue({ workspaceId, slug }: { workspaceId: string; slug: s
           slug={slug}
           onDone={(outcome) => setSession((s) => (s ? { ...s, done: [...s.done, { id: current.id, outcome }], ids: s.ids.filter((id) => id !== current.id) } : s))}
           onSkip={() => setSession((s) => (s ? { ...s, skipped: [...s.skipped, current.id] } : s))}
+          onSent={(channel, text) => void autoRecord(current, channel, text)}
         />
       ) : session.total === 0 ? (
         <Empty slug={slug} stale={data.mode === "stale"} />
@@ -192,6 +243,26 @@ export function TouchQueue({ workspaceId, slug }: { workspaceId: string; slug: s
         <Summary workspaceId={workspaceId} slug={slug} done={session.done} skipped={session.skipped.length} truncated={data.truncated} onAgain={restart} />
       )}
 
+      {sent && (
+        <div role="status" className="sticky bottom-4 z-10 flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-3 text-sm shadow-lg" data-testid="touch-sent">
+          <span className="min-w-0 flex-1">
+            {sent.state === "error" ? t("sentFailed", { name: sent.item.name }) : sent.state === "saving" ? t("sentSaving", { name: sent.item.name }) : t("sentSaved", { name: sent.item.name })}
+          </span>
+          {sent.web && (
+            <a href={sent.web} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 items-center text-primary hover:underline" data-testid="touch-sent-web">
+              {tm("openWeb")}
+            </a>
+          )}
+          {sent.state === "saved" && (
+            <Button type="button" size="sm" variant="outline" className="min-h-10" onClick={() => void undoSent()} data-testid="touch-sent-undo">
+              {t("undo")}
+            </Button>
+          )}
+          <Button type="button" variant="ghost" size="sm" className="size-10 p-0" aria-label={t("close")} onClick={() => setSent(null)}>
+            <X className="size-4" />
+          </Button>
+        </div>
+      )}
       {overdueOpen && <OverdueDialog workspaceId={workspaceId} count={data.overdueCount} onClose={() => setOverdueOpen(false)} onDone={restart} />}
       {settingsOpen && <SettingsDialog workspaceId={workspaceId} initial={data.settings} onClose={() => setSettingsOpen(false)} />}
     </div>
@@ -211,7 +282,7 @@ function Empty({ slug, stale }: { slug: string; stale: boolean }) {
   );
 }
 
-function TouchCard({ workspaceId, item, data, slug, onDone, onSkip }: { workspaceId: string; item: QItem; data: QData; slug: string; onDone: (o: TouchOutcome) => void; onSkip: () => void }) {
+function TouchCard({ workspaceId, item, data, slug, onDone, onSkip, onSent }: { workspaceId: string; item: QItem; data: QData; slug: string; onDone: (o: TouchOutcome) => void; onSkip: () => void; onSent: (channel: string, text: string) => void }) {
   const t = useTranslations("touches");
   const qc = useQueryClient();
   const tc = useTranslations("crm");
@@ -265,6 +336,29 @@ function TouchCard({ workspaceId, item, data, slug, onDone, onSkip }: { workspac
     onError: (e) => setError(e instanceof ApiFailure && e.message ? e.message : t("failed")),
   });
 
+  // Keys on a computer: 1 replied, 2 no reply, 3 meeting, 4 said no, 5 wrote and wait, → next person. Not while typing or with a window open.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (dialog || result.isPending || e.ctrlKey || e.metaKey || e.altKey) return;
+      const el = e.target as HTMLElement | null;
+      if (el && (el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName))) return;
+      const act: Record<string, () => void> = {
+        "1": () => result.mutate({ outcome: "REPLIED" }),
+        "2": () => result.mutate({ outcome: "NO_REPLY" }),
+        "3": () => setDialog("meeting"),
+        "4": () => setDialog("decline"),
+        "5": () => result.mutate({ outcome: "WAITING" }),
+        ArrowRight: onSkip,
+      };
+      const run = act[e.key];
+      if (run) {
+        e.preventDefault();
+        run();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [dialog, result, onSkip]);
   const stageLabel = tc(`funnelStage.${item.stage}`);
   const where = [item.companyName ?? item.position, item.city ?? item.country].filter(Boolean).join(" · ");
 
@@ -334,7 +428,7 @@ function TouchCard({ workspaceId, item, data, slug, onDone, onSkip }: { workspac
         <textarea className="min-h-36 w-full rounded-md border border-border bg-background p-3 text-sm" value={text} onChange={(e) => setText(e.target.value)} maxLength={4000} aria-label={t("scriptTitle")} data-testid="touch-text" />
         <p className="text-xs text-muted-foreground">{t("scriptHint")}</p>
         <SendMaterial workspaceId={workspaceId} className="w-fit" onPick={(line) => setText((cur) => `${cur.trimEnd()}${cur.trim() ? "\n\n" : ""}${line}`.slice(0, 4000))} />
-        <MessengerButtons workspaceId={workspaceId} person={{ id: item.id, name: item.name, phones: item.phones, messengers: item.messengers }} text={text} canWrite onUsed={(c) => setChannel(c)} />
+        <MessengerButtons workspaceId={workspaceId} person={{ id: item.id, name: item.name, phones: item.phones, messengers: item.messengers }} text={text} canWrite onUsed={(c) => (setChannel(c), onSent(c, text))} />
         <Button type="button" variant="outline" className="min-h-11 w-full gap-2" disabled={!text.trim()} onClick={() => void send("copy")} data-testid="touch-copy">
           <ClipboardCopy className="size-4" />
           {t("copy")}
@@ -377,6 +471,9 @@ function TouchCard({ workspaceId, item, data, slug, onDone, onSkip }: { workspac
           <SkipForward className="size-4" />
           {t("skip")}
         </Button>
+        <p className="hidden text-center text-xs text-muted-foreground md:block" data-testid="touch-keys">
+          {t("keysHint")}
+        </p>
       </section>
 
       {note && (
@@ -405,6 +502,14 @@ function MeetingDialog({ tz, busy, onClose, onSave }: { tz: string; busy: boolea
           onSave(zonedToUtc(day, time, tz).toISOString());
         }}
       >
+        <div className="flex flex-wrap gap-2" data-testid="touch-meeting-quick">
+          {meetingChoices(tz).map((c) => (
+            <Button key={c.key} type="button" variant="soft" className="min-h-11" disabled={busy} onClick={() => onSave(zonedToUtc(c.day, c.time, tz).toISOString())} data-testid={`touch-meeting-${c.key}`}>
+              {t(c.key === "today19" ? "meetingToday" : "meetingTomorrow", { time: c.time })}
+            </Button>
+          ))}
+        </div>
+        <p className="text-xs text-muted-foreground">{t("meetingOther")}</p>
         <div className="grid grid-cols-2 gap-3">
           <FormField label={t("meetingDay")}>
             <Input type="date" value={day} onChange={(e) => setDay(e.target.value)} required className="min-h-11" data-testid="touch-meeting-day" />
@@ -599,3 +704,4 @@ function OverdueDialog({ workspaceId, count: shown, onClose, onDone }: { workspa
     </Modal>
   );
 }
+

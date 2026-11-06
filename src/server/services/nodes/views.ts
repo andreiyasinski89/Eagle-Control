@@ -113,7 +113,9 @@ export async function workspaceCalendar(userId: string, workspaceId: string, q: 
     const visible = scope ? { OR: [{ ownerId: userId }, { contact: { is: scope } }, ...(full ? [{ contactId: null }] : [])] } : {};
     const [acts, deals] = await Promise.all([
       db.crmActivity.findMany({
-        where: { AND: [{ workspaceId, dueAt: { gte: from, lt: to }, ...(mine ? { ownerId: userId } : {}) }, visible] },
+        // The calendar is for what is planned: meetings, calls, tasks. A message or e-mail already sent (and a note) is a record of the past, not an appointment:
+        // twenty-five touches written down in an hour used to fill that hour with slivers.
+        where: { AND: [{ workspaceId, dueAt: { gte: from, lt: to }, ...(mine ? { ownerId: userId } : {}) }, visible, { NOT: { completedAt: { not: null }, type: { in: ["MESSAGE", "EMAIL", "NOTE"] } } }] },
         take: 500,
         include: { deal: { select: { node: { select: { title: true } } } }, company: { select: { legalName: true } } },
       }),
