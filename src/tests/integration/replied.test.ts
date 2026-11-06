@@ -66,3 +66,29 @@ describe("The replied button", () => {
     expect((await raw.contact.findUniqueOrThrow({ where: { nodeId: valentin } })).repliedAt).toEqual(ago(2));
   });
 });
+
+describe("The reply is a record, not just a flag", () => {
+  it("writes an incoming message with the words, and does not count as a touch of ours", async () => {
+    const id = (await createContact(owner, ws.id, { ...base, firstName: "Леша", lastName: "Барабанов", ownerId: owner, stage: "NEW" })).id;
+    const card = await markReplied(owner, id, ago(5), { text: "Интересно, расскажи подробнее", subject: "Ответил(а)" });
+    expect(card.repliedAt).toEqual(ago(5));
+    expect(card.lastContactedAt).toBeNull(); // still "no touch of ours recorded": the reply must not hide that
+    const rows = await raw.crmActivity.findMany({ where: { contactId: id } });
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ type: "MESSAGE", subject: "Ответил(а)", body: "Интересно, расскажи подробнее", outcome: "REPLIED", signals: ["INBOUND"] });
+    expect(rows[0]?.completedAt).toEqual(ago(5));
+  });
+
+  it("a new name that answers becomes a first contact; someone further along keeps the stage", async () => {
+    const fresh = (await createContact(owner, ws.id, { ...base, firstName: "Новый", ownerId: owner, stage: "NEW" })).id;
+    const warm = (await createContact(owner, ws.id, { ...base, firstName: "Тёплый", ownerId: owner, stage: "WARMING" })).id;
+    const quiet = (await createContact(owner, ws.id, { ...base, firstName: "Молчун", ownerId: owner, stage: "NO_REPLY" })).id;
+    await markReplied(owner, fresh);
+    await markReplied(owner, warm);
+    await markReplied(owner, quiet);
+    const stage = async (id: string) => (await raw.contact.findUniqueOrThrow({ where: { nodeId: id } })).stage;
+    expect(await stage(fresh)).toBe("FIRST_CONTACT");
+    expect(await stage(warm)).toBe("WARMING");
+    expect(await stage(quiet)).toBe("FIRST_CONTACT");
+  });
+});

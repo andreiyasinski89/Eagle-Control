@@ -6,7 +6,7 @@ import { CalendarPlus, Check, Download, Mail, Phone, ShieldAlert, StickyNote, Tr
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FormField, Modal, selectClass } from "@/components/ui/modal";
+import { FormField, Modal, selectClass, textareaClass } from "@/components/ui/modal";
 import { Link } from "@/i18n/navigation";
 import { Attachments } from "@/features/drawer/Attachments";
 import { VoiceNote } from "./VoiceNote";
@@ -150,7 +150,22 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
   });
   const finish = useMutation({ mutationFn: (id: string) => api.patch(`/api/v1/activities/${id}`, { completed: true }), onSuccess: refresh });
   const unplan = useMutation({ mutationFn: (id: string) => api.del(`/api/v1/activities/${id}`), onSuccess: refresh });
-  const replied = useMutation({ mutationFn: () => api.post(`/api/v1/contacts/${contactId}/replied`, {}), onSuccess: refresh });
+  const [replying, setReplying] = useState(false);
+  const [replyText, setReplyText] = useState("");
+  const [replyAt, setReplyAt] = useState("");
+  const localNow = () => {
+    const d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0, 16);
+  };
+  const replied = useMutation({
+    mutationFn: () => api.post(`/api/v1/contacts/${contactId}/replied`, { subject: t("replySubject"), ...(replyText.trim() ? { text: replyText.trim() } : {}), ...(replyAt ? { at: new Date(replyAt).toISOString() } : {}) }),
+    onSuccess: () => {
+      setReplying(false);
+      setReplyText("");
+      refresh();
+    },
+  });
   const consent = useMutation({ mutationFn: (given: boolean) => api.put(`/api/v1/contacts/${contactId}/consent`, { given, source: "manual" }), onSuccess: refresh });
 
   async function exportData() {
@@ -195,11 +210,17 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
           </div>
           <h2 className="mt-1 text-lg font-semibold">{c.name}</h2>
           <div className={cold ? "text-xs text-[var(--health-yellow)]" : "text-xs text-muted-foreground"}>
-            {c.lastContactedAt ? t("lastContact", { date: new Date(c.lastContactedAt).toLocaleDateString(locale) }) : t("neverContacted")}
+            {c.repliedAt && c.lastContactedAt
+              ? t("replyAndTouch", { reply: new Date(c.repliedAt).toLocaleDateString(locale), touch: new Date(c.lastContactedAt).toLocaleDateString(locale) })
+              : c.repliedAt
+                ? t("replyOnly", { date: new Date(c.repliedAt).toLocaleDateString(locale) })
+                : c.lastContactedAt
+                  ? t("lastContact", { date: new Date(c.lastContactedAt).toLocaleDateString(locale) })
+                  : t("neverContacted")}
           </div>
           {!dis && (
             <div className="mt-2 flex items-center gap-2">
-              <Button size="sm" variant="outline" disabled={replied.isPending} onClick={() => replied.mutate()}>
+              <Button size="sm" variant="outline" disabled={replied.isPending} onClick={() => (setReplyAt(localNow()), setReplying(true))} data-testid="mark-replied">
                 {t("markReplied")}
               </Button>
               {awaitingAnswer && <span className="text-xs text-[var(--health-yellow)]">{t("repliedWaiting", { date: new Date(c.repliedAt!).toLocaleDateString(locale) })}</span>}
@@ -438,6 +459,22 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
 
       <ScheduleDialog open={planning} onClose={() => setPlanning(false)} workspaceId={workspaceId} contactId={contactId} companyId={c.companyId} contactName={c.name} onSaved={refresh} />
       <ActivityDialog open={activity !== null} onClose={() => setActivity(null)} workspaceId={workspaceId} defaults={{ type: activity ?? "CALL", contactId, companyId: c.companyId }} onSaved={refresh} />
+      <Modal open={replying} onClose={() => setReplying(false)} title={t("replyTitle", { name: c.name })}>
+        <FormField label={t("replyText")} hint={t("replyTextHint")}>
+          <textarea className={textareaClass} rows={4} value={replyText} onChange={(e) => setReplyText(e.target.value)} data-testid="reply-text" />
+        </FormField>
+        <FormField label={t("replyWhen")}>
+          <Input type="datetime-local" value={replyAt} max={localNow()} onChange={(e) => setReplyAt(e.target.value)} />
+        </FormField>
+        <div className="flex justify-end gap-2">
+          <Button variant="ghost" onClick={() => setReplying(false)}>
+            {tc("cancel")}
+          </Button>
+          <Button disabled={replied.isPending} onClick={() => replied.mutate()} data-testid="reply-save">
+            {t("replySave")}
+          </Button>
+        </div>
+      </Modal>
       <Modal open={erasing} onClose={() => (setErasing(false), setConfirm(""))} title={t("eraseTitle", { name: c.name })}>
         <p className="text-sm">{t("eraseBody")}</p>
         <FormField label={t("eraseConfirm")}>

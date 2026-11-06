@@ -351,12 +351,41 @@ export async function setConsent(userId: string, contactId: string, given: boole
 /**
  * The person wrote back: the "replied" button. `repliedAt` stays until a touch of ours comes after it (see modules/crm/silence.ts),
  * so a second press before we answered only moves the moment forward.
+ *
+ * The reply is also written into the feed as an incoming message (outcome REPLIED, with the words if the person pressing knows them).
+ * It is NOT a touch of ours: it does not move `lastContactedAt`, or the red "answer first" flag would put itself out.
+ * A name that was new, or had gone quiet or said no, is a first contact again: the person answered.
  */
-export async function markReplied(userId: string, contactId: string, at = new Date()) {
+export async function markReplied(userId: string, contactId: string, at = new Date(), extra: { text?: string | null; subject?: string } = {}) {
   return db.$transaction(async (tx) => {
     const node = await loadCrmNode(tx, userId, contactId, "CONTACT", true);
-    await tx.contact.update({ where: { nodeId: contactId }, data: { repliedAt: at } });
-    await logActivity(tx, { workspaceId: node.workspaceId, nodeId: contactId, actorId: userId, action: "contact.replied" });
+    const cur = await tx.contact.findUniqueOrThrow({ where: { nodeId: contactId }, select: { stage: true } });
+    const data: Prisma.ContactUncheckedUpdateInput = { repliedAt: at };
+    const revive = cur.stage === "NEW" || cur.stage === "NO_REPLY" || cur.stage === "DECLINED";
+    if (revive) {
+      data.stage = "FIRST_CONTACT";
+      data.stageChangedAt = new Date();
+      data.declineReason = null;
+      const plan = await autoPlan(tx, userId, node.workspaceId, "FIRST_CONTACT");
+      if (plan) Object.assign(data, plan);
+    }
+    await tx.contact.update({ where: { nodeId: contactId }, data });
+    await tx.crmActivity.create({
+      data: {
+        workspaceId: node.workspaceId,
+        type: "MESSAGE",
+        subject: (extra.subject?.trim() || "Replied").slice(0, 200),
+        body: extra.text?.trim() || null,
+        completedAt: at,
+        outcome: "REPLIED",
+        signals: ["INBOUND"],
+        ownerId: userId,
+        contactId,
+        source: "replied_button",
+      },
+    });
+    await refreshTemperature(tx, contactId, at);
+    await logActivity(tx, { workspaceId: node.workspaceId, nodeId: contactId, actorId: userId, action: "contact.replied", ...(revive ? { diff: { stage: { from: cur.stage, to: "FIRST_CONTACT" } } } : {}) });
     return getContactIn(tx, userId, contactId);
   });
 }

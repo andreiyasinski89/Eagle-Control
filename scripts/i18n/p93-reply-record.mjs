@@ -1,0 +1,7 @@
+const fragment = {
+  en: { crm: { replySubject: "Replied", replyTitle: "{name} replied", replyText: "What they said", replyTextHint: "Optional: the words or the gist, so you can read it later in the feed.", replyWhen: "When", replySave: "Save the reply", replyOnly: "Replied {date} · no touches of ours recorded", replyAndTouch: "Replied {reply} · our last touch {touch}" } },
+  ru: { crm: { replySubject: "Ответил(а)", replyTitle: "{name}: ответ", replyText: "Что ответил", replyTextHint: "Необязательно: слова или суть, чтобы потом прочитать в ленте.", replyWhen: "Когда", replySave: "Записать ответ", replyOnly: "Ответил {date} · наших записанных касаний нет", replyAndTouch: "Ответил {reply} · наше последнее касание {touch}" } },
+  pl: { crm: { replySubject: "Odpowiedział(a)", replyTitle: "{name}: odpowiedź", replyText: "Co odpowiedział(a)", replyTextHint: "Opcjonalnie: słowa lub sedno, by przeczytać je potem w osi aktywności.", replyWhen: "Kiedy", replySave: "Zapisz odpowiedź", replyOnly: "Odpowiedział(a) {date} · brak zapisanych naszych kontaktów", replyAndTouch: "Odpowiedział(a) {reply} · nasz ostatni kontakt {touch}" } },
+  uk: { crm: { replySubject: "Відповів(ла)", replyTitle: "{name}: відповідь", replyText: "Що відповів(ла)", replyTextHint: "Необов'язково: слова або суть, щоб потім прочитати в стрічці.", replyWhen: "Коли", replySave: "Записати відповідь", replyOnly: "Відповів(ла) {date} · наших записаних дотиків немає", replyAndTouch: "Відповів(ла) {reply} · наш останній дотик {touch}" } },
+};
+export default fragment;

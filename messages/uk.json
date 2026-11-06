@@ -2204,7 +2204,15 @@
     "activityContact": "Людина",
     "activityCompany": "Компанія",
     "activityDeal": "Угода",
-    "activityNoText": "Тексту немає, лише заголовок."
+    "activityNoText": "Тексту немає, лише заголовок.",
+    "replySubject": "Відповів(ла)",
+    "replyTitle": "{name}: відповідь",
+    "replyText": "Що відповів(ла)",
+    "replyTextHint": "Необов'язково: слова або суть, щоб потім прочитати в стрічці.",
+    "replyWhen": "Коли",
+    "replySave": "Записати відповідь",
+    "replyOnly": "Відповів(ла) {date} · наших записаних дотиків немає",
+    "replyAndTouch": "Відповів(ла) {reply} · наш останній дотик {touch}"
   },
   "setup": {
     "title": "Підключення платформи",

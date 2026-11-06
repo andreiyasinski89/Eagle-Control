@@ -1068,7 +1068,15 @@
     "activityContact": "Человек",
     "activityCompany": "Компания",
     "activityDeal": "Сделка",
-    "activityNoText": "Текста нет, только заголовок."
+    "activityNoText": "Текста нет, только заголовок.",
+    "replySubject": "Ответил(а)",
+    "replyTitle": "{name}: ответ",
+    "replyText": "Что ответил",
+    "replyTextHint": "Необязательно: слова или суть, чтобы потом прочитать в ленте.",
+    "replyWhen": "Когда",
+    "replySave": "Записать ответ",
+    "replyOnly": "Ответил {date} · наших записанных касаний нет",
+    "replyAndTouch": "Ответил {reply} · наше последнее касание {touch}"
   },
   "myday": {
     "title": "Мой день",

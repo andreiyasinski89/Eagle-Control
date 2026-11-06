@@ -676,3 +676,9 @@
 ## 0.61.4 — Every activity and note unfolds in place
 
 - In a person card, a company card and the Activities list, every line stays folded; pressing it unfolds the whole text, the type, when it was created, planned and done, the duration, the owner and the linked person, company and deal (a chevron shows the state). A record with no text says so. A card never turns into a long carpet of messages. A deal card already showed the text. New `ActivityDetail` component, texts in four languages.
+
+## 0.61.5 — A reply is a record, and the card no longer contradicts itself
+
+- The "Replied" button opens a small window: what the person said (optional) and when. The reply goes into the feed as an incoming message (outcome REPLIED, unfolds like any record) and feeds the temperature. It does not count as a touch of ours, so the red "answer first" flag keeps working.
+- A name that was New, quiet (No reply) or declined and then answers becomes a First contact, with the next step by the workspace rule. Someone further along keeps the stage.
+- The line under the name shows both sides: "Replied 6 Nov · no touches of ours recorded" / "Replied 6 Nov · our last touch 3 Nov" / "Last contact …" / "No contact yet". Texts in four languages; tests added.

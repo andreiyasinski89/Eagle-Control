@@ -1068,7 +1068,15 @@
     "activityContact": "Osoba",
     "activityCompany": "Firma",
     "activityDeal": "Deal",
-    "activityNoText": "Bez tekstu, tylko tytuł."
+    "activityNoText": "Bez tekstu, tylko tytuł.",
+    "replySubject": "Odpowiedział(a)",
+    "replyTitle": "{name}: odpowiedź",
+    "replyText": "Co odpowiedział(a)",
+    "replyTextHint": "Opcjonalnie: słowa lub sedno, by przeczytać je potem w osi aktywności.",
+    "replyWhen": "Kiedy",
+    "replySave": "Zapisz odpowiedź",
+    "replyOnly": "Odpowiedział(a) {date} · brak zapisanych naszych kontaktów",
+    "replyAndTouch": "Odpowiedział(a) {reply} · nasz ostatni kontakt {touch}"
   },
   "myday": {
     "title": "Mój dzień",
