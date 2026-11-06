@@ -25,6 +25,7 @@ import { ScheduleDialog } from "./ScheduleDialog";
 import { dayInput, dayToIso, money } from "./format";
 import { useCompanyOptions, useMembers } from "./hooks";
 import { NodeTags } from "./NodeTags";
+import { ActivityRow } from "./ActivityDetail";
 import type { ActivityDto, Paged } from "./types";
 import { SkeletonRows } from "@/components/ui/skeleton";
 import { zonedParts } from "@/modules/views/tz";
@@ -404,13 +405,7 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
         {feed.data?.items.length === 0 && <p className="text-sm text-muted-foreground">{t("noActivities")}</p>}
         <ul className="flex flex-col gap-2 text-sm">
           {feed.data?.items.map((a) => (
-            <li key={a.id}>
-              <span className="font-medium">{a.subject}</span>
-              <span className="block text-xs text-muted-foreground">
-                {t(`activity.${a.type}`)} · {new Date(a.completedAt ?? a.dueAt ?? a.createdAt).toLocaleString(locale)}
-                {a.dealTitle ? ` · ${a.dealTitle}` : ""}
-              </span>
-            </li>
+            <ActivityRow key={a.id} a={a} extra={a.dealTitle ?? undefined} />
           ))}
         </ul>
       </Section>

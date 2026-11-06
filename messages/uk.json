@@ -2195,7 +2195,16 @@
     "materialCopyFailed": "Не вдалося скопіювати. Відкрийте «Матеріали» й скопіюйте посилання там.",
     "scriptOriginal": "Готовий · змінюється разом з мовою",
     "scriptFreezeHint": "Це готовий скрипт, він підлаштовується під мову інтерфейсу. Щойно ви збережете зміну, він стане вашим і залишиться таким, як ви його написали.",
-    "tabDrafts": "Чернетки агента"
+    "tabDrafts": "Чернетки агента",
+    "activityCreated": "Створено",
+    "activityPlanned": "Заплановано на",
+    "activityDone": "Виконано",
+    "activityDuration": "Тривалість",
+    "activityMinutes": "{n} хв",
+    "activityContact": "Людина",
+    "activityCompany": "Компанія",
+    "activityDeal": "Угода",
+    "activityNoText": "Тексту немає, лише заголовок."
   },
   "setup": {
     "title": "Підключення платформи",

@@ -296,3 +296,4 @@
 | 289 | The PDF guides are rebuilt from the knowledge-base articles, not patched | Their source was not in the repository; the articles are the one source of truth, so the guide and the app cannot drift apart. |
 | 290 | The hour grid shows at most three columns side by side, the rest folded into "+N more" | Google Calendar does the same; a 25th column is never readable, and a list is. |
 | 291 | A voice note stores the transcript only, not the audio | The words are what the person needs on the card; audio needed file storage (not set up on production) and failed with a scary red message. |
+| 292 | Activity and note lines stay folded and unfold in place (accordion), not in a window | The user asked for it: the card must not become a long carpet of messages; one press shows the text. |

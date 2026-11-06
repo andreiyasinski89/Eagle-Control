@@ -1059,7 +1059,16 @@
     "materialCopyFailed": "Nie udało się skopiować. Otwórz „Materiały” i skopiuj link tam.",
     "scriptOriginal": "Gotowy · zmienia się wraz z językiem",
     "scriptFreezeHint": "To gotowy skrypt i dopasowuje się do języka interfejsu. Gdy zapiszesz zmianę, stanie się twój i zostanie dokładnie taki, jak go napiszesz.",
-    "tabDrafts": "Szkice agenta"
+    "tabDrafts": "Szkice agenta",
+    "activityCreated": "Utworzono",
+    "activityPlanned": "Zaplanowano na",
+    "activityDone": "Wykonano",
+    "activityDuration": "Czas trwania",
+    "activityMinutes": "{n} min",
+    "activityContact": "Osoba",
+    "activityCompany": "Firma",
+    "activityDeal": "Deal",
+    "activityNoText": "Bez tekstu, tylko tytuł."
   },
   "myday": {
     "title": "Mój dzień",

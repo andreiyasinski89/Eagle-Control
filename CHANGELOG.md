@@ -672,3 +672,7 @@
 ## 0.61.3 — The voice note keeps only the words
 
 - The voice note saves the written-down text as a note on the card; the recording itself is no longer uploaded or kept. The red "the recording could not be saved" message is gone (it showed when file storage was not set up). Saving with an empty text asks for the words instead. Hint text updated in four languages.
+
+## 0.61.4 — Every activity and note unfolds in place
+
+- In a person card, a company card and the Activities list, every line stays folded; pressing it unfolds the whole text, the type, when it was created, planned and done, the duration, the owner and the linked person, company and deal (a chevron shows the state). A record with no text says so. A card never turns into a long carpet of messages. A deal card already showed the text. New `ActivityDetail` component, texts in four languages.

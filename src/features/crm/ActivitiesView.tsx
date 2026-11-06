@@ -11,6 +11,7 @@ import { api } from "@/features/mindmap/api";
 import { cn } from "@/lib/utils";
 import { ActivityDialog } from "./DealDialogs";
 import { useMembers } from "./hooks";
+import { ActivityBody } from "./ActivityDetail";
 import type { ActivityDto, Paged } from "./types";
 
 type Row = ActivityDto & { contactName: string | null; contactId: string | null; companyName: string | null; companyId: string | null; dealTitle: string | null; dealId: string | null };
@@ -29,6 +30,8 @@ export function ActivitiesView({ workspaceId, slug, canWrite, meId }: { workspac
   const [creating, setCreating] = useState(false);
 
   const params = new URLSearchParams({ page: String(page), pageSize: "50", ...(status ? { status } : {}), ...(type ? { type } : {}), ...(owner ? { ownerId: owner } : {}) });
+  const [openIds, setOpenIds] = useState<Set<string>>(new Set());
+  const toggle = (id: string) => setOpenIds((p) => { const n = new Set(p); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const list = useQuery({ queryKey: ["activities", workspaceId, params.toString()], placeholderData: (p) => p, queryFn: () => api.get<Paged<Row>>(`/api/v1/workspaces/${workspaceId}/activities?${params}`) });
   const done = useMutation({
     mutationFn: (id: string) => api.patch(`/api/v1/activities/${id}`, { completed: true }),
@@ -82,7 +85,9 @@ export function ActivitiesView({ workspaceId, slug, canWrite, meId }: { workspac
             <li key={a.id} className="flex items-start gap-3 px-4 py-3 text-sm" data-testid={`activity-${a.id}`}>
               <Icon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
               <div className="min-w-0 flex-1">
-                <div className="font-medium">{a.subject}</div>
+                <button type="button" className="text-left font-medium hover:underline" aria-expanded={openIds.has(a.id)} onClick={() => toggle(a.id)} data-testid={`activity-open-${a.id}`}>
+                  {a.subject}
+                </button>
                 <div className="flex flex-wrap gap-x-2 text-xs text-muted-foreground">
                   <span>{t(`activity.${a.type}`)}</span>
                   <span className={cn(overdue && "text-[var(--health-red)]")}>{new Date(a.completedAt ?? a.dueAt ?? a.createdAt).toLocaleString(locale)}</span>
@@ -103,6 +108,7 @@ export function ActivitiesView({ workspaceId, slug, canWrite, meId }: { workspac
                   )}
                   <span>{a.owner.name ?? a.owner.email}</span>
                 </div>
+                {openIds.has(a.id) && <ActivityBody a={a} />}
               </div>
               {!a.completedAt && canWrite && (
                 <Button size="sm" variant="outline" onClick={() => done.mutate(a.id)} disabled={done.isPending}>

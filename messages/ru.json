@@ -1059,7 +1059,16 @@
     "materialCopyFailed": "Не удалось скопировать. Откройте «Материалы» и скопируйте ссылку там.",
     "scriptOriginal": "Готовый · меняется вместе с языком",
     "scriptFreezeHint": "Это готовый скрипт, он подстраивается под язык интерфейса. Как только вы сохраните изменение, он станет вашим и останется таким, как вы его написали.",
-    "tabDrafts": "Черновики агента"
+    "tabDrafts": "Черновики агента",
+    "activityCreated": "Создано",
+    "activityPlanned": "Запланировано на",
+    "activityDone": "Выполнено",
+    "activityDuration": "Длительность",
+    "activityMinutes": "{n} мин",
+    "activityContact": "Человек",
+    "activityCompany": "Компания",
+    "activityDeal": "Сделка",
+    "activityNoText": "Текста нет, только заголовок."
   },
   "myday": {
     "title": "Мой день",

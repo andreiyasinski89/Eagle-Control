@@ -1059,7 +1059,16 @@
     "materialCopyFailed": "Could not copy. Open Materials and copy the link there.",
     "scriptOriginal": "Ready-made · follows your language",
     "scriptFreezeHint": "This is a ready-made script and it follows the language of the screen. Once you save a change, it becomes your own and stays exactly as you wrote it.",
-    "tabDrafts": "Agent drafts"
+    "tabDrafts": "Agent drafts",
+    "activityCreated": "Created",
+    "activityPlanned": "Planned for",
+    "activityDone": "Done",
+    "activityDuration": "Duration",
+    "activityMinutes": "{n} min",
+    "activityContact": "Person",
+    "activityCompany": "Company",
+    "activityDeal": "Deal",
+    "activityNoText": "No text, only the title."
   },
   "myday": {
     "title": "My day",
