@@ -12,6 +12,8 @@ import { cn } from "@/lib/utils";
 import { ActivityDialog } from "./DealDialogs";
 import { useMembers } from "./hooks";
 import { ActivityBody } from "./ActivityDetail";
+import { whenLabel } from "./format";
+import { useTimeZone } from "@/features/views/useTimeZone";
 import type { ActivityDto, Paged } from "./types";
 
 type Row = ActivityDto & { contactName: string | null; contactId: string | null; companyName: string | null; companyId: string | null; dealTitle: string | null; dealId: string | null };
@@ -21,6 +23,7 @@ const TYPES = ["CALL", "EMAIL", "MEETING", "NOTE", "MESSAGE", "TASK"] as const;
 export function ActivitiesView({ workspaceId, slug, canWrite, meId }: { workspaceId: string; slug: string; canWrite: boolean; meId: string }) {
   const t = useTranslations("crm");
   const locale = useLocale();
+  const { tz } = useTimeZone();
   const qc = useQueryClient();
   const members = useMembers(workspaceId);
   const [status, setStatus] = useState<"" | "open" | "overdue" | "done">("open");
@@ -90,7 +93,7 @@ export function ActivitiesView({ workspaceId, slug, canWrite, meId }: { workspac
                 </button>
                 <div className="flex flex-wrap gap-x-2 text-xs text-muted-foreground">
                   <span>{t(`activity.${a.type}`)}</span>
-                  <span className={cn(overdue && "text-[var(--health-red)]")}>{new Date(a.completedAt ?? a.dueAt ?? a.createdAt).toLocaleString(locale)}</span>
+                  <span className={cn(overdue && "text-[var(--health-red)]")}>{whenLabel(a.completedAt ?? a.dueAt ?? a.createdAt, locale, tz)}</span>
                   {a.contactName && a.contactId && (
                     <Link className="hover:underline" href={`/w/${slug}/crm/contacts?contact=${a.contactId}`}>
                       {a.contactName}

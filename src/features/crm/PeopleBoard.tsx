@@ -1,5 +1,6 @@
 "use client";
 
+import { ReplyBadge } from "./ReplyBadge";
 import { useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -42,6 +43,7 @@ export interface Person {
   heldById: string | null;
   ownerId: string | null;
   lastContactedAt: string | null;
+  repliedAt?: string | null;
   telegram: string | null;
   phone: string | null;
 }
@@ -178,6 +180,7 @@ export function PeopleBoard({ workspaceId, slug, canWrite, canExport, canErase, 
         <div className="flex items-start gap-1.5">
           {canWrite && <input type="checkbox" aria-label={t("pick", { name: p.name })} checked={picked.has(p.id)} onClick={(e) => e.stopPropagation()} onChange={() => toggle(p.id)} className="mt-0.5 size-3.5 shrink-0 accent-[var(--primary)]" data-testid="pick" />}
           <span className="min-w-0 flex-1 font-medium leading-snug">{p.name}</span>
+          <ReplyBadge repliedAt={p.repliedAt} lastContactedAt={p.lastContactedAt} />
           {p.temperature && (
             <span title={t(`temp.${p.temperature}`)} aria-label={t(`temp.${p.temperature}`)}>
               {TEMP_ICON[p.temperature]}

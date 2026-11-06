@@ -460,6 +460,7 @@ export async function listContacts(userId: string, workspaceId: string, f: z.inf
       companyName: c.company?.legalName ?? null,
       ownerId: c.ownerId,
       lastContactedAt: c.lastContactedAt,
+      repliedAt: c.repliedAt,
       consentGiven: c.consentGiven,
       createdAt: c.node.createdAt,
       stage: c.stage,

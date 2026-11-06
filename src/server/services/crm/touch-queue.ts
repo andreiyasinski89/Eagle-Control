@@ -107,6 +107,7 @@ export async function getTouchQueue(userId: string, workspaceId: string, now = n
       city: c.city,
       country: c.country,
       lastContactedAt: c.lastContactedAt,
+      repliedAt: c.repliedAt,
       nextStep: c.nextStep,
       day,
       overdue: !!day && day < today,

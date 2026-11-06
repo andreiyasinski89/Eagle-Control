@@ -1,5 +1,6 @@
 "use client";
 
+import { ReplyBadge } from "./ReplyBadge";
 import { SendMaterial } from "./SendMaterial";
 import { MessengerButtons } from "./MessengerButtons";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -42,6 +43,7 @@ interface QItem {
   city: string | null;
   country: string | null;
   lastContactedAt: string | null;
+  repliedAt?: string | null;
   nextStep: string | null;
   day: string | null;
   overdue: boolean;
@@ -291,6 +293,7 @@ function TouchCard({ workspaceId, item, data, slug, onDone, onSkip }: { workspac
               <dd>{item.source}</dd>
             </div>
           )}
+          <ReplyBadge repliedAt={item.repliedAt} lastContactedAt={item.lastContactedAt} className="w-fit" />
           <dd className="text-muted-foreground">{item.lastContactedAt ? t("lastTouch", { date: new Date(item.lastContactedAt).toLocaleDateString(locale, { day: "numeric", month: "short" }) }) : t("neverTouched")}</dd>
           {item.nextStep && (
             <div className="flex gap-1.5">

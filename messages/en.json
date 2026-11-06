@@ -1077,7 +1077,10 @@
     "replySave": "Save the reply",
     "replyOnly": "Replied {date} · no touches of ours recorded",
     "replyAndTouch": "Replied {reply} · our last touch {touch}",
-    "repliedDone": "✓ replied {date}"
+    "repliedDone": "✓ replied {date}",
+    "awaitingBadge": "awaits answer",
+    "awaitingHint": "This person wrote back and has not been answered yet",
+    "feedMore": "Show more ({n})"
   },
   "myday": {
     "title": "My day",
@@ -1137,7 +1140,9 @@
     "quickContact": "+ Contact",
     "quickMeeting": "+ Meeting",
     "teamQuiet": "{n} in your team went quiet: see who",
-    "teamAllWell": "Your team is at work. Open the activity"
+    "teamAllWell": "Your team is at work. Open the activity",
+    "awaitingReply": "Waiting for your answer",
+    "repliedOn": "replied {date}"
   },
   "notifications": {
     "title": "Notifications",

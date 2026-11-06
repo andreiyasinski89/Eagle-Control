@@ -83,7 +83,8 @@ export function CompanyPage({ workspaceId, slug, companyId, canWrite, meId, init
 
   const { data: c, isError } = useQuery({ queryKey: ["company", companyId], queryFn: () => api.get<CompanyDetail>(`/api/v1/companies/${companyId}`) });
   const { data: node } = useQuery({ queryKey: ["node", companyId], queryFn: () => api.get<NodeDetail>(`/api/v1/nodes/${companyId}`) });
-  const feed = useQuery({ queryKey: ["activities", "company", companyId], queryFn: () => api.get<Paged<ActivityDto & { dealTitle: string | null; contactName: string | null }>>(`/api/v1/workspaces/${workspaceId}/activities?companyId=${companyId}&pageSize=30`) });
+  const [feedSize, setFeedSize] = useState(30);
+  const feed = useQuery({ queryKey: ["activities", "company", companyId, feedSize], placeholderData: (p) => p, queryFn: () => api.get<Paged<ActivityDto & { dealTitle: string | null; contactName: string | null }>>(`/api/v1/workspaces/${workspaceId}/activities?companyId=${companyId}&pageSize=${feedSize}`) });
 
   const refresh = () => {
     for (const k of [["company", companyId], ["node", companyId], ["activities", "company", companyId], ["companies"], ["company-map", companyId]]) void qc.invalidateQueries({ queryKey: k });
@@ -303,6 +304,11 @@ export function CompanyPage({ workspaceId, slug, companyId, canWrite, meId, init
                   <ActivityRow key={a.id} a={a} extra={[a.contactName, a.dealTitle].filter(Boolean).join(" · ") || undefined} />
                 ))}
               </ul>
+              {(feed.data?.total ?? 0) > (feed.data?.items.length ?? 0) && feedSize < 200 && (
+          <Button type="button" variant="ghost" size="sm" className="mt-1 self-start" disabled={feed.isFetching} onClick={() => setFeedSize((n) => Math.min(200, n + 30))} data-testid="feed-more">
+            {t("feedMore", { n: (feed.data?.total ?? 0) - (feed.data?.items.length ?? 0) })}
+          </Button>
+        )}
             </Card>
             <div className="flex flex-col gap-4">
               <Card title={t("comments")}>

@@ -4,6 +4,8 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
+import { useTimeZone } from "@/features/views/useTimeZone";
+import { whenLabel } from "./format";
 import type { ActivityDto } from "./types";
 
 type Full = ActivityDto & { contactName?: string | null; companyName?: string | null; dealTitle?: string | null };
@@ -12,7 +14,8 @@ type Full = ActivityDto & { contactName?: string | null; companyName?: string | 
 export function ActivityBody({ a, id }: { a: Full; id?: string }) {
   const t = useTranslations("crm");
   const locale = useLocale();
-  const fmt = (s: string | null | undefined) => (s ? new Date(s).toLocaleString(locale) : null);
+  const { tz } = useTimeZone();
+  const fmt = (s: string | null | undefined) => (s ? whenLabel(s, locale, tz) : null);
   const rows: [string, string | null | undefined][] = [
     [t("activityType"), t(`activity.${a.type}`)],
     [t("activityCreated"), fmt(a.createdAt)],
@@ -47,6 +50,7 @@ export function ActivityBody({ a, id }: { a: Full; id?: string }) {
 export function ActivityRow({ a, extra }: { a: Full; extra?: string }) {
   const t = useTranslations("crm");
   const locale = useLocale();
+  const { tz } = useTimeZone();
   const [open, setOpen] = useState(false);
   const panel = `activity-panel-${a.id}`;
   return (
@@ -55,7 +59,7 @@ export function ActivityRow({ a, extra }: { a: Full; extra?: string }) {
         <span className="min-w-0 flex-1">
           <span className="font-medium">{a.subject}</span>
           <span className="block text-xs text-muted-foreground">
-            {t(`activity.${a.type}`)} · {new Date(a.completedAt ?? a.dueAt ?? a.createdAt).toLocaleString(locale)}
+            {t(`activity.${a.type}`)} · {whenLabel(a.completedAt ?? a.dueAt ?? a.createdAt, locale, tz)}
             {extra ? ` · ${extra}` : ""}
           </span>
         </span>

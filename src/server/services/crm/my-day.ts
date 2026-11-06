@@ -1,4 +1,5 @@
 import { db } from "@/server/db";
+import { awaitsAnswer } from "@/modules/crm/reply";
 import { dayScore } from "@/modules/crm/day-score";
 import { occurrences, type Repeat } from "@/modules/nodes/repeat";
 import { isValidTimeZone, todayIn, zonedToUtc } from "@/modules/views/tz";
@@ -110,7 +111,7 @@ export async function computeMyDay(userId: string, workspaceId: string, now = ne
     return { ...counts, trackedMinutes: tracked._sum.minutes ?? 0, ...dayScore(counts) };
   };
 
-  const empty = { crmTasks: [], scheduled: [], crmDay: [], contactsDue: [], contactsDone: [], dealsNeedingNextStep: [], attention: { staleDeals: [], coldContacts: [] } };
+  const empty = { crmTasks: [], scheduled: [], crmDay: [], contactsDue: [], contactsDone: [], awaitingReply: [], dealsNeedingNextStep: [], attention: { staleDeals: [], coldContacts: [] } };
   if (!crm) {
     return { date: todayPrefix, timeZone, tasks: { overdue: tasks.filter((t) => t.dueDate && t.dueDate < start), today: tasks.filter((t) => t.dueDate && t.dueDate >= start) }, events, reminders, crm: false as const, ...empty, plan: finishPlan({ planned: 0, done: 0 }, 0, 0, { planned: 0, done: 0 }), counts: { total: tasks.length + events.length + reminders.length } };
   }
@@ -119,13 +120,15 @@ export async function computeMyDay(userId: string, workspaceId: string, now = ne
   // People whose next step is due today or late (the "plan of the day" list), and people reached today (their step was closed, so they left that list).
   const scope = await contactScope(db, membership);
   const mine = { workspaceId, ownerId: userId, node: { archivedAt: null } } as const;
-  const [dueRows, reachedRows] = await Promise.all([
+  const [dueRows, reachedRows, repliedRows] = await Promise.all([
     db.contact.findMany({
       where: withScope({ ...mine, ...dueBefore(dayTo) }, scope),
       orderBy: [{ nextStepAt: { sort: "asc", nulls: "last" } }, { firstName: "asc" }],
       take: 200,
     }),
     db.contact.findMany({ where: withScope({ ...mine, lastContactedAt: { gte: dayFrom, lt: dayTo } }, scope), orderBy: { firstName: "asc" }, take: 200 }),
+    // People who wrote back; the ones still waiting for us are picked below (the rule compares two columns).
+    db.contact.findMany({ where: withScope({ ...mine, repliedAt: { not: null } }, scope), orderBy: { repliedAt: "asc" }, take: 300, select: { nodeId: true, firstName: true, lastName: true, repliedAt: true, lastContactedAt: true } }),
   ]);
   const [crmTasks, scheduled, needNext, openDeals, dayActivities, clearedFollowUps] = await Promise.all([
     db.crmActivity.findMany({ where: { workspaceId, ownerId: userId, type: "TASK", completedAt: null, dueAt: { lt: dayTo } }, orderBy: { dueAt: "asc" }, take: 100, include: actInclude }),
@@ -177,6 +180,8 @@ export async function computeMyDay(userId: string, workspaceId: string, now = ne
     done,
   });
   const contactsDue = dueRows.map((c) => person(c, false));
+  // Waiting for our answer: shown at the top of the day at once, not only after the 24-hour red flag. Oldest reply first.
+  const awaitingReply = repliedRows.filter((c) => awaitsAnswer(c.repliedAt, c.lastContactedAt)).slice(0, 50).map((c) => ({ id: c.nodeId, name: fullName(c.firstName, c.lastName), repliedAt: c.repliedAt as Date }));
   // A call or meeting logged today already counts as that item; only the remaining reached people count here, so nobody is counted twice.
   const actContacts = new Set(dayActivities.map((a) => a.contactId).filter((x): x is string => !!x));
   const dueIds = new Set(dueRows.map((c) => c.nodeId));
@@ -215,13 +220,14 @@ export async function computeMyDay(userId: string, workspaceId: string, now = ne
     crmDay: dayActivities.map(act),
     contactsDue,
     contactsDone,
+    awaitingReply,
     dealsNeedingNextStep: needNext.map((d) => toCard(d, now)),
     attention: {
       staleDeals: cards.filter((c) => c.health === "RED").slice(0, 20),
       coldContacts: cold.map((c) => ({ id: c.nodeId, name: [c.firstName, c.lastName].filter(Boolean).join(" "), companyName: c.company?.legalName ?? null, lastContactedAt: c.lastContactedAt })),
     },
   };
-  const total = tasks.length + events.length + reminders.length + result.crmTasks.length + result.scheduled.length + contactsDue.length + result.dealsNeedingNextStep.length + result.attention.staleDeals.length + result.attention.coldContacts.length;
+  const total = tasks.length + events.length + reminders.length + result.crmTasks.length + result.scheduled.length + contactsDue.length + awaitingReply.length + result.dealsNeedingNextStep.length + result.attention.staleDeals.length + result.attention.coldContacts.length;
   return { ...result, counts: { total } };
 }
 

@@ -686,3 +686,10 @@
 ## 0.61.6 — The reply button reads as an action
 
 - The button "Replied" is now "Mark a reply" (it looked like a status), and the window asks "What they said". Once a reply is marked, a separate quiet note next to it says "✓ replied 6 Nov" (the yellow "waiting for your answer" stays while we have not answered). Four languages.
+
+## 0.62.0 — Replies visible everywhere, the whole feed, dates as people say them
+
+- A person who wrote back and is not answered yet carries a yellow "awaits answer" mark in the contacts table, on the people board and in the touch queue, and My Day opens with a block "Waiting for your answer" (oldest reply first) at once, not only after the 24-hour red flag. One rule for all of them (`modules/crm/reply.ts`), the same as the red flag.
+- The activity feed of a person and of a company shows the 30 latest records and a "Show more (N)" button that adds 30 at a time (up to 200), so older records no longer silently disappear.
+- Activity dates read "today, 23:11", "yesterday, 09:05", "6 Nov, 23:11" (the year only when it is another year), without seconds and in the person’s own time zone: in the feeds, the Activities list and the deal card (`whenLabel`).
+- Texts in four languages; tests for the rule, the dates and My Day.

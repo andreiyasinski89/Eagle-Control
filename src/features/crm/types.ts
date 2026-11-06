@@ -134,6 +134,7 @@ export interface ContactListItem {
   companyName: string | null;
   ownerId: string | null;
   lastContactedAt: string | null;
+  repliedAt?: string | null;
   consentGiven: boolean;
   stage?: "NEW" | "FIRST_CONTACT" | "WARMING" | "PRESENTATION" | "DECIDING" | "CLIENT" | "PARTNER" | "DECLINED" | "NO_REPLY";
   temperature?: "HOT" | "WARM" | "COLD" | null;

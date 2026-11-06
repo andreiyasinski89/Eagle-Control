@@ -39,3 +39,29 @@ export function relativeDays(iso: string | null, now = new Date()): number | nul
   if (!iso) return null;
   return Math.floor((now.getTime() - new Date(iso).getTime()) / 86_400_000);
 }
+
+const dayKey = (d: Date, tz: string) => new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+
+/**
+ * A moment as people say it, in the person's own time zone and without seconds: "today, 23:11", "yesterday, 09:05",
+ * "6 Nov, 23:11", and with the year only when it is not this year. "Today" and "yesterday" come from the browser in the page's language.
+ */
+export function whenLabel(iso: string | Date, locale: string, tz: string, now = new Date()): string {
+  const d = new Date(iso);
+  let zone = tz;
+  try {
+    new Intl.DateTimeFormat(locale, { timeZone: zone });
+  } catch {
+    zone = "UTC";
+  }
+  const time = new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit", timeZone: zone }).format(d);
+  const k = dayKey(d, zone);
+  const yesterday = new Date(now.getTime() - 86_400_000);
+  if (k === dayKey(now, zone) || k === dayKey(yesterday, zone)) {
+    const word = new Intl.RelativeTimeFormat(locale, { numeric: "auto" }).format(k === dayKey(now, zone) ? 0 : -1, "day");
+    return `${word}, ${time}`;
+  }
+  const sameYear = k.slice(0, 4) === dayKey(now, zone).slice(0, 4);
+  const day = new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", ...(sameYear ? {} : { year: "numeric" }), timeZone: zone }).format(d);
+  return `${day}, ${time}`;
+}

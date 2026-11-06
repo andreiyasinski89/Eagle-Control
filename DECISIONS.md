@@ -299,3 +299,6 @@
 | 292 | Activity and note lines stay folded and unfold in place (accordion), not in a window | The user asked for it: the card must not become a long carpet of messages; one press shows the text. |
 | 293 | A reply is an incoming message in the feed, separate from our last touch; an answer from New/quiet/declined makes a First contact | "Replied" with "no contact yet" contradicted itself; keeping the two clocks apart keeps the answer-first flag alive. |
 | 294 | The reply button is worded as an action ("Mark a reply"); the status is a separate note beside it | A button called "Replied" was read as "he has replied" and looked like a contradiction with "No contact yet". |
+| 295 | "Awaits answer" is one rule (reply after our last touch) shown in every list and at the top of My Day | A reply seen only inside the card was missed in the lists, where the work is done. |
+| 296 | Feeds load 30 more at a time up to 200 instead of a hard 30 | Older records silently disappeared; 200 is plenty for a card, the Activities tab has all. |
+| 297 | Activity times are relative words and short dates in the user time zone, no seconds | Seconds were noise, and the browser zone could differ from the one set in the account. |

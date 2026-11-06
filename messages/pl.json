@@ -1077,7 +1077,10 @@
     "replySave": "Zapisz odpowiedź",
     "replyOnly": "Odpowiedział(a) {date} · brak zapisanych naszych kontaktów",
     "replyAndTouch": "Odpowiedział(a) {reply} · nasz ostatni kontakt {touch}",
-    "repliedDone": "✓ odpowiedział(a) {date}"
+    "repliedDone": "✓ odpowiedział(a) {date}",
+    "awaitingBadge": "czeka na odpowiedź",
+    "awaitingHint": "Ta osoba odpisała, a my jeszcze nie",
+    "feedMore": "Pokaż więcej ({n})"
   },
   "myday": {
     "title": "Mój dzień",
@@ -1137,7 +1140,9 @@
     "quickContact": "+ Kontakt",
     "quickMeeting": "+ Spotkanie",
     "teamQuiet": "W Twoim zespole zamilkło: {n}. Zobacz, kto",
-    "teamAllWell": "Zespół pracuje. Otwórz aktywność"
+    "teamAllWell": "Zespół pracuje. Otwórz aktywność",
+    "awaitingReply": "Czekają na Twoją odpowiedź",
+    "repliedOn": "odpisał(a) {date}"
   },
   "notifications": {
     "title": "Powiadomienia",

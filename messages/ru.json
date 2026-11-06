@@ -1077,7 +1077,10 @@
     "replySave": "Записать ответ",
     "replyOnly": "Ответил {date} · наших записанных касаний нет",
     "replyAndTouch": "Ответил {reply} · наше последнее касание {touch}",
-    "repliedDone": "✓ ответил {date}"
+    "repliedDone": "✓ ответил {date}",
+    "awaitingBadge": "ждёт ответа",
+    "awaitingHint": "Человек ответил, а мы ему ещё нет",
+    "feedMore": "Показать ещё ({n})"
   },
   "myday": {
     "title": "Мой день",
@@ -1137,7 +1140,9 @@
     "quickContact": "+ Контакт",
     "quickMeeting": "+ Встреча",
     "teamQuiet": "В вашей команде притихли: {n}. Посмотреть, кто",
-    "teamAllWell": "Команда в работе. Открыть активность"
+    "teamAllWell": "Команда в работе. Открыть активность",
+    "awaitingReply": "Ждут вашего ответа",
+    "repliedOn": "ответил {date}"
   },
   "notifications": {
     "title": "Уведомления",

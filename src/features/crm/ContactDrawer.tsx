@@ -109,7 +109,9 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
 
   const { data: c, isError } = useQuery({ queryKey: ["contact", contactId], queryFn: () => api.get<ContactDetail>(`/api/v1/contacts/${contactId}`) });
   const { data: node } = useQuery({ queryKey: ["node", contactId], queryFn: () => api.get<NodeDetail>(`/api/v1/nodes/${contactId}`) });
-  const feed = useQuery({ queryKey: ["activities", "contact", contactId], queryFn: () => api.get<Paged<ActivityDto & { dealTitle: string | null }>>(`/api/v1/workspaces/${workspaceId}/activities?contactId=${contactId}&pageSize=30`) });
+  // The feed starts with the 30 latest records; "show more" adds 30 at a time (up to 200), so nothing older silently disappears.
+  const [feedSize, setFeedSize] = useState(30);
+  const feed = useQuery({ queryKey: ["activities", "contact", contactId, feedSize], placeholderData: (p) => p, queryFn: () => api.get<Paged<ActivityDto & { dealTitle: string | null }>>(`/api/v1/workspaces/${workspaceId}/activities?contactId=${contactId}&pageSize=${feedSize}`) });
 
   // Planned calls and meetings: open activities with a date, soonest first.
   const planned = useQuery({ queryKey: ["activities", "contact", contactId, "planned"], queryFn: () => api.get<Paged<ActivityDto>>(`/api/v1/workspaces/${workspaceId}/activities?contactId=${contactId}&status=open&pageSize=50`) });
@@ -433,6 +435,11 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
             <ActivityRow key={a.id} a={a} extra={a.dealTitle ?? undefined} />
           ))}
         </ul>
+        {(feed.data?.total ?? 0) > (feed.data?.items.length ?? 0) && feedSize < 200 && (
+          <Button type="button" variant="ghost" size="sm" className="mt-1 self-start" disabled={feed.isFetching} onClick={() => setFeedSize((n) => Math.min(200, n + 30))} data-testid="feed-more">
+            {t("feedMore", { n: (feed.data?.total ?? 0) - (feed.data?.items.length ?? 0) })}
+          </Button>
+        )}
       </Section>
 
       <Section title={t("comments")}>

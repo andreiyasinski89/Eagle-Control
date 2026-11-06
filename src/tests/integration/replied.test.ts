@@ -92,3 +92,19 @@ describe("The reply is a record, not just a flag", () => {
     expect(await stage(quiet)).toBe("FIRST_CONTACT");
   });
 });
+
+describe("My Day lists people waiting for our answer at once", () => {
+  it("someone who replied an hour ago is on top; an answered one is not", async () => {
+    const { computeMyDay } = await import("@/server/services/crm/my-day");
+    const waiting = (await createContact(owner, ws.id, { ...base, firstName: "Ждущий", ownerId: owner, stage: "WARMING" })).id;
+    const answered = (await createContact(owner, ws.id, { ...base, firstName: "Отвеченный", ownerId: owner, stage: "WARMING" })).id;
+    const hourAgo = new Date(Date.now() - 3_600_000);
+    await markReplied(owner, waiting, hourAgo);
+    await markReplied(owner, answered, hourAgo);
+    await createActivity(owner, ws.id, { type: "MESSAGE", subject: "Ответ", body: "Привет", contactId: answered });
+    const day = await computeMyDay(owner, ws.id);
+    const names = day.awaitingReply.map((c) => c.name);
+    expect(names).toContain("Ждущий");
+    expect(names).not.toContain("Отвеченный");
+  });
+});

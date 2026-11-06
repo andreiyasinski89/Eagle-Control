@@ -1,5 +1,6 @@
 "use client";
 
+import { useTimeZone } from "@/features/views/useTimeZone";
 import { AiLeadReply } from "@/features/ai/ai";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -16,7 +17,7 @@ import { api, ApiFailure } from "@/features/mindmap/api";
 import { useMapStore } from "@/features/mindmap/store";
 import { cn } from "@/lib/utils";
 import { ActivityDialog } from "./DealDialogs";
-import { dayInput, dayToIso, money, shortDate } from "./format";
+import { dayInput, dayToIso, money, shortDate, whenLabel } from "./format";
 import { useCompanyOptions, useContactOptions, useMembers } from "./hooks";
 import { NodeTags } from "./NodeTags";
 import type { ActivityDto, DealDetailDto } from "./types";
@@ -59,6 +60,7 @@ export function DealDrawer({ workspaceId, slug, dealId, canWrite, meId, onClose,
   const t = useTranslations("crm");
   const tm = useTranslations("map");
   const locale = useLocale();
+  const { tz } = useTimeZone();
   const qc = useQueryClient();
   const members = useMembers(workspaceId);
   // The comment composer reads @mention candidates from the shared store; seed it with the workspace members.
@@ -320,7 +322,7 @@ export function DealDrawer({ workspaceId, slug, dealId, canWrite, meId, onClose,
                   <div className="font-medium">{a.subject}</div>
                   {a.body && <div className="whitespace-pre-wrap text-muted-foreground">{a.body}</div>}
                   <div className="text-xs text-muted-foreground">
-                    {a.owner.name ?? a.owner.email} · {new Date(a.completedAt ?? a.dueAt ?? a.createdAt).toLocaleString(locale)}
+                    {a.owner.name ?? a.owner.email} · {whenLabel(a.completedAt ?? a.dueAt ?? a.createdAt, locale, tz)}
                     {open && a.dueAt && <span className="ml-1 rounded bg-muted px-1">{t("scheduled")}</span>}
                   </div>
                 </div>

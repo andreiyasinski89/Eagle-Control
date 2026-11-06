@@ -80,6 +80,7 @@ export async function listPeople(userId: string, workspaceId: string, f: z.infer
       ownerId: c.ownerId,
       companyName: c.company?.legalName ?? null,
       lastContactedAt: c.lastContactedAt,
+      repliedAt: c.repliedAt,
       telegram: m.telegram ?? null,
       phone: c.phones[0] ?? null,
       email: c.emails[0] ?? null,

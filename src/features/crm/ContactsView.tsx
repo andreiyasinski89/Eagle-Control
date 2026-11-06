@@ -19,6 +19,7 @@ import { DuplicatesDialog } from "./DuplicatesDialog";
 import { useCompanyOptions, useMembers } from "./hooks";
 import { ImportWizard } from "./ImportWizard";
 import type { ContactListItem, Paged } from "./types";
+import { ReplyBadge } from "./ReplyBadge";
 
 function NewContactDialog({ open, onClose, workspaceId, defaultCompanyId, onCreated }: { open: boolean; onClose: () => void; workspaceId: string; defaultCompanyId?: string; onCreated: (id: string) => void }) {
   const t = useTranslations("crm");
@@ -201,6 +202,7 @@ export function ContactsView({ workspaceId, slug, canWrite, canExport, canMerge,
                 {{ HOT: "🔥", WARM: "🟡", COLD: "❄️" }[c.temperature]}
               </span>
             )}
+            <ReplyBadge repliedAt={c.repliedAt} lastContactedAt={c.lastContactedAt} className="ml-1.5 align-middle" />
           </div>
           {c.position && <div className="text-xs text-muted-foreground">{c.position}</div>}
         </div>

@@ -83,6 +83,7 @@ interface MyDay {
   crmDay: CrmItem[];
   contactsDue: ContactDue[];
   contactsDone: ContactDue[];
+  awaitingReply?: { id: string; name: string; repliedAt: string }[];
   dealsNeedingNextStep: DealCardDto[];
   attention: { staleDeals: DealCardDto[]; coldContacts: { id: string; name: string; companyName: string | null; lastContactedAt: string | null }[] };
   counts: { total: number };
@@ -474,6 +475,18 @@ export function MyDayView({ workspaceId, slug, workspaceName, userName, simple =
       <div id="myday-lists" className="-mb-3 scroll-mt-20" aria-hidden />
       {data && (
         <>
+          <Block id="awaiting-reply" title={t("awaitingReply")} icon={MessageCircle} tone="yellow" count={data.awaitingReply?.length ?? 0}>
+            <ul className="flex flex-col gap-1.5">
+              {(data.awaitingReply ?? []).map((c) => (
+                <li key={c.id} className="flex items-center gap-2 text-sm">
+                  <Link href={`${base}/crm/contacts?contact=${c.id}`} className="min-w-0 flex-1 truncate font-medium hover:underline">
+                    {c.name}
+                  </Link>
+                  <span className="text-xs text-muted-foreground">{t("repliedOn", { date: shortDate(c.repliedAt, locale) })}</span>
+                </li>
+              ))}
+            </ul>
+          </Block>
           {shows("tasks") && (
             <>
               <Block id="overdue" title={t("overdue")} icon={AlertTriangle} tone="red" count={data.tasks.overdue.length} href={`${base}/tasks?tab=overdue`} linkLabel={t("openTodo")}>

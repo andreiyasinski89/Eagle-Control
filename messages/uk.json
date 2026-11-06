@@ -397,7 +397,9 @@
     "quickContact": "+ Контакт",
     "quickMeeting": "+ Зустріч",
     "teamQuiet": "У вашій команді притихли: {n}. Подивитись, хто",
-    "teamAllWell": "Команда в роботі. Відкрити активність"
+    "teamAllWell": "Команда в роботі. Відкрити активність",
+    "awaitingReply": "Чекають на вашу відповідь",
+    "repliedOn": "відповів {date}"
   },
   "notifications": {
     "title": "Сповіщення",
@@ -2213,7 +2215,10 @@
     "replySave": "Записати відповідь",
     "replyOnly": "Відповів(ла) {date} · наших записаних дотиків немає",
     "replyAndTouch": "Відповів(ла) {reply} · наш останній дотик {touch}",
-    "repliedDone": "✓ відповів {date}"
+    "repliedDone": "✓ відповів {date}",
+    "awaitingBadge": "чекає відповіді",
+    "awaitingHint": "Людина відповіла, а ми їй ще ні",
+    "feedMore": "Показати ще ({n})"
   },
   "setup": {
     "title": "Підключення платформи",
