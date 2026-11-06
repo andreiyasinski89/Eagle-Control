@@ -2449,7 +2449,7 @@
     "error": "Something went wrong",
     "voiceNote": "Voice note",
     "voiceFile": "voice-note",
-    "voiceHint": "Press the button and tell what was said. The recording is kept on the card; if your browser can write down speech, the words become a note.",
+    "voiceHint": "Press the button and tell what was said. The words are written down as a note on the card; you can correct them before saving. The recording itself is not kept.",
     "voiceStart": "Start recording",
     "voiceRecording": "Recording",
     "voiceStop": "Stop",

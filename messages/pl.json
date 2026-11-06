@@ -2449,7 +2449,7 @@
     "error": "Coś poszło nie tak",
     "voiceNote": "Notatka głosowa",
     "voiceFile": "notatka-glosowa",
-    "voiceHint": "Naciśnij przycisk i opowiedz, o czym rozmawialiście. Nagranie zostanie na karcie; jeśli przeglądarka potrafi zapisać mowę, słowa staną się notatką.",
+    "voiceHint": "Naciśnij przycisk i opowiedz, o czym rozmawialiście. Słowa zapiszą się jako notatka na karcie, przed zapisem możesz je poprawić. Samo nagranie nie jest zapisywane.",
     "voiceStart": "Zacznij nagrywanie",
     "voiceRecording": "Trwa nagrywanie",
     "voiceStop": "Zatrzymaj",

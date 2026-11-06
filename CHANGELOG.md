@@ -668,3 +668,7 @@
 
 - In the week and day views, twenty-odd items planned for the same hour were each given their own column, so they became unreadable strips a few pixels wide (seen on Monday 15:30–17:00). Now at most three columns share an hour; the rest fold into one "+N more" block that opens a list of them. A moment with up to three items looks exactly as before.
 - A test of the team map counted back from a fixed day (10 Nov 2026) and began to fail once the real date came within four days of it. Its "now" is moved far into the future, so it cannot go stale this way again.
+
+## 0.61.3 — The voice note keeps only the words
+
+- The voice note saves the written-down text as a note on the card; the recording itself is no longer uploaded or kept. The red "the recording could not be saved" message is gone (it showed when file storage was not set up). Saving with an empty text asks for the words instead. Hint text updated in four languages.

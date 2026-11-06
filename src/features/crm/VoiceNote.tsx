@@ -26,8 +26,8 @@ const recognitionCtor = (): RecognitionCtor | null => {
 const LANG: Record<string, string> = { ru: "ru-RU", en: "en-US", pl: "pl-PL", uk: "uk-UA" };
 
 /**
- * A voice note to a person: press, talk, stop. The recording is kept as an attachment of the card, and when the browser can write down speech the words
- * are put in a note (which can be corrected before saving). Without it the note is the recording alone.
+ * A voice note to a person: press, talk, stop. The browser writes the words down; they are put in a note that can be corrected before saving.
+ * The recording itself is not kept.
  */
 export function VoiceNote({ workspaceId, contactId, companyId, onSaved }: { workspaceId: string; contactId: string; companyId: string | null; onSaved: () => void }) {
   const t = useTranslations("mobile");
@@ -42,7 +42,6 @@ export function VoiceNote({ workspaceId, contactId, companyId, onSaved }: { work
   const recorder = useRef<MediaRecorder | null>(null);
   const stream = useRef<MediaStream | null>(null);
   const chunks = useRef<Blob[]>([]);
-  const blob = useRef<Blob | null>(null);
   const recog = useRef<Recognition | null>(null);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
   const finalText = useRef("");
@@ -59,7 +58,6 @@ export function VoiceNote({ workspaceId, contactId, companyId, onSaved }: { work
 
   const reset = () => {
     cleanup();
-    blob.current = null;
     chunks.current = [];
     finalText.current = "";
     setText("");
@@ -82,7 +80,6 @@ export function VoiceNote({ workspaceId, contactId, companyId, onSaved }: { work
       chunks.current = [];
       rec.ondataavailable = (e) => e.data.size > 0 && chunks.current.push(e.data);
       rec.onstop = () => {
-        blob.current = new Blob(chunks.current, { type: rec.mimeType || "audio/webm" });
         cleanup();
         setState("ready");
       };
@@ -127,34 +124,17 @@ export function VoiceNote({ workspaceId, contactId, companyId, onSaved }: { work
   }
 
   async function save() {
+    // Only the words are kept (as a note on the card); the recording itself is thrown away.
+    if (!text.trim()) {
+      setError(t("voiceTextEmpty"));
+      return;
+    }
     setState("saving");
     setError(null);
-    let audioFailed = false;
-    const b = blob.current;
-    if (b && b.size > 0) {
-      try {
-        const mime = (b.type || "audio/webm").split(";")[0] as string;
-        const ext = mime.includes("mp4") ? "m4a" : mime.includes("ogg") ? "ogg" : "webm";
-        const meta = { fileName: `${t("voiceFile")}-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-")}.${ext}`, mime, size: b.size };
-        const { key, uploadUrl } = await api.post<{ key: string; uploadUrl: string }>(`/api/v1/nodes/${contactId}/attachments/presign`, meta);
-        const put = await fetch(uploadUrl, { method: "PUT", headers: { "content-type": mime }, body: b });
-        if (!put.ok) throw new Error("upload failed");
-        await api.post(`/api/v1/nodes/${contactId}/attachments`, { ...meta, key });
-      } catch {
-        audioFailed = true;
-      }
-    }
     try {
-      if (text.trim() || audioFailed) {
-        await api.post(`/api/v1/workspaces/${workspaceId}/activities`, { type: "NOTE", subject: t("voiceNote"), body: text.trim() || null, contactId, companyId, completed: true });
-      }
+      await api.post(`/api/v1/workspaces/${workspaceId}/activities`, { type: "NOTE", subject: t("voiceNote"), body: text.trim(), contactId, companyId, completed: true });
       for (const k of ["activities", "contact", "my-day"]) void qc.invalidateQueries({ queryKey: [k] });
       onSaved();
-      if (audioFailed) {
-        setError(t("voiceAudioFailed"));
-        setState("ready");
-        return;
-      }
       setOpen(false);
       reset();
     } catch (e) {
