@@ -223,7 +223,11 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
               <Button size="sm" variant="outline" disabled={replied.isPending} onClick={() => (setReplyAt(localNow()), setReplying(true))} data-testid="mark-replied">
                 {t("markReplied")}
               </Button>
-              {awaitingAnswer && <span className="text-xs text-[var(--health-yellow)]">{t("repliedWaiting", { date: new Date(c.repliedAt!).toLocaleDateString(locale) })}</span>}
+              {awaitingAnswer ? (
+                <span className="text-xs text-[var(--health-yellow)]">{t("repliedWaiting", { date: new Date(c.repliedAt!).toLocaleDateString(locale) })}</span>
+              ) : (
+                c.repliedAt && <span className="text-xs text-muted-foreground">{t("repliedDone", { date: new Date(c.repliedAt).toLocaleDateString(locale) })}</span>
+              )}
             </div>
           )}
         </div>

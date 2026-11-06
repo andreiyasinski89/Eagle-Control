@@ -530,7 +530,7 @@
     "contactGone": "Этого контакта больше нет.",
     "lastContact": "Последний контакт: {date}",
     "neverContacted": "Контактов не было",
-    "markReplied": "Ответил",
+    "markReplied": "Отметить ответ",
     "repliedWaiting": "Ответил {date}: ждёт твоего ответа",
     "birthday": "День рождения",
     "revoked": "отозвано {date}",
@@ -1071,12 +1071,13 @@
     "activityNoText": "Текста нет, только заголовок.",
     "replySubject": "Ответил(а)",
     "replyTitle": "{name}: ответ",
-    "replyText": "Что ответил",
+    "replyText": "Что он ответил",
     "replyTextHint": "Необязательно: слова или суть, чтобы потом прочитать в ленте.",
     "replyWhen": "Когда",
     "replySave": "Записать ответ",
     "replyOnly": "Ответил {date} · наших записанных касаний нет",
-    "replyAndTouch": "Ответил {reply} · наше последнее касание {touch}"
+    "replyAndTouch": "Ответил {reply} · наше последнее касание {touch}",
+    "repliedDone": "✓ ответил {date}"
   },
   "myday": {
     "title": "Мой день",

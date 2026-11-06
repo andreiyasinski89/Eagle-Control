@@ -1666,7 +1666,7 @@
     "contactGone": "Цього контакту більше немає.",
     "lastContact": "Останній контакт: {date}",
     "neverContacted": "Контактів не було",
-    "markReplied": "Відповів",
+    "markReplied": "Позначити відповідь",
     "repliedWaiting": "Відповів {date}: чекає на твою відповідь",
     "birthday": "День народження",
     "revoked": "відкликано {date}",
@@ -2207,12 +2207,13 @@
     "activityNoText": "Тексту немає, лише заголовок.",
     "replySubject": "Відповів(ла)",
     "replyTitle": "{name}: відповідь",
-    "replyText": "Що відповів(ла)",
+    "replyText": "Що він відповів",
     "replyTextHint": "Необов'язково: слова або суть, щоб потім прочитати в стрічці.",
     "replyWhen": "Коли",
     "replySave": "Записати відповідь",
     "replyOnly": "Відповів(ла) {date} · наших записаних дотиків немає",
-    "replyAndTouch": "Відповів(ла) {reply} · наш останній дотик {touch}"
+    "replyAndTouch": "Відповів(ла) {reply} · наш останній дотик {touch}",
+    "repliedDone": "✓ відповів {date}"
   },
   "setup": {
     "title": "Підключення платформи",

@@ -530,7 +530,7 @@
     "contactGone": "Ten kontakt już nie istnieje.",
     "lastContact": "Ostatni kontakt: {date}",
     "neverContacted": "Brak kontaktu",
-    "markReplied": "Odpisał(a)",
+    "markReplied": "Zaznacz odpowiedź",
     "repliedWaiting": "Odpisał(a) {date}: czeka na Twoją odpowiedź",
     "birthday": "Urodziny",
     "revoked": "cofnięta {date}",
@@ -1076,7 +1076,8 @@
     "replyWhen": "Kiedy",
     "replySave": "Zapisz odpowiedź",
     "replyOnly": "Odpowiedział(a) {date} · brak zapisanych naszych kontaktów",
-    "replyAndTouch": "Odpowiedział(a) {reply} · nasz ostatni kontakt {touch}"
+    "replyAndTouch": "Odpowiedział(a) {reply} · nasz ostatni kontakt {touch}",
+    "repliedDone": "✓ odpowiedział(a) {date}"
   },
   "myday": {
     "title": "Mój dzień",

@@ -530,7 +530,7 @@
     "contactGone": "This contact no longer exists.",
     "lastContact": "Last contact: {date}",
     "neverContacted": "Never contacted",
-    "markReplied": "Replied",
+    "markReplied": "Mark a reply",
     "repliedWaiting": "Replied {date}: waiting for your answer",
     "birthday": "Birthday",
     "revoked": "revoked {date}",
@@ -1076,7 +1076,8 @@
     "replyWhen": "When",
     "replySave": "Save the reply",
     "replyOnly": "Replied {date} · no touches of ours recorded",
-    "replyAndTouch": "Replied {reply} · our last touch {touch}"
+    "replyAndTouch": "Replied {reply} · our last touch {touch}",
+    "repliedDone": "✓ replied {date}"
   },
   "myday": {
     "title": "My day",

@@ -682,3 +682,7 @@
 - The "Replied" button opens a small window: what the person said (optional) and when. The reply goes into the feed as an incoming message (outcome REPLIED, unfolds like any record) and feeds the temperature. It does not count as a touch of ours, so the red "answer first" flag keeps working.
 - A name that was New, quiet (No reply) or declined and then answers becomes a First contact, with the next step by the workspace rule. Someone further along keeps the stage.
 - The line under the name shows both sides: "Replied 6 Nov · no touches of ours recorded" / "Replied 6 Nov · our last touch 3 Nov" / "Last contact …" / "No contact yet". Texts in four languages; tests added.
+
+## 0.61.6 — The reply button reads as an action
+
+- The button "Replied" is now "Mark a reply" (it looked like a status), and the window asks "What they said". Once a reply is marked, a separate quiet note next to it says "✓ replied 6 Nov" (the yellow "waiting for your answer" stays while we have not answered). Four languages.

@@ -298,3 +298,4 @@
 | 291 | A voice note stores the transcript only, not the audio | The words are what the person needs on the card; audio needed file storage (not set up on production) and failed with a scary red message. |
 | 292 | Activity and note lines stay folded and unfold in place (accordion), not in a window | The user asked for it: the card must not become a long carpet of messages; one press shows the text. |
 | 293 | A reply is an incoming message in the feed, separate from our last touch; an answer from New/quiet/declined makes a First contact | "Replied" with "no contact yet" contradicted itself; keeping the two clocks apart keeps the answer-first flag alive. |
+| 294 | The reply button is worded as an action ("Mark a reply"); the status is a separate note beside it | A button called "Replied" was read as "he has replied" and looked like a contradiction with "No contact yet". |
