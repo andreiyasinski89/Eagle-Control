@@ -89,3 +89,21 @@ describe("initialFocus and sizes", () => {
   });
   it("is 48px per hour", () => expect(minutesToPx(90)).toBe(1.5 * HOUR_PX));
 });
+
+describe("layoutDay with a crowded moment", () => {
+  it("never needs more than three columns: the rest fold into one '+N more' block", () => {
+    const many = Array.from({ length: 25 }, (_, i) => ({ id: `t${String(i).padStart(2, "0")}`, start: 930, end: 990 }));
+    const p = layoutDay(many);
+    expect(Math.max(...p.map((x) => x.cols))).toBe(3);
+    const more = p.filter((x) => x.more);
+    expect(more).toHaveLength(1);
+    expect(more[0]!.more).toHaveLength(23);
+    expect(p.filter((x) => !x.more)).toHaveLength(2);
+    // every event is either drawn or inside the block
+    expect(new Set([...p.filter((x) => !x.more).map((x) => x.id), ...more[0]!.more!]).size).toBe(25);
+  });
+  it("leaves a moment with three at once as it was", () => {
+    const p = layoutDay([{ id: "a", start: 600 }, { id: "b", start: 600 }, { id: "c", start: 600 }]);
+    expect(p.every((x) => x.cols === 3 && !x.more)).toBe(true);
+  });
+});

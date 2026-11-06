@@ -1405,7 +1405,9 @@
     "mergeEndNote": "The series ends on the last date that was entered; you can extend it later.",
     "mergeSelected": "Merge ({n})",
     "mergeDone": "Done: {merged, plural, one {# series} other {# series}} merged, {archived, plural, one {# copy} other {# copies}} archived.",
-    "mergeFailed": "Could not merge. Please try again."
+    "mergeFailed": "Could not merge. Please try again.",
+    "moreEvents": "+{n} more",
+    "moreEventsHint": "{n} more at this time: press to see them"
   },
   "reports": {
     "title": "Reports",

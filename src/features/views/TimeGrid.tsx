@@ -21,6 +21,7 @@ export function TimeGrid({ days, items, today, timeZone = "UTC", onMove, onSlot,
   const t = useTranslations("views");
   const locale = useLocale();
   const [over, setOver] = useState<string | null>(null);
+  const [openMore, setOpenMore] = useState<string | null>(null);
   const [now, setNow] = useState<Date | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
   // The "all day" strip can hold dozens of tasks; it folds up so the hours stay in view. The choice is remembered on this device.
@@ -169,7 +170,29 @@ export function TimeGrid({ days, items, today, timeZone = "UTC", onMove, onSlot,
               {HOURS.map((h) => (
                 <div key={h} className={cn("pointer-events-none absolute inset-x-0", h > 0 && "border-t border-border/70")} style={{ top: h * HOUR_PX }} />
               ))}
-              {placed.map((p) => (
+              {placed.map((p) =>
+                p.more ? (
+                  <div key={p.id} className="absolute" style={{ top: minutesToPx(p.start), height: Math.max(minutesToPx(p.end - p.start) - 2, 14), left: `calc(${(p.col / p.cols) * 100}% + 1px)`, width: `calc(${100 / p.cols}% - 3px)` }}>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenMore((c) => (c === p.id ? null : p.id));
+                      }}
+                      aria-expanded={openMore === p.id}
+                      title={t("moreEventsHint", { n: p.more.length })}
+                      className="flex size-full items-start justify-center rounded-md border border-dashed border-primary/60 bg-primary/10 px-1 pt-0.5 text-[11px] font-medium text-primary hover:bg-primary/20"
+                      data-testid="grid-more"
+                    >
+                      {t("moreEvents", { n: p.more.length })}
+                    </button>
+                    {openMore === p.id && (
+                      <div className={cn("absolute top-full z-30 mt-1 flex max-h-72 w-56 flex-col gap-1 overflow-auto rounded-lg border border-border bg-card p-1.5 shadow-lg", days.indexOf(d) < 3 ? "left-0" : "right-0")} data-testid="grid-more-list" onClick={(e) => e.stopPropagation()}>
+                        {p.more.map((id) => renderItem(byId.get(id) as GridItem))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
                 <div key={p.id} className="contents">
                   {renderItem(byId.get(p.id) as GridItem, {
                     style: {
@@ -180,7 +203,8 @@ export function TimeGrid({ days, items, today, timeZone = "UTC", onMove, onSlot,
                     },
                   })}
                 </div>
-              ))}
+                ),
+              )}
               {d === today && nowMinute !== null && nowMinute < DAY_MINUTES && (
                 <div className="pointer-events-none absolute inset-x-0 z-10 border-t-2 border-[var(--health-red)]" style={{ top: minutesToPx(nowMinute) }} data-testid="now-line">
                   <span className="absolute -left-1 -top-[5px] size-2 rounded-full bg-[var(--health-red)]" />

@@ -23,7 +23,8 @@ let owner: string;
 let member: string;
 let ws: { id: string };
 const base = { emails: [] as string[], phones: [] as string[], messengers: {}, allowDuplicate: false, consentGiven: false };
-const NOW = new Date("2026-11-10T12:00:00.000Z");
+// Far in the future on purpose: rows made by the code under test carry the real clock, and they must always be older than the days the test counts back from here.
+const NOW = new Date("2030-01-10T12:00:00.000Z");
 const ago = (days: number) => new Date(NOW.getTime() - days * 86_400_000);
 const ids: Record<string, string> = {};
 

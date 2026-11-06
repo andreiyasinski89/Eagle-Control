@@ -6,6 +6,8 @@ export const DAY_MINUTES = 1440;
 /** An event without an end lasts this long on the grid; nothing is drawn shorter than the minimum so it stays clickable. */
 export const DEFAULT_MINUTES = 60;
 export const MIN_MINUTES = 30;
+/** Side by side is readable up to this many columns; a busier moment shows the rest folded into one "+N more" block. */
+export const MAX_COLS = 3;
 
 /** "09:30" → 570; "24:00" is allowed as the end of the day. Anything else is not a time of day. */
 export function parseClock(s: string | null | undefined): number | null {
@@ -24,6 +26,8 @@ export interface Placed {
   /** Column among the events that overlap in time, and how many columns that group needs. */
   col: number;
   cols: number;
+  /** Only on the "+N more" block: the ids of the events folded into it (in time order). */
+  more?: string[];
 }
 
 /**
@@ -44,7 +48,14 @@ export function layoutDay(items: readonly { id: string; start: number; end?: num
   let colEnds: number[] = [];
   let groupEnd = -1;
   const flush = () => {
-    for (const p of group) out.push({ ...p, cols: colEnds.length });
+    if (colEnds.length > MAX_COLS) {
+      // Too many at once (twenty touches planned for the same hour): the first columns stay, the rest fold into one block.
+      const keep = group.filter((p) => p.col < MAX_COLS - 1);
+      const rest = group.filter((p) => p.col >= MAX_COLS - 1);
+      for (const p of keep) out.push({ ...p, cols: MAX_COLS });
+      const first = rest[0] as (typeof rest)[number];
+      out.push({ id: `more:${first.id}`, start: Math.min(...rest.map((p) => p.start)), end: Math.max(...rest.map((p) => p.end)), col: MAX_COLS - 1, cols: MAX_COLS, more: rest.map((p) => p.id) });
+    } else for (const p of group) out.push({ ...p, cols: colEnds.length });
     group = [];
     colEnds = [];
     groupEnd = -1;

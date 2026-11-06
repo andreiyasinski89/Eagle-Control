@@ -294,3 +294,4 @@
 | 287 | No keep-alive ping by default | On Neon's free plan it would use up the monthly compute hours; the app already retries a query on a sleeping database. |
 | 288 | Only what a person or an outside program reads is renamed; every identifier something else depends on stays | Renaming a webhook header, a storage key or the Google event key would break receivers, saved settings and synced events for no visible gain. |
 | 289 | The PDF guides are rebuilt from the knowledge-base articles, not patched | Their source was not in the repository; the articles are the one source of truth, so the guide and the app cannot drift apart. |
+| 290 | The hour grid shows at most three columns side by side, the rest folded into "+N more" | Google Calendar does the same; a 25th column is never readable, and a list is. |

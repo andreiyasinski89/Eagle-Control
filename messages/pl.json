@@ -1405,7 +1405,9 @@
     "mergeEndNote": "Seria kończy się na ostatniej wpisanej dacie; później można ją wydłużyć.",
     "mergeSelected": "Scal ({n})",
     "mergeDone": "Gotowe: scalono serii — {merged}, zarchiwizowano kopii — {archived}.",
-    "mergeFailed": "Nie udało się scalić. Spróbuj ponownie."
+    "mergeFailed": "Nie udało się scalić. Spróbuj ponownie.",
+    "moreEvents": "+jeszcze {n}",
+    "moreEventsHint": "Jeszcze {n} w tym czasie: kliknij, aby zobaczyć"
   },
   "reports": {
     "title": "Raporty",
