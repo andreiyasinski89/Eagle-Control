@@ -1647,7 +1647,9 @@
       "gift": "Pro as a gift until {date}."
     },
     "betaPlan": "Open beta",
-    "betaOpen": "Paid plans are not open yet: everything is free and without limits for now."
+    "betaOpen": "Paid plans are not open yet: everything is free and without limits for now.",
+    "teamPlan": "Pro · team",
+    "teamFree": "Free for you: you are in the MLM CRM team. No payment needed."
   },
   "developers": {
     "title": "API and webhooks",
@@ -2225,7 +2227,25 @@
     "recomputeTemperatures": "Recalculate temperatures",
     "temperaturesRecomputed": "Temperatures recalculated: {changed} of {checked} people changed.",
     "mailAlert": "{n, plural, one {# sign-in e-mail} other {# sign-in e-mails}} could not be sent in the last 24 hours: nobody new can get in.",
-    "mailAlertLink": "Open the e-mail check"
+    "mailAlertLink": "Open the e-mail check",
+    "teamBadge": "Team",
+    "teamBadgeHint": "Free team access: brought by you or by your people",
+    "teamTitle": "Team access (free)",
+    "teamState": {
+      "owner": "The platform owner.",
+      "on": "Free: switched on by hand.",
+      "off": "Paid rules: switched off by hand (also for the people they brought, unless switched on by hand).",
+      "chain": "Free: brought by you or by someone in your team.",
+      "none": "Not in the team: free plan, 14 days of Pro, then a subscription."
+    },
+    "teamSet": {
+      "AUTO": "By invitation chain",
+      "ON": "Free",
+      "OFF": "Switch off"
+    },
+    "teamOffConfirm": "Switch off free access for {name} and the people they brought? They get 14 days of Pro to decide; nothing is deleted.",
+    "teamHint": "Switching off applies to the whole branch below this person, except people switched on by hand.",
+    "teamChanged": "Done: {branch} people in the branch, {lost} lost free access, {gained} got it."
   },
   "sharing": {
     "title": "Show my activity to my sponsor",

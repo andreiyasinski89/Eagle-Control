@@ -1647,7 +1647,9 @@
       "gift": "Pro w prezencie do {date}."
     },
     "betaPlan": "Otwarta beta",
-    "betaOpen": "Płatne plany nie są jeszcze otwarte: na razie wszystko jest za darmo i bez limitów."
+    "betaOpen": "Płatne plany nie są jeszcze otwarte: na razie wszystko jest za darmo i bez limitów.",
+    "teamPlan": "Pro · zespół",
+    "teamFree": "Dla Ciebie bezpłatnie: jesteś w zespole MLM CRM. Płatność nie jest potrzebna."
   },
   "developers": {
     "title": "API i webhooki",
@@ -2225,7 +2227,25 @@
     "recomputeTemperatures": "Przelicz temperatury",
     "temperaturesRecomputed": "Temperatury przeliczone: zmieniło się {changed} z {checked} osób.",
     "mailAlert": "W ciągu ostatniej doby nie udało się wysłać {n, plural, one {# e-maila z linkiem do logowania} few {# e-maili z linkiem do logowania} many {# e-maili z linkiem do logowania} other {# e-maila z linkiem do logowania}}: nowe osoby nie mogą wejść.",
-    "mailAlertLink": "Otwórz sprawdzanie poczty"
+    "mailAlertLink": "Otwórz sprawdzanie poczty",
+    "teamBadge": "Zespół",
+    "teamBadgeHint": "Bezpłatny dostęp zespołowy: przyszedł od Ciebie lub od Twoich ludzi",
+    "teamTitle": "Dostęp zespołowy (bezpłatny)",
+    "teamState": {
+      "owner": "Właściciel platformy.",
+      "on": "Bezpłatnie: włączone ręcznie.",
+      "off": "Zasady płatne: wyłączone ręcznie (także dla osób, które przyprowadził, chyba że włączysz je osobno).",
+      "chain": "Bezpłatnie: przyszedł od Ciebie lub od kogoś z Twojego zespołu.",
+      "none": "Poza zespołem: plan darmowy, 14 dni Pro, potem subskrypcja."
+    },
+    "teamSet": {
+      "AUTO": "Według łańcucha zaproszeń",
+      "ON": "Bezpłatnie",
+      "OFF": "Wyłącz"
+    },
+    "teamOffConfirm": "Wyłączyć bezpłatny dostęp dla {name} i osób, które przyprowadził? Dostaną 14 dni Pro na decyzję; nic nie zostanie usunięte.",
+    "teamHint": "Wyłączenie obejmuje całą gałąź poniżej tej osoby, oprócz osób włączonych ręcznie.",
+    "teamChanged": "Gotowe: w gałęzi {branch} os., straciło bezpłatny dostęp {lost}, otrzymało {gained}."
   },
   "sharing": {
     "title": "Pokazuj moją aktywność sponsorowi",

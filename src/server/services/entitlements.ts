@@ -4,6 +4,7 @@ import { activeSources, daysLeft, effectivePlan, trialEnd, TRIAL_DAYS } from "@/
 import { isGrantedEmail } from "./grants";
 import { notify } from "./notify";
 import { isEnforcedFor, paidMode, previewEmails } from "./paid-plans";
+import { workspaceHasTeamAccess } from "./team-access";
 
 const DAY = 86_400_000;
 
@@ -21,7 +22,8 @@ async function tellOwners(workspaceId: string, title: string, body: string, key:
 export async function syncPlan(workspaceId: string, now = new Date()): Promise<{ before: Plan; after: Plan }> {
   const w = await db.workspace.findUniqueOrThrow({ where: { id: workspaceId }, select: { plan: true, basePlan: true, trialEndsAt: true, bonusUntil: true, giftUntil: true } });
   // While paid plans are not in force for this workspace it has everything (Pro); the lasting plan and the time-limited ones wait underneath.
-  const after = effectivePlan(sourcesOf(w), now, !(await isEnforcedFor(workspaceId)));
+  // The owner's team (people brought by the platform owner, at any depth) has everything too, until the platform owner switches them off.
+  const after = effectivePlan(sourcesOf(w), now, !(await isEnforcedFor(workspaceId)) || (await workspaceHasTeamAccess(workspaceId)));
   if (after !== w.plan) await db.workspace.update({ where: { id: workspaceId }, data: { plan: after } });
   return { before: w.plan, after };
 }
@@ -32,6 +34,7 @@ export async function syncPlan(workspaceId: string, now = new Date()): Promise<{
  */
 export async function startTrial(userId: string, workspaceId: string, now = new Date()): Promise<boolean> {
   if (!(await isEnforcedFor(workspaceId))) return false; // no trial while everything is free
+  if (await workspaceHasTeamAccess(workspaceId)) return false; // the team has Pro for free: no trial to count down
   const w = await db.workspace.findUnique({ where: { id: workspaceId }, select: { basePlan: true, trialEndsAt: true, memberships: { where: { userId, role: "OWNER" }, select: { userId: true } } } });
   if (!w || w.memberships.length === 0 || w.basePlan !== "FREE" || w.trialEndsAt) return false;
   const me = await db.user.findUnique({ where: { id: userId }, select: { email: true } });
@@ -50,14 +53,17 @@ export async function entitlementOf(workspaceId: string, now = new Date()) {
   const s = sourcesOf(w);
   const sources = activeSources(s, now);
   const enforced = await isEnforcedFor(workspaceId);
+  const teamFree = await workspaceHasTeamAccess(workspaceId);
   return {
     enforced,
+    /** Free because an owner is in the platform owner's team. */
+    teamFree,
     plan: w.plan,
     basePlan: w.basePlan,
     sources: sources.map((x) => ({ source: x.source, until: x.until, daysLeft: daysLeft(x.until, now) })),
     /** Pro only because of the trial, with this many days left. */
-    trialDaysLeft: enforced && w.basePlan === "FREE" && sources.length === 1 && sources[0]?.source === "trial" ? daysLeft(w.trialEndsAt, now) : null,
-    trialEnded: enforced && w.basePlan === "FREE" && !!w.trialEndsAt && w.trialEndsAt.getTime() <= now.getTime(),
+    trialDaysLeft: enforced && !teamFree && w.basePlan === "FREE" && sources.length === 1 && sources[0]?.source === "trial" ? daysLeft(w.trialEndsAt, now) : null,
+    trialEnded: enforced && !teamFree && w.basePlan === "FREE" && !!w.trialEndsAt && w.trialEndsAt.getTime() <= now.getTime(),
   };
 }
 

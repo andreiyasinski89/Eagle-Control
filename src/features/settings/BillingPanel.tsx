@@ -20,7 +20,7 @@ interface Billing {
   hasCustomer: boolean;
   granted: boolean;
   enforced: boolean;
-  entitlement: { plan: string; basePlan: "FREE" | "PRO" | "ENTERPRISE"; sources: { source: "trial" | "bonus" | "gift"; until: string; daysLeft: number }[]; trialDaysLeft: number | null; trialEnded: boolean };
+  entitlement: { teamFree?: boolean; plan: string; basePlan: "FREE" | "PRO" | "ENTERPRISE"; sources: { source: "trial" | "bonus" | "gift"; until: string; daysLeft: number }[]; trialDaysLeft: number | null; trialEnded: boolean };
   usage: Record<string, { used: number; limit: number | null }>;
 }
 
@@ -63,13 +63,13 @@ export function BillingPanel({ workspaceId, checkout }: { workspaceId: string; c
           <div>
             <div className="text-xs text-muted-foreground">{t("plan")}</div>
             <div className="text-2xl font-semibold" data-testid="plan">
-              {data.enforced ? t(`plans.${data.plan}`) : t("betaPlan")}
+              {data.entitlement.teamFree ? t("teamPlan") : data.enforced ? t(`plans.${data.plan}`) : t("betaPlan")}
             </div>
             {data.renewsAt && data.plan !== "FREE" && <div className="text-xs text-muted-foreground">{data.cancelAtPeriodEnd ? t("endsOn", { date: date(data.renewsAt) }) : t("renewsOn", { date: date(data.renewsAt) })}</div>}
           </div>
           {data.canManage && data.configured && (
             <div className="flex gap-2">
-              {data.enforced && data.entitlement.basePlan === "FREE" && <Button onClick={() => void go("checkout")} data-testid="upgrade">{t("upgrade")}</Button>}
+              {data.enforced && !data.entitlement.teamFree && data.entitlement.basePlan === "FREE" && <Button onClick={() => void go("checkout")} data-testid="upgrade">{t("upgrade")}</Button>}
               {data.hasCustomer && (
                 <Button variant="outline" onClick={() => void go("portal")}>
                   {t("manage")}
@@ -78,7 +78,12 @@ export function BillingPanel({ workspaceId, checkout }: { workspaceId: string; c
             </div>
           )}
         </div>
-        {!data.enforced && (
+        {data.entitlement.teamFree && (
+          <p className="mt-3 rounded-md bg-[var(--health-green)]/10 px-3 py-2 text-sm" data-testid="team-free">
+            {t("teamFree")}
+          </p>
+        )}
+        {!data.enforced && !data.entitlement.teamFree && (
           <p className="mt-3 rounded-md bg-primary/10 px-3 py-2 text-sm" data-testid="beta-open">
             {t("betaOpen")}
           </p>

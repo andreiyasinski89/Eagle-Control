@@ -1,4 +1,5 @@
 import { randomInt } from "node:crypto";
+import { syncPlan } from "./entitlements";
 import { db } from "@/server/db";
 import { env } from "@/lib/env";
 import { cleanName, isRefCode, isSignupLocale, type SignupLocale } from "@/modules/auth/signup";
@@ -138,8 +139,13 @@ export async function joinByReferral(person: NewPerson, code: string): Promise<{
     }
     if (contactId) await tx.crmActivity.create({ data: { workspaceId: link.workspaceId, type: "NOTE", subject: "Created an account through your invitation link", ownerId: link.userId, contactId, completedAt: new Date() } });
     await tx.referralJoin.create({ data: { linkId: link.id, userId: person.id, contactId } });
+    // The sponsor brought this person to the platform too (no bonus point here: that is for the platform link). It is what puts them
+    // in the sponsor's team for team access.
+    await tx.user.updateMany({ where: { id: person.id, referredById: null }, data: { referredById: link.userId, referredAt: new Date() } });
     return { contactId, created };
   });
+  const mine = await db.membership.findMany({ where: { userId: person.id, role: "OWNER" }, select: { workspaceId: true } });
+  for (const m of mine) await syncPlan(m.workspaceId).catch(() => undefined);
   await notify({
     userId: link.userId,
     workspaceId: link.workspaceId,
@@ -219,6 +225,9 @@ export async function joinByInvite(person: NewPerson, code: string): Promise<{ i
     db.user.update({ where: { id: person.id }, data: { referredById: inviter.id, referredAt: new Date() } }),
     db.bonusPoint.create({ data: { userId: inviter.id, points: 1, reason: "invite", refUserId: person.id } }),
   ]);
+  // Someone brought into the platform owner's team gets team access at once: their own workspaces are put right now.
+  const mine = await db.membership.findMany({ where: { userId: person.id, role: "OWNER" }, select: { workspaceId: true } });
+  for (const m of mine) await syncPlan(m.workspaceId).catch(() => undefined);
   const ws = await db.membership.findFirst({ where: { userId: inviter.id, role: { not: "CLIENT" } }, orderBy: { createdAt: "asc" }, select: { workspaceId: true } });
   if (ws) {
     const first = person.firstName?.trim() || person.email.split("@")[0] || person.email;

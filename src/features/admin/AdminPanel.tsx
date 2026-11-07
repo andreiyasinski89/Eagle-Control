@@ -13,7 +13,10 @@ import { StepUp } from "./StepUp";
 import { cn } from "@/lib/utils";
 
 type Plan = "FREE" | "PRO" | "ENTERPRISE";
+/** Team access (free Pro for the owner's network): the platform owner, set on/off by hand, free through who brought them, or not in the team. */
+type TeamAccess = "owner" | "on" | "off" | "chain" | "none";
 interface Row {
+  teamAccess: TeamAccess;
   id: string;
   name: string | null;
   email: string;
@@ -34,6 +37,7 @@ interface List {
 }
 interface Detail {
   id: string;
+  teamAccess: TeamAccess;
   email: string;
   name: string | null;
   firstName: string | null;
@@ -96,6 +100,12 @@ export function AdminPanel() {
   const erase = useMutation({
     mutationFn: (v: { id: string; confirmEmail: string }) => api.post(`/api/v1/admin/users/${v.id}/erase`, { confirmEmail: v.confirmEmail }),
     onSuccess: () => (setError(null), setErasing(false), setEraseText(""), setOpen(null), refresh()),
+    onError: fail,
+  });
+  const [teamNote, setTeamNote] = useState<string | null>(null);
+  const team = useMutation({
+    mutationFn: (v: { id: string; value: "ON" | "OFF" | "AUTO" }) => api.post<{ branch: number; lost: number; gained: number }>(`/api/v1/admin/users/${v.id}/team-access`, { value: v.value }),
+    onSuccess: (r) => (setError(null), setTeamNote(t("teamChanged", { branch: r.branch, lost: r.lost, gained: r.gained })), refresh()),
     onError: fail,
   });
   const plan = useMutation({ mutationFn: (v: { id: string; plan: Plan }) => api.patch(`/api/v1/admin/workspaces/${v.id}`, { plan: v.plan }), onSuccess: () => (setError(null), refresh()), onError: fail });
@@ -188,6 +198,11 @@ export function AdminPanel() {
                           <span className="truncate">{u.name ?? u.email}</span>
                           {u.isSuperAdmin && <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] text-primary" title={t("platformOwnerHint")}>{t("platformOwner")}</span>}
                           {u.suspended && <span className="rounded-full bg-[var(--health-red)]/15 px-2 py-0.5 text-[11px] text-[var(--health-red)]">{t("suspended")}</span>}
+                          {(u.teamAccess === "chain" || u.teamAccess === "on") && (
+                            <span className="rounded-full bg-[var(--health-green)]/15 px-2 py-0.5 text-[11px] text-[var(--health-green)]" title={t("teamBadgeHint")} data-testid="admin-team-badge">
+                              {t("teamBadge")}
+                            </span>
+                          )}
                         </div>
                         {u.name && <div className="truncate text-xs text-muted-foreground">{u.email}</div>}
                       </div>
@@ -258,6 +273,36 @@ export function AdminPanel() {
                   <dt className="text-muted-foreground">{t("invitedBy")}</dt>
                   <dd>{d.invitedBy?.name ?? "—"}</dd>
                 </dl>
+
+                {!d.isSuperAdmin && (
+                  <section className="flex flex-col gap-2 rounded-xl border border-border p-3" data-testid="admin-team">
+                    <h3 className="text-sm font-medium">{t("teamTitle")}</h3>
+                    <p className="text-xs text-muted-foreground">{t(`teamState.${d.teamAccess}`)}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {(["AUTO", "ON", "OFF"] as const).map((v) => {
+                        const current = (v === "ON" && d.teamAccess === "on") || (v === "OFF" && d.teamAccess === "off") || (v === "AUTO" && (d.teamAccess === "chain" || d.teamAccess === "none"));
+                        return (
+                          <Button
+                            key={v}
+                            type="button"
+                            size="sm"
+                            variant={current ? "primary" : "outline"}
+                            className="min-h-10"
+                            disabled={team.isPending || current}
+                            onClick={() => {
+                              if (v !== "OFF" || window.confirm(t("teamOffConfirm", { name: d.name ?? d.email }))) team.mutate({ id: d.id, value: v });
+                            }}
+                            data-testid={`admin-team-${v.toLowerCase()}`}
+                          >
+                            {t(`teamSet.${v}`)}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    <p className="text-xs text-muted-foreground">{t("teamHint")}</p>
+                    {teamNote && <p className="text-xs" role="status">{teamNote}</p>}
+                  </section>
+                )}
 
                 <section>
                   <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("access")}</h3>

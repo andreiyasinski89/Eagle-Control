@@ -186,6 +186,10 @@ model User {
   shareActivity       Boolean           @default(false)
   /// Set by the platform owner: the account cannot sign in until it is cleared.
   suspendedAt         DateTime?
+  /// Team access (free Pro for the owner's network): null = by the chain of invitations, "ON" / "OFF" = set by the platform owner by hand.
+  teamAccess          String?
+  /// When the platform owner last set teamAccess by hand.
+  teamAccessAt        DateTime?
   referredBy          User?             @relation("PlatformInvites", fields: [referredById], references: [id], onDelete: SetNull)
   invited             User[]            @relation("PlatformInvites")
   bonusPoints         BonusPoint[]      @relation("BonusOwner")

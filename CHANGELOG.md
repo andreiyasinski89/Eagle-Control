@@ -710,3 +710,11 @@
 - **Three buttons instead of six**: "They replied" (the reply window), "Meeting" (the same quick times as the touch queue: today 19:00, tomorrow 12:00 / 19:00; records the meeting, the touch and moves the stage like the queue), and "Record ▾" with call, e-mail, note, by voice and plan a call or meeting.
 - **Everything else folded**: partner, funnel, details, consent, deals, access, tags, activities (with counts), comments, files open with one press; planned calls and meetings start open when there are any.
 - The "Reply" button no longer wraps onto two lines. Texts in four languages; the browser test for messengers opens the script preview first.
+
+## 0.65.0 — Free team access (monetization, part A)
+
+- **The owner's team uses the platform for free.** Everyone brought by the platform owner (SUPERADMIN_EMAILS), and everyone they brought in turn at any depth, has Pro for free, also once paid plans are switched on; they get no trial countdown and no payment button. It works by the chain of invitations already recorded, so people who joined earlier are covered too. Coming through a sponsor's link now also records who brought the person (no bonus point; that stays with the platform link).
+- **Everyone else** (found the site alone): the Free plan and 14 days of Pro, then a subscription — as before, behind the paid-plans switch, which stays **off**.
+- **The owner's switch, per person, in the platform admin:** "By invitation chain" / "Free" / "Switch off". Switching off applies to the whole branch below, except people switched on by hand; whoever loses free access gets 14 days of Pro to decide (nothing is deleted) and a notice. A green "Team" mark in the list of users.
+- The billing page says "Pro · team — free for you: you are in the MLM CRM team".
+- Migration 0041 (additive): `User.teamAccess`, `User.teamAccessAt`. Texts in four languages; tests for the rule, the branch switch, the grace days and the rights.

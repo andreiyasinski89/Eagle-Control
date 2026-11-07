@@ -7,7 +7,10 @@ import { db } from "@/server/db";
 import { ApiError, forbidden, notFound } from "@/server/http/errors";
 import { deletionStatus, eraseAccount } from "./account";
 import { recomputePlans, syncPlan } from "./entitlements";
-import { paidMode } from "./paid-plans";
+import { isEnforcedFor, paidMode } from "./paid-plans";
+import { notify } from "./notify";
+import { branchOf, userHasTeamAccess, userTeamReason } from "./team-access";
+import { isActive, trialEnd, TRIAL_DAYS } from "@/modules/plans/entitlement";
 
 /** The platform owner(s): the addresses in SUPERADMIN_EMAILS, lower-cased. Nobody else may open the admin. */
 export function superAdminEmails(): string[] {
@@ -49,6 +52,7 @@ export async function listUsers(actorId: string, f: z.infer<typeof listUsersSche
       },
     }),
   ]);
+  const team = new Map(await Promise.all(rows.map(async (r) => [r.id, await userTeamReason(r.id)] as const)));
   const points = rows.length ? await db.bonusPoint.groupBy({ by: ["userId"], where: { userId: { in: rows.map((r) => r.id) } }, _sum: { points: true } }) : [];
   const pts = new Map(points.map((p) => [p.userId, p._sum.points ?? 0]));
   return {
@@ -65,6 +69,8 @@ export async function listUsers(actorId: string, f: z.infer<typeof listUsersSche
       isSuperAdmin: isSuperAdminEmail(r.email),
       invitedBy: r.referredBy ? (r.referredBy.name ?? r.referredBy.email) : null,
       invitedCount: r._count.invited,
+      /** Team access: "owner" (the platform owner), "on"/"off" (set by hand), "chain" (free through who brought them), "none". */
+      teamAccess: team.get(r.id) ?? "none",
       points: pts.get(r.id) ?? 0,
       workspaces: r.memberships.map((m) => ({ id: m.workspace.id, name: m.workspace.name, plan: m.workspace.plan })),
     })),
@@ -90,6 +96,7 @@ export async function getUserDetail(actorId: string, userId: string) {
   const actions = await db.adminLog.findMany({ where: { targetUserId: userId }, orderBy: { at: "desc" }, take: 10 });
   return {
     id: u.id,
+    teamAccess: await userTeamReason(u.id),
     email: u.email,
     name: u.name,
     firstName: u.firstName,
@@ -207,3 +214,40 @@ export async function adjustBonus(actorId: string, userId: string, input: z.infe
 }
 
 export { ApiError };
+
+// ── Team access ──────────────────────────────────────────────────────
+
+export const teamAccessSchema = z.object({ value: z.enum(["ON", "OFF", "AUTO"]) });
+
+/**
+ * The platform owner switches a person's team access by hand: ON (free whatever the chain says), OFF (paid rules, and the same for the people
+ * they brought unless one of those is switched on by hand), or AUTO (by the chain of invitations again). The plans of the whole branch are put
+ * right at once. Whoever loses free access gets 14 days of Pro to decide, so nobody is cut off mid-work; nothing is ever deleted.
+ */
+export async function setTeamAccess(actorId: string, userId: string, input: z.infer<typeof teamAccessSchema>, now = new Date()) {
+  await requireSuperAdmin(actorId);
+  const u = await db.user.findUnique({ where: { id: userId }, select: { id: true, email: true, deletedAt: true } });
+  if (!u || u.deletedAt) throw notFound("user");
+  if (isSuperAdminEmail(u.email)) throw forbidden();
+  const branch = await branchOf(userId);
+  const before = new Map(await Promise.all(branch.map(async (id) => [id, await userHasTeamAccess(id)] as const)));
+  await db.user.update({ where: { id: userId }, data: { teamAccess: input.value === "AUTO" ? null : input.value, teamAccessAt: now } });
+  let lost = 0;
+  let gained = 0;
+  for (const id of branch) {
+    const after = await userHasTeamAccess(id);
+    const had = before.get(id) ?? false;
+    if (had && !after) lost++;
+    if (!had && after) gained++;
+    const owned = await db.membership.findMany({ where: { userId: id, role: "OWNER" }, select: { workspace: { select: { id: true, basePlan: true, trialEndsAt: true, bonusUntil: true, giftUntil: true } } } });
+    for (const { workspace: w } of owned) {
+      if (had && !after && w.basePlan === "FREE" && (await isEnforcedFor(w.id)) && !isActive(w.trialEndsAt, now) && !isActive(w.bonusUntil, now) && !isActive(w.giftUntil, now)) {
+        await db.workspace.update({ where: { id: w.id }, data: { giftUntil: trialEnd(now) } });
+        await notify({ userId: id, workspaceId: w.id, kind: "billing", title: `Free team access has ended: ${TRIAL_DAYS} days of Pro to decide`, body: "Nothing was deleted. Pick a plan in Settings → Billing to keep Pro.", url: "/settings/billing", dedupeKey: `team:off:${w.id}:${now.toISOString().slice(0, 10)}` }).catch(() => undefined);
+      }
+      await syncPlan(w.id, now);
+    }
+  }
+  await log(actorId, "user.team_access", userId, { value: input.value, branch: branch.length, lost, gained });
+  return { value: input.value, branch: branch.length, lost, gained, teamAccess: await userTeamReason(userId) };
+}
