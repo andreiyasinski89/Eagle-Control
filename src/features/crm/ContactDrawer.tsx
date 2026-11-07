@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarPlus, Check, Download, Mail, Phone, ShieldAlert, StickyNote, Trash2, Users, X } from "lucide-react";
+import { CalendarClock, CalendarPlus, Check, ChevronDown, ChevronRight, Download, Mail, MessageSquareReply, Mic, Phone, Plus, ShieldAlert, StickyNote, Trash2, Users, X } from "lucide-react";
+import { DropdownContent, DropdownItem, DropdownMenu, DropdownTrigger } from "@/components/ui/dropdown";
+import { cn } from "@/lib/utils";
+import { MeetingDialog } from "./TouchQueue";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -76,12 +79,17 @@ export const messengerLinks: Record<string, (v: string) => string> = Object.from
   (["telegram", "whatsapp", "instagram"] as const).map((m) => [m, (v: string) => buildMessengerLink(m, { phones: [], messengers: { [m]: v } }, "").url]),
 );
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+/** A part of the card below the actions. Folded unless it is asked to start open: the card stays short, one press opens a part. */
+function Section({ title, children, open = false, count }: { title: string; children: React.ReactNode; open?: boolean; count?: number }) {
   return (
-    <section className="flex flex-col gap-2 border-t border-border px-4 py-3">
-      <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{title}</h3>
-      {children}
-    </section>
+    <details open={open} className="group border-t border-border px-4 py-2" data-testid="card-section">
+      <summary className="flex min-h-10 cursor-pointer list-none items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">
+        <ChevronRight className="size-3.5 shrink-0 transition-transform group-open:rotate-90" aria-hidden />
+        {title}
+        {count !== undefined && count > 0 && <span className="rounded-full bg-muted px-1.5 py-0.5 text-[11px] normal-case tabular-nums">{count}</span>}
+      </summary>
+      <div className="flex flex-col gap-2 pb-2 pt-1">{children}</div>
+    </details>
   );
 }
 
@@ -97,6 +105,8 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
   const companies = useCompanyOptions(workspaceId);
   const [activity, setActivity] = useState<ActivityDto["type"] | null>(null);
   const [planning, setPlanning] = useState(false);
+  const [voice, setVoice] = useState(false);
+  const [meeting, setMeeting] = useState(false);
   const { tz } = useTimeZone();
   const [erasing, setErasing] = useState(false);
   const [confirm, setConfirm] = useState("");
@@ -168,6 +178,12 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
       refresh();
     },
   });
+  // "Meeting" in the card is the same result as in the touch queue: the meeting in the calendar, the touch in the feed, the stage moved on.
+  const meetingSet = useMutation({
+    mutationFn: (meetingAt: string) => api.post(`/api/v1/contacts/${contactId}/touch`, { outcome: "MEETING_SET", meetingAt, locale }),
+    onSuccess: () => (setMeeting(false), setError(null), refresh()),
+    onError: (e) => setError(e instanceof ApiFailure ? e.message : t("error")),
+  });
   const consent = useMutation({ mutationFn: (given: boolean) => api.put(`/api/v1/contacts/${contactId}/consent`, { given, source: "manual" }), onSuccess: refresh });
 
   async function exportData() {
@@ -202,6 +218,7 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
       <header className="flex items-start gap-2 p-4">
         <div className="min-w-0 flex-1">
           <div className="text-xs text-muted-foreground">
+            {t(`funnelStage.${c.stage}`)} ·{" "}
             {c.companyId ? (
               <Link href={`/w/${slug}/crm/companies/${c.companyId}`} className="hover:underline">
                 {c.companyName}
@@ -211,26 +228,19 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
             )}
           </div>
           <h2 className="mt-1 text-lg font-semibold">{c.name}</h2>
-          <div className={cold ? "text-xs text-[var(--health-yellow)]" : "text-xs text-muted-foreground"}>
-            {c.repliedAt && c.lastContactedAt
-              ? t("replyAndTouch", { reply: new Date(c.repliedAt).toLocaleDateString(locale), touch: new Date(c.lastContactedAt).toLocaleDateString(locale) })
-              : c.repliedAt
-                ? t("replyOnly", { date: new Date(c.repliedAt).toLocaleDateString(locale) })
+          {awaitingAnswer ? (
+            <p className="mt-1 w-fit rounded-full bg-[var(--health-yellow)]/15 px-2.5 py-0.5 text-xs font-medium text-[var(--health-yellow)]" data-testid="card-status">
+              {t("awaitingSince", { date: new Date(c.repliedAt!).toLocaleDateString(locale, { day: "numeric", month: "short" }) })}
+              {c.lastContactedAt ? ` · ${t("ourLastTouch", { date: new Date(c.lastContactedAt).toLocaleDateString(locale, { day: "numeric", month: "short" }) })}` : ""}
+            </p>
+          ) : (
+            <p className={cn("text-xs", cold ? "text-[var(--health-yellow)]" : "text-muted-foreground")} data-testid="card-status">
+              {c.repliedAt && c.lastContactedAt
+                ? t("replyAndTouch", { reply: new Date(c.repliedAt).toLocaleDateString(locale), touch: new Date(c.lastContactedAt).toLocaleDateString(locale) })
                 : c.lastContactedAt
                   ? t("lastContact", { date: new Date(c.lastContactedAt).toLocaleDateString(locale) })
                   : t("neverContacted")}
-          </div>
-          {!dis && (
-            <div className="mt-2 flex items-center gap-2">
-              <Button size="sm" variant="outline" disabled={replied.isPending} onClick={() => (setReplyAt(localNow()), setReplying(true))} data-testid="mark-replied">
-                {t("markReplied")}
-              </Button>
-              {awaitingAnswer ? (
-                <span className="text-xs text-[var(--health-yellow)]">{t("repliedWaiting", { date: new Date(c.repliedAt!).toLocaleDateString(locale) })}</span>
-              ) : (
-                c.repliedAt && <span className="text-xs text-muted-foreground">{t("repliedDone", { date: new Date(c.repliedAt).toLocaleDateString(locale) })}</span>
-              )}
-            </div>
+            </p>
           )}
         </div>
         <Button variant="ghost" size="sm" onClick={onClose} aria-label={t("close")}>
@@ -244,24 +254,51 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
       )}
 
       {canWrite && (
-        <div className="flex flex-wrap gap-2 px-4 pb-3">
-          <Button size="sm" className="min-h-11 md:min-h-8" onClick={() => setPlanning(true)} data-testid="plan-contact">
-            <CalendarPlus className="size-4" />
-            {t("planContact")}
-          </Button>
-          <Button size="sm" variant="outline" className="min-h-11 md:min-h-8" onClick={() => setActivity("CALL")}>
-            <Phone className="size-4" />
-            {t("logCall")}
-          </Button>
-          <Button size="sm" variant="outline" className="min-h-11 md:min-h-8" onClick={() => setActivity("EMAIL")}>
-            <Mail className="size-4" />
-            {t("logEmail")}
-          </Button>
-          <Button size="sm" variant="outline" className="min-h-11 md:min-h-8" onClick={() => setActivity("NOTE")}>
-            <StickyNote className="size-4" />
-            {t("addNote")}
-          </Button>
-          <VoiceNote workspaceId={workspaceId} contactId={contactId} companyId={c.companyId} onSaved={refresh} />
+        <div className="flex flex-col gap-2 px-4 pb-3" data-testid="card-actions">
+          <ScriptBlock key={c.id} compact workspaceId={workspaceId} meId={meId} stage={c.stage} canWrite={canWrite} person={{ id: c.id, name: c.name, phones: c.phones, messengers: c.messengers }} onSent={refresh} />
+          <div className="grid grid-cols-3 gap-2">
+            <Button size="sm" variant="outline" className="min-h-11 gap-1.5 px-2 md:min-h-9" disabled={dis || replied.isPending} onClick={() => (setReplyAt(localNow()), setReplying(true))} data-testid="mark-replied">
+              <MessageSquareReply className="size-4 shrink-0" />
+              <span className="truncate">{t("actReplied")}</span>
+            </Button>
+            <Button size="sm" variant="outline" className="min-h-11 gap-1.5 px-2 md:min-h-9" disabled={dis || meetingSet.isPending} onClick={() => setMeeting(true)} data-testid="card-meeting">
+              <CalendarPlus className="size-4 shrink-0" />
+              <span className="truncate">{t("actMeeting")}</span>
+            </Button>
+            <DropdownMenu>
+              <DropdownTrigger asChild>
+                <Button size="sm" variant="outline" className="min-h-11 gap-1 px-2 md:min-h-9" data-testid="card-record">
+                  <Plus className="size-4 shrink-0" />
+                  <span className="truncate">{t("actRecord")}</span>
+                  <ChevronDown className="size-3.5 shrink-0" />
+                </Button>
+              </DropdownTrigger>
+              <DropdownContent align="end">
+                <DropdownItem onSelect={() => setActivity("CALL")} data-testid="record-call">
+                  <Phone className="size-4" />
+                  {t("recCall")}
+                </DropdownItem>
+                <DropdownItem onSelect={() => setActivity("EMAIL")}>
+                  <Mail className="size-4" />
+                  {t("recEmail")}
+                </DropdownItem>
+                <DropdownItem onSelect={() => setActivity("NOTE")} data-testid="record-note">
+                  <StickyNote className="size-4" />
+                  {t("recNote")}
+                </DropdownItem>
+                <DropdownItem onSelect={() => setVoice(true)} data-testid="record-voice">
+                  <Mic className="size-4" />
+                  {t("recVoice")}
+                </DropdownItem>
+                <DropdownItem onSelect={() => setPlanning(true)} data-testid="plan-contact">
+                  <CalendarClock className="size-4" />
+                  {t("recPlan")}
+                </DropdownItem>
+              </DropdownContent>
+            </DropdownMenu>
+          </div>
+          <VoiceNote workspaceId={workspaceId} contactId={contactId} companyId={c.companyId} onSaved={refresh} open={voice} onOpenChange={setVoice} />
+          {meeting && <MeetingDialog tz={tz} busy={meetingSet.isPending} onClose={() => setMeeting(false)} onSave={(iso) => meetingSet.mutate(iso)} />}
         </div>
       )}
 
@@ -279,12 +316,8 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
         />
       </Section>
 
-      <Section title={t("scriptsSection")}>
-        <ScriptBlock key={c.id} workspaceId={workspaceId} meId={meId} stage={c.stage} canWrite={canWrite} person={{ id: c.id, name: c.name, phones: c.phones, messengers: c.messengers }} />
-      </Section>
-
       {(upcoming.length > 0 || canWrite) && (
-        <Section title={t("planUpcoming")}>
+        <Section title={t("planUpcoming")} open={upcoming.length > 0} count={upcoming.length}>
           {upcoming.length === 0 && <p className="text-sm text-muted-foreground">{t("planNone")}</p>}
           <ul className="flex flex-col gap-2 text-sm" data-testid="planned-list">
             {upcoming.map((a) => (
@@ -398,7 +431,7 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
         )}
       </Section>
 
-      <Section title={t("tabPipeline")}>
+      <Section title={t("tabPipeline")} count={c.deals.length}>
         {c.deals.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t("noDeals")}</p>
         ) : (
@@ -424,11 +457,11 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
         </Section>
       )}
 
-      <Section title={t("tags")}>
+      <Section title={t("tags")} count={c.tags.length}>
         <NodeTags nodeId={contactId} workspaceId={workspaceId} current={c.tags} canWrite={canWrite} onChange={refresh} />
       </Section>
 
-      <Section title={t("activityFeed")}>
+      <Section title={t("activityFeed")} count={feed.data?.total}>
         {feed.data?.items.length === 0 && <p className="text-sm text-muted-foreground">{t("noActivities")}</p>}
         <ul className="flex flex-col gap-2 text-sm">
           {feed.data?.items.map((a) => (

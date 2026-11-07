@@ -2218,7 +2218,19 @@
     "repliedDone": "✓ відповів {date}",
     "awaitingBadge": "чекає відповіді",
     "awaitingHint": "Людина відповіла, а ми їй ще ні",
-    "feedMore": "Показати ще ({n})"
+    "feedMore": "Показати ще ({n})",
+    "scriptNow": "Сценарій: «{title}»",
+    "scriptEdit": "Змінити текст",
+    "awaitingSince": "Чекає на твою відповідь · відповів {date}",
+    "ourLastTouch": "наш дотик {date}",
+    "actReplied": "Він відповів",
+    "actMeeting": "Зустріч",
+    "actRecord": "Записати",
+    "recCall": "Дзвінок",
+    "recEmail": "Лист",
+    "recNote": "Нотатка",
+    "recVoice": "Голосом",
+    "recPlan": "Запланувати дзвінок або зустріч"
   },
   "setup": {
     "title": "Підключення платформи",

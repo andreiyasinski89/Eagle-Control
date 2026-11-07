@@ -305,3 +305,5 @@
 | 298 | A chat-button press in the queue records "wrote, waiting" itself and moves on, with Undo | Right after sending there is no answer yet; the second press was always the same one. Undo restores from a snapshot the touch itself returns, only own fresh WAITING touches. |
 | 299 | Sent messages, e-mails and notes are not calendar items | The calendar is for plans; recorded touches made busy hours unreadable. |
 | 300 | Quick meeting times are fixed (today 19, tomorrow 12 and 19) rather than learned | Covers the usual presentation times now; learning from history can come later. |
+| 301 | The contact card leads with actions: status pill, ready script with chat buttons, then They replied / Meeting / Record menu; the rest folded | Mock-up approved by the owner 2026-11-07: a lazy pro should act from the first screen, not scroll past forms. |
+| 302 | "Meeting" in the card uses the touch result (MEETING_SET) like the queue | One meaning of "meeting set" everywhere: calendar, feed and stage move together. |

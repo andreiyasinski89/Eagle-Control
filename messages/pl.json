@@ -1080,7 +1080,19 @@
     "repliedDone": "✓ odpowiedział(a) {date}",
     "awaitingBadge": "czeka na odpowiedź",
     "awaitingHint": "Ta osoba odpisała, a my jeszcze nie",
-    "feedMore": "Pokaż więcej ({n})"
+    "feedMore": "Pokaż więcej ({n})",
+    "scriptNow": "Skrypt: „{title}”",
+    "scriptEdit": "Zmień tekst",
+    "awaitingSince": "Czeka na Twoją odpowiedź · odpisał(a) {date}",
+    "ourLastTouch": "nasz kontakt {date}",
+    "actReplied": "Odpisał(a)",
+    "actMeeting": "Spotkanie",
+    "actRecord": "Zapisz",
+    "recCall": "Rozmowa",
+    "recEmail": "E-mail",
+    "recNote": "Notatka",
+    "recVoice": "Głosem",
+    "recPlan": "Zaplanuj rozmowę lub spotkanie"
   },
   "myday": {
     "title": "Mój dzień",

@@ -488,7 +488,7 @@ function TouchCard({ workspaceId, item, data, slug, onDone, onSkip, onSent }: { 
   );
 }
 
-function MeetingDialog({ tz, busy, onClose, onSave }: { tz: string; busy: boolean; onClose: () => void; onSave: (iso: string) => void }) {
+export function MeetingDialog({ tz, busy, onClose, onSave }: { tz: string; busy: boolean; onClose: () => void; onSave: (iso: string) => void }) {
   const t = useTranslations("touches");
   const tcm = useTranslations("common");
   const [day, setDay] = useState(() => addDays(todayIn(tz), 1));

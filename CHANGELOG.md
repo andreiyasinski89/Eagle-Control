@@ -702,3 +702,11 @@
 - **Keys on a computer** in the queue: 1 replied, 2 no reply, 3 meeting, 4 said no, 5 wrote and wait, → next person (not while typing).
 - Taking back a touch, or deleting one, no longer counts an incoming reply as our last touch.
 - Texts in four languages; tests for undo, its limits, the calendar and the meeting times.
+
+## 0.64.0 — The person card: action first
+
+- **One status line** under the name instead of two repeating ones: a yellow pill "Waiting for your answer · replied 6 Nov · our last touch …" while the next move is ours, otherwise the plain "last contact" line. The stage now stands next to the company above the name.
+- **The script is ready at the top**: "Script: …" with a two-line preview (a press opens the full text box) and the Telegram / WhatsApp / Instagram buttons right under it. A press copies the text, opens the chat and records the message, with Undo, as before.
+- **Three buttons instead of six**: "They replied" (the reply window), "Meeting" (the same quick times as the touch queue: today 19:00, tomorrow 12:00 / 19:00; records the meeting, the touch and moves the stage like the queue), and "Record ▾" with call, e-mail, note, by voice and plan a call or meeting.
+- **Everything else folded**: partner, funnel, details, consent, deals, access, tags, activities (with counts), comments, files open with one press; planned calls and meetings start open when there are any.
+- The "Reply" button no longer wraps onto two lines. Texts in four languages; the browser test for messengers opens the script preview first.

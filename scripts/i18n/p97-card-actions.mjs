@@ -1,0 +1,7 @@
+const fragment = {
+  en: { crm: { scriptNow: "Script: “{title}”", scriptEdit: "Edit the text", awaitingSince: "Waiting for your answer · replied {date}", ourLastTouch: "our last touch {date}", actReplied: "They replied", actMeeting: "Meeting", actRecord: "Record", recCall: "Call", recEmail: "E-mail", recNote: "Note", recVoice: "By voice", recPlan: "Plan a call or meeting" } },
+  ru: { crm: { scriptNow: "Сценарий: «{title}»", scriptEdit: "Изменить текст", awaitingSince: "Ждёт твоего ответа · ответил {date}", ourLastTouch: "наше касание {date}", actReplied: "Он ответил", actMeeting: "Встреча", actRecord: "Записать", recCall: "Звонок", recEmail: "Письмо", recNote: "Заметка", recVoice: "Голосом", recPlan: "Запланировать звонок или встречу" } },
+  pl: { crm: { scriptNow: "Skrypt: „{title}”", scriptEdit: "Zmień tekst", awaitingSince: "Czeka na Twoją odpowiedź · odpisał(a) {date}", ourLastTouch: "nasz kontakt {date}", actReplied: "Odpisał(a)", actMeeting: "Spotkanie", actRecord: "Zapisz", recCall: "Rozmowa", recEmail: "E-mail", recNote: "Notatka", recVoice: "Głosem", recPlan: "Zaplanuj rozmowę lub spotkanie" } },
+  uk: { crm: { scriptNow: "Сценарій: «{title}»", scriptEdit: "Змінити текст", awaitingSince: "Чекає на твою відповідь · відповів {date}", ourLastTouch: "наш дотик {date}", actReplied: "Він відповів", actMeeting: "Зустріч", actRecord: "Записати", recCall: "Дзвінок", recEmail: "Лист", recNote: "Нотатка", recVoice: "Голосом", recPlan: "Запланувати дзвінок або зустріч" } },
+};
+export default fragment;

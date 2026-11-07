@@ -1080,7 +1080,19 @@
     "repliedDone": "✓ ответил {date}",
     "awaitingBadge": "ждёт ответа",
     "awaitingHint": "Человек ответил, а мы ему ещё нет",
-    "feedMore": "Показать ещё ({n})"
+    "feedMore": "Показать ещё ({n})",
+    "scriptNow": "Сценарий: «{title}»",
+    "scriptEdit": "Изменить текст",
+    "awaitingSince": "Ждёт твоего ответа · ответил {date}",
+    "ourLastTouch": "наше касание {date}",
+    "actReplied": "Он ответил",
+    "actMeeting": "Встреча",
+    "actRecord": "Записать",
+    "recCall": "Звонок",
+    "recEmail": "Письмо",
+    "recNote": "Заметка",
+    "recVoice": "Голосом",
+    "recPlan": "Запланировать звонок или встречу"
   },
   "myday": {
     "title": "Мой день",

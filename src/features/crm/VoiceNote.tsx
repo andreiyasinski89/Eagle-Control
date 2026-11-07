@@ -29,11 +29,15 @@ const LANG: Record<string, string> = { ru: "ru-RU", en: "en-US", pl: "pl-PL", uk
  * A voice note to a person: press, talk, stop. The browser writes the words down; they are put in a note that can be corrected before saving.
  * The recording itself is not kept.
  */
-export function VoiceNote({ workspaceId, contactId, companyId, onSaved }: { workspaceId: string; contactId: string; companyId: string | null; onSaved: () => void }) {
+/** With `open` and `onOpenChange` the window is opened from elsewhere (the "Record" menu of the card) and the own button is not drawn. */
+export function VoiceNote({ workspaceId, contactId, companyId, onSaved, open: openProp, onOpenChange }: { workspaceId: string; contactId: string; companyId: string | null; onSaved: () => void; open?: boolean; onOpenChange?: (open: boolean) => void }) {
   const t = useTranslations("mobile");
   const locale = useLocale();
   const qc = useQueryClient();
-  const [open, setOpen] = useState(false);
+  const [ownOpen, setOwnOpen] = useState(false);
+  const controlled = openProp !== undefined;
+  const open = controlled ? openProp : ownOpen;
+  const setOpen = (v: boolean) => (controlled ? onOpenChange?.(v) : setOwnOpen(v));
   const [state, setState] = useState<"idle" | "recording" | "ready" | "saving">("idle");
   const [text, setText] = useState("");
   const [seconds, setSeconds] = useState(0);
@@ -146,10 +150,12 @@ export function VoiceNote({ workspaceId, contactId, companyId, onSaved }: { work
   const mm = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
   return (
     <>
-      <Button type="button" size="sm" variant="outline" className="min-h-11 md:min-h-8" onClick={() => setOpen(true)} data-testid="voice-note">
-        <Mic className="size-4" />
-        {t("voiceNote")}
-      </Button>
+      {!controlled && (
+        <Button type="button" size="sm" variant="outline" className="min-h-11 md:min-h-8" onClick={() => setOpen(true)} data-testid="voice-note">
+          <Mic className="size-4" />
+          {t("voiceNote")}
+        </Button>
+      )}
       <Modal open={open} onClose={close} title={t("voiceNote")}>
         <div className="flex flex-col gap-3" data-testid="voice-dialog">
           {!supported && <p className="text-sm text-muted-foreground">{t("voiceUnsupported")}</p>}

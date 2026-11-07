@@ -34,6 +34,8 @@ test("script → Telegram, WhatsApp, Instagram: text copied, address opened, mes
   const text = `E2E hello Anna ${Date.now()}`;
   // The list behind the card has the same buttons in small (one row for each person): only those of the card are meant.
   const block = page.getByTestId("script-block");
+  // In the card the script is a short preview at the top; a press opens the full text box.
+  await block.getByTestId("script-preview").click({ timeout: 30_000 });
   const box = block.getByTestId("script-text");
   await expect(box).toBeVisible({ timeout: 30_000 });
   await box.fill(text);

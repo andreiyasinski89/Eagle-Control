@@ -1080,7 +1080,19 @@
     "repliedDone": "✓ replied {date}",
     "awaitingBadge": "awaits answer",
     "awaitingHint": "This person wrote back and has not been answered yet",
-    "feedMore": "Show more ({n})"
+    "feedMore": "Show more ({n})",
+    "scriptNow": "Script: “{title}”",
+    "scriptEdit": "Edit the text",
+    "awaitingSince": "Waiting for your answer · replied {date}",
+    "ourLastTouch": "our last touch {date}",
+    "actReplied": "They replied",
+    "actMeeting": "Meeting",
+    "actRecord": "Record",
+    "recCall": "Call",
+    "recEmail": "E-mail",
+    "recNote": "Note",
+    "recVoice": "By voice",
+    "recPlan": "Plan a call or meeting"
   },
   "myday": {
     "title": "My day",

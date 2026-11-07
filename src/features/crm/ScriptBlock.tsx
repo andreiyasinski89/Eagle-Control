@@ -12,7 +12,7 @@ import { useScriptFiller, useScripts } from "./useScripts";
  * "Script of the message" in a person's card: read the text (the name is put in), change it, and press the messenger that follows:
  * read, press, send, with nothing to scroll to in between.
  */
-export function ScriptBlock({ workspaceId, meId, person, stage, canWrite }: { workspaceId: string; meId: string; person: MessengerPerson; stage: string; canWrite: boolean }) {
+export function ScriptBlock({ workspaceId, meId, person, stage, canWrite, compact = false, onSent }: { workspaceId: string; meId: string; person: MessengerPerson; stage: string; canWrite: boolean; compact?: boolean; onSent?: () => void }) {
   const t = useTranslations("messenger");
   const tc = useTranslations("crm");
   const scripts = useScripts(workspaceId);
@@ -21,6 +21,8 @@ export function ScriptBlock({ workspaceId, meId, person, stage, canWrite }: { wo
   const [scriptId, setScriptId] = useState<string>("");
   const [text, setText] = useState("");
   const touched = useRef(false);
+  // In the card's top (compact) the text is a two-line preview: the script is ready, a press sends it; "Edit text" opens the full box.
+  const [editing, setEditing] = useState(!compact);
 
   // The first fitting script is put in once it is known, unless the person has already started writing their own words.
   useEffect(() => {
@@ -36,6 +38,30 @@ export function ScriptBlock({ workspaceId, meId, person, stage, canWrite }: { wo
     touched.current = true;
     if (s) setText(fill(s.body, person.name));
   };
+
+  if (compact && !editing) {
+    const title = candidates.find((x) => x.id === scriptId)?.title;
+    return (
+      <div className="flex flex-col gap-2" data-testid="script-block">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+          <span className="min-w-0 truncate">{title ? tc("scriptNow", { title }) : tc("scriptsNoneForStage")}</span>
+          {candidates.length > 1 && (
+            <select className={cn(selectClass, "h-9 w-auto max-w-[55%] text-xs")} aria-label={t("template")} value={scriptId} onChange={(e) => pick(e.target.value)} data-testid="script-template">
+              {candidates.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.title}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+        <button type="button" className="line-clamp-2 rounded-md bg-muted px-2 py-1.5 text-left text-xs text-muted-foreground hover:text-foreground" onClick={() => setEditing(true)} title={tc("scriptEdit")} data-testid="script-preview">
+          {text || t("scriptPlaceholder")}
+        </button>
+        <MessengerButtons workspaceId={workspaceId} person={person} text={text} canWrite={canWrite} logActivity onUsed={() => onSent?.()} />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-2" data-testid="script-block">
@@ -68,7 +94,7 @@ export function ScriptBlock({ workspaceId, meId, person, stage, canWrite }: { wo
         <p className="min-w-0 flex-1 text-xs text-muted-foreground">{t("autoCopy")}</p>
         {canWrite && <SendMaterial workspaceId={workspaceId} onPick={(line) => (touched.current = true, setText((cur) => `${cur.trimEnd()}${cur.trim() ? "\n\n" : ""}${line}`.slice(0, 4000)))} />}
       </div>
-      <MessengerButtons workspaceId={workspaceId} person={person} text={text} canWrite={canWrite} logActivity />
+      <MessengerButtons workspaceId={workspaceId} person={person} text={text} canWrite={canWrite} logActivity onUsed={() => onSent?.()} />
     </div>
   );
 }
