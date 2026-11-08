@@ -6,7 +6,8 @@ export const ALLOWED_CHILDREN: Record<NodeType, readonly NodeType[]> = {
   EPIC: ["SPRINT", "TASK", "DOCUMENT"],
   SPRINT: ["TASK", "DOCUMENT", "EVENT"],
   TASK: ["SUBTASK", "DOCUMENT"],
-  SUBTASK: [],
+  // A subtask may hold its own subtasks, to any depth (progress rolls up through them like through a task).
+  SUBTASK: ["SUBTASK", "DOCUMENT"],
   DOCUMENT: [],
   EVENT: [],
   // CRM tree (Client Map): a company holds its contacts and deals. Projects hang off deals by NodeLink, not by parent.

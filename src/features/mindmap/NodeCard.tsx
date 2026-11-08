@@ -348,25 +348,29 @@ function CardImpl({ data, selected }: NodeProps<CardNode>) {
       {canAdd && !hasChildren && (
         <button
           aria-label={t("addChild")}
-          className="nodrag nopan absolute -right-3 top-1/2 hidden size-5 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-card shadow-sm hover:bg-muted group-hover:flex"
+          className="nodrag nopan absolute -right-3 top-1/2 flex size-6 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-sm hover:border-primary hover:bg-primary hover:text-primary-foreground"
+          title={t("addChild")}
+          data-testid="card-add-child"
           onClick={(e) => {
             e.stopPropagation();
             setAdding((v) => !v);
           }}
         >
-          <Plus className="size-3" />
+          <Plus className="size-3.5" />
         </button>
       )}
       {canAdd && hasChildren && (
         <button
           aria-label={t("addChild")}
-          className="nodrag nopan absolute -bottom-2.5 right-6 hidden size-5 items-center justify-center rounded-full border border-border bg-card shadow-sm hover:bg-muted group-hover:flex"
+          className="nodrag nopan absolute -bottom-3 right-6 flex size-6 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-sm hover:border-primary hover:bg-primary hover:text-primary-foreground"
+          title={t("addChild")}
+          data-testid="card-add-child"
           onClick={(e) => {
             e.stopPropagation();
             setAdding((v) => !v);
           }}
         >
-          <Plus className="size-3" />
+          <Plus className="size-3.5" />
         </button>
       )}
       {adding && <AddMenu node={node} onClose={() => setAdding(false)} />}

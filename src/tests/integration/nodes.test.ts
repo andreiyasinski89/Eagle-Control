@@ -84,6 +84,17 @@ describe("projects & templates", () => {
 });
 
 describe("nesting rules & moves", () => {
+  it("subtasks go to any depth under a task", async () => {
+    const { project } = await createProject(owner, ws.id, { name: "P-deep" });
+    const epic = await add(project.id, "EPIC", "E");
+    const task = await add(epic.id, "TASK", "T");
+    const s1 = await add(task.id, "SUBTASK", "S1");
+    const s2 = await add(s1.id, "SUBTASK", "S2");
+    const s3 = await add(s2.id, "SUBTASK", "S3");
+    expect(s3.parentId).toBe(s2.id);
+    await expect(add(s3.id, "TASK", "No")).rejects.toMatchObject({ code: "invalid_nesting" });
+  });
+
   it("rejects invalid nesting and root creation", async () => {
     const { project } = await createProject(owner, ws.id, { name: "P-rules" });
     await expect(add(project.id, "TASK", "Bad")).rejects.toMatchObject({ status: 422, code: "invalid_nesting" });

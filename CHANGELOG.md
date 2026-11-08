@@ -722,3 +722,8 @@
 ## 0.65.1 — The task estimate can be typed again
 
 - In the task card the estimate box had half a row next to the unit and shrank to a few pixels (a browser extension's icon covered the rest), so no number could be typed in hours or story points. The estimate now has a row of its own with a box of a normal width, takes "1,5" as well as "1.5", saves on Enter or on leaving the box, and ignores words and negative numbers instead of saving nothing.
+
+## 0.66.0 — Subtasks to any depth, a plus on every card
+
+- A subtask can now hold its own subtasks, to any depth (a subtask cannot hold a task). Progress rolls up through every level the same way as through a task.
+- On the map every card that can hold something shows a round "+" at all times (before it appeared only under the mouse, so on a phone it was never there). It opens the short list of what can be added: for a subtask, a subtask or a document.

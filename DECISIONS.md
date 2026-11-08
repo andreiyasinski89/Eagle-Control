@@ -311,3 +311,5 @@
 | 304 | A sponsor link sets referredById like the platform link (without the bonus point) | Both are "brought by"; without it people who came by a sponsor link would fall outside the team. |
 | 305 | Losing team access gives 14 days of Pro (giftUntil) | Nobody is cut off mid-work; the same length as the trial. |
 | 306 | Estimate box: its own row, text input with decimal keyboard, comma accepted | type=number with a comma failed silently in Russian, and the half-row layout left no room to type. |
+| 307 | SUBTASK may contain SUBTASK (and DOCUMENT), unlimited depth | The owner breaks work down further than two levels; progress aggregation was already recursive. |
+| 308 | The add-child "+" is always visible on map cards | No hover on phones; a lazy hand wants the action in sight. |

@@ -30,7 +30,8 @@ describe("node-rules", () => {
     ["TASK", "SUBTASK", true],
     ["TASK", "DOCUMENT", true],
     ["TASK", "TASK", false],
-    ["SUBTASK", "SUBTASK", false],
+    ["SUBTASK", "SUBTASK", true],
+    ["SUBTASK", "TASK", false],
     ["DOCUMENT", "TASK", false],
   ] as [NodeType, NodeType, boolean][])("%s → %s is %s", (p, c, ok) => {
     expect(canNest(p, c)).toBe(ok);
