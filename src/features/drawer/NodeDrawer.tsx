@@ -1,5 +1,6 @@
 "use client";
 
+import { parseEstimation } from "@/modules/nodes/estimation";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Link2, Share2, Trash2, X } from "lucide-react";
@@ -266,25 +267,35 @@ function DrawerBody({ node, isRoot, close }: { node: ClientNode; isRoot: boolean
               <Input type="date" disabled={!canWrite} value={dateValue(node.dueDate)} min={dateValue(node.startDate) || undefined} onChange={(e) => void save({ dueDate: toIsoDay(e.target.value) })} />
             </Field>
             {isTask && (
-              <div data-advanced className="contents">
+              // A whole row of its own: squeezed into half a row next to the unit, the number box shrank to nothing (and a browser
+              // extension's icon covered what was left), so nothing could be typed.
+              <div data-advanced className="col-span-2">
               <Field label={t("estimation")}>
                 <div className="flex gap-2">
                   <Input
-                    type="number"
-                    min={0}
-                    step="0.5"
+                    type="text"
+                    inputMode="decimal"
+                    autoComplete="off"
+                    data-1p-ignore
+                    data-lpignore="true"
+                    placeholder="0"
                     disabled={!canWrite}
                     defaultValue={node.estimation ?? ""}
                     key={node.estimation ?? "none"}
-                    className="min-w-0 flex-1"
+                    className="w-28 shrink-0"
                     data-testid="estimation-input"
+                    onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
                     onBlur={(e) => {
-                      const v = e.target.value === "" ? null : Number(e.target.value);
+                      const v = parseEstimation(e.target.value);
+                      if (v === undefined) {
+                        e.target.value = node.estimation == null ? "" : String(node.estimation);
+                        return;
+                      }
                       if (v !== node.estimation) void save({ estimation: v });
                     }}
                   />
                   <select
-                    className={`${selectCls} w-32 shrink-0`}
+                    className={`${selectCls} min-w-0 flex-1`}
                     disabled={!canWrite}
                     value={node.estimationUnit ?? projectUnit}
                     aria-label={t("estimationUnit")}

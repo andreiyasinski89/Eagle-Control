@@ -310,3 +310,4 @@
 | 303 | Team access by the chain of invitations from the platform owner, with a per-person override that carries down the branch | The owner gives the platform free to their whole structure and wants to switch a person or a branch to paid by hand later. |
 | 304 | A sponsor link sets referredById like the platform link (without the bonus point) | Both are "brought by"; without it people who came by a sponsor link would fall outside the team. |
 | 305 | Losing team access gives 14 days of Pro (giftUntil) | Nobody is cut off mid-work; the same length as the trial. |
+| 306 | Estimate box: its own row, text input with decimal keyboard, comma accepted | type=number with a comma failed silently in Russian, and the half-row layout left no room to type. |

@@ -718,3 +718,7 @@
 - **The owner's switch, per person, in the platform admin:** "By invitation chain" / "Free" / "Switch off". Switching off applies to the whole branch below, except people switched on by hand; whoever loses free access gets 14 days of Pro to decide (nothing is deleted) and a notice. A green "Team" mark in the list of users.
 - The billing page says "Pro · team — free for you: you are in the MLM CRM team".
 - Migration 0041 (additive): `User.teamAccess`, `User.teamAccessAt`. Texts in four languages; tests for the rule, the branch switch, the grace days and the rights.
+
+## 0.65.1 — The task estimate can be typed again
+
+- In the task card the estimate box had half a row next to the unit and shrank to a few pixels (a browser extension's icon covered the rest), so no number could be typed in hours or story points. The estimate now has a row of its own with a box of a normal width, takes "1,5" as well as "1.5", saves on Enter or on leaving the box, and ignores words and negative numbers instead of saving nothing.
