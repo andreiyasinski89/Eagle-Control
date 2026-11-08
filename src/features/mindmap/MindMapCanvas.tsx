@@ -18,7 +18,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTheme } from "next-themes";
 import { useTranslations } from "next-intl";
 import type { NodeType } from "@prisma/client";
-import { DEFAULT_LAYOUT, tidyLayout } from "@/modules/nodes/layout";
+import { cardHeight, DEFAULT_LAYOUT, tidyLayout } from "@/modules/nodes/layout";
 import { initialViewport } from "@/modules/nodes/view";
 import { allowedChildTypes } from "@/modules/nodes/node-rules";
 import { archiveNode, createChild, moveDenial, moveNode, redo, undo, updateNode } from "./actions";
@@ -76,7 +76,8 @@ function Inner({ rootId }: { rootId: string }) {
     () => buildVisibility(Object.values(nodes), { rootId, focusId, filter, mode: filterMode, now: new Date() }),
     [nodes, rootId, focusId, filter, filterMode],
   );
-  const layout = useMemo(() => tidyLayout(vis.visible), [vis.visible]);
+  // A card grows with a long title, so the whole title is read on the map; the layout makes room for it.
+  const layout = useMemo(() => tidyLayout(vis.visible, DEFAULT_LAYOUT, (n) => cardHeight(n.title)), [vis.visible]);
 
   // Reuse unchanged React Flow node objects so memoised cards skip re-rendering.
   const cache = useRef(new Map<string, CardNode>());
@@ -127,7 +128,7 @@ function Inner({ rootId }: { rootId: string }) {
         data,
         draggable: canWrite && n.parentId !== null,
         width: DEFAULT_LAYOUT.nodeWidth,
-        height: DEFAULT_LAYOUT.nodeHeight,
+        height: cardHeight(n.title),
       };
       next.set(n.id, rf);
       return rf;

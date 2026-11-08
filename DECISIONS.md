@@ -313,3 +313,4 @@
 | 306 | Estimate box: its own row, text input with decimal keyboard, comma accepted | type=number with a comma failed silently in Russian, and the half-row layout left no room to type. |
 | 307 | SUBTASK may contain SUBTASK (and DOCUMENT), unlimited depth | The owner breaks work down further than two levels; progress aggregation was already recursive. |
 | 308 | The add-child "+" is always visible on map cards | No hover on phones; a lazy hand wants the action in sight. |
+| 309 | Map cards grow with the title (height estimated from its length, up to 5 lines) instead of measuring the DOM | The tree layout must know heights before drawing; an estimate on the safe side (22 letters a line) avoids a second layout pass. |

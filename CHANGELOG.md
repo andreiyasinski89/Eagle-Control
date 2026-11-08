@@ -727,3 +727,7 @@
 
 - A subtask can now hold its own subtasks, to any depth (a subtask cannot hold a task). Progress rolls up through every level the same way as through a task.
 - On the map every card that can hold something shows a round "+" at all times (before it appeared only under the mouse, so on a phone it was never there). It opens the short list of what can be added: for a subtask, a subtask or a document.
+
+## 0.66.1 — The whole task title on the map card
+
+- A card on the map no longer cuts its title to one line: the title wraps (up to five lines; beyond that "…" and the full title on hover) and the card grows to fit it. The map makes room: a taller card pushes its neighbours apart, so no card covers another, and lines between cards still meet the middle of each card.

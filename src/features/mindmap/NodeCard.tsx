@@ -18,6 +18,7 @@ import {
 import type { NodeType } from "@prisma/client";
 import { useLocale, useTranslations } from "next-intl";
 import { allowedChildTypes } from "@/modules/nodes/node-rules";
+import { cardHeight } from "@/modules/nodes/layout";
 import { nextOccurrence, type EventSummary } from "@/modules/nodes/repeat";
 import { repeatLabel } from "@/features/views/repeat-label";
 import { zonedParts } from "@/modules/views/tz";
@@ -214,6 +215,7 @@ function CardImpl({ data, selected }: NodeProps<CardNode>) {
   const done = node.status === "DONE" || node.status === "CANCELLED";
   const tagRoom = showsStatus(node.type) ? 1 : 3; // the status pill takes the room of two tags
   const canAdd = canWrite && allowedChildTypes(node.type).length > 0;
+  const height = cardHeight(node.title);
 
   // Far zoom: a coloured dot with the title keeps 2000 nodes cheap to paint and still readable.
   if (detail === "mid") {
@@ -222,8 +224,8 @@ function CardImpl({ data, selected }: NodeProps<CardNode>) {
         data-testid={`node-${node.id}`}
         data-node-type={node.type}
         data-health={health}
-        className={cn("relative flex h-[76px] w-[240px] flex-col justify-center gap-1.5 rounded-xl border bg-card px-4 shadow-sm", selected ? "border-primary ring-2 ring-primary/40" : "border-border", dim && "opacity-25", done && "opacity-75")}
-        style={{ borderLeftWidth: 8, borderLeftColor: countable ? color : "var(--border)" }}
+        className={cn("relative flex w-[240px] flex-col justify-center gap-1.5 rounded-xl border bg-card px-4 shadow-sm", selected ? "border-primary ring-2 ring-primary/40" : "border-border", dim && "opacity-25", done && "opacity-75")}
+        style={{ height, borderLeftWidth: 8, borderLeftColor: countable ? color : "var(--border)" }}
       >
         <Handle type="target" position={Position.Left} className="!opacity-0" />
         <span className={cn("truncate text-[22px] font-semibold leading-7", node.status === "CANCELLED" && "line-through")}>
@@ -238,7 +240,7 @@ function CardImpl({ data, selected }: NodeProps<CardNode>) {
 
   if (detail === "far") {
     return (
-      <div className={cn("flex h-[76px] w-[240px] items-center gap-3", dim && "opacity-25")}>
+      <div className={cn("flex w-[240px] items-center gap-3", dim && "opacity-25")} style={{ height }}>
         <Handle type="target" position={Position.Left} className="!opacity-0" />
         <span className="size-7 shrink-0 rounded-full border-2 border-card" style={{ background: countable ? color : "var(--muted-foreground)" }} />
         <span className="truncate text-lg font-semibold">{node.title}</span>
@@ -253,7 +255,7 @@ function CardImpl({ data, selected }: NodeProps<CardNode>) {
       data-node-type={node.type}
       data-health={health}
       className={cn(
-        "group relative h-[76px] w-[240px] rounded-xl border bg-card px-3 py-2 shadow-sm transition-[opacity,box-shadow] hover:shadow-md",
+        "group relative w-[240px] rounded-xl border bg-card px-3 py-2 shadow-sm transition-[opacity,box-shadow] hover:shadow-md",
         selected ? "border-primary ring-2 ring-primary/40" : "border-border",
         dim && "opacity-30",
         matched && !heatmap && "ring-2 ring-primary/30",
@@ -261,6 +263,7 @@ function CardImpl({ data, selected }: NodeProps<CardNode>) {
         done && !heatmap && "opacity-80",
       )}
       style={{
+        height,
         borderLeftWidth: 5,
         borderLeftColor: countable ? color : "var(--border)",
         background: heatmap && countable ? `color-mix(in srgb, ${color} 22%, var(--card))` : undefined,
@@ -274,18 +277,20 @@ function CardImpl({ data, selected }: NodeProps<CardNode>) {
           {here.editors.length ? `${marker.name} ✎` : marker.name}
         </span>
       )}
-      <div className="flex items-center gap-2">
-        <Icon className={cn("size-4 shrink-0", heatmap ? "text-foreground" : "text-muted-foreground")} aria-label={t(`type.${node.type}`)} />
+      <div className="flex items-start gap-2">
+        <Icon className={cn("mt-0.5 size-4 shrink-0", heatmap ? "text-foreground" : "text-muted-foreground")} aria-label={t(`type.${node.type}`)} />
         <div className="min-w-0 flex-1" onDoubleClick={() => canWrite && useMapStore.getState().setEditing(node.id)}>
           {editing ? (
             <TitleEditor node={node} />
           ) : (
-            <div className={cn("truncate text-sm font-medium", node.status === "CANCELLED" && "line-through")}>{node.title}</div>
+            <div className={cn("line-clamp-5 break-words text-sm font-medium leading-5", node.status === "CANCELLED" && "line-through")} title={node.title} data-testid="card-title">
+              {node.title}
+            </div>
           )}
         </div>
         {countable && (
           <span
-            className="size-2.5 shrink-0 rounded-full"
+            className="mt-1.5 size-2.5 shrink-0 rounded-full"
             style={{ background: color }}
             role="img"
             aria-label={t(`health.${health}`)}

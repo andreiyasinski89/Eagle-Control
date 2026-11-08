@@ -50,3 +50,29 @@ describe("tidyLayout", () => {
     expect(performance.now() - t0).toBeLessThan(200);
   });
 });
+
+describe("cards grow with long titles", () => {
+  it("a short title is one line, a long one takes more, never more than five", async () => {
+    const { titleLines, cardHeight } = await import("@/modules/nodes/layout");
+    expect(titleLines("Готово")).toBe(1);
+    expect(titleLines("Опция выбора тайм-зоны в настройках аккаунта")).toBeGreaterThanOrEqual(2);
+    expect(titleLines("слово ".repeat(80))).toBe(5);
+    expect(cardHeight("Готово")).toBe(H);
+    expect(cardHeight("Опция выбора тайм-зоны в настройках аккаунта")).toBeGreaterThan(H);
+  });
+  it("siblings make room for a taller card, so no card covers another", async () => {
+    const { cardHeight } = await import("@/modules/nodes/layout");
+    const titles: Record<string, string> = { r: "Root", a: "Короткая", b: "Очень длинное название задачи, которое занимает несколько строк в карточке", c: "Ещё одна" };
+    const nodes = [
+      { id: "r", parentId: null, position: 0 },
+      { id: "a", parentId: "r", position: 0 },
+      { id: "b", parentId: "r", position: 1 },
+      { id: "c", parentId: "r", position: 2 },
+    ];
+    const h = (n: { id: string }) => cardHeight(titles[n.id] as string);
+    const out = tidyLayout(nodes, DEFAULT_LAYOUT, h);
+    const ys = ["a", "b", "c"].map((id) => ({ top: out.get(id)!.y, bottom: out.get(id)!.y + h({ id }) }));
+    expect(ys[1]!.top).toBeGreaterThanOrEqual(ys[0]!.bottom);
+    expect(ys[2]!.top).toBeGreaterThanOrEqual(ys[1]!.bottom);
+  });
+});
