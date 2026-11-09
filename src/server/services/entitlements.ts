@@ -1,5 +1,6 @@
 import type { Plan } from "@prisma/client";
 import { db } from "@/server/db";
+import type { NoticeText } from "./notice-text";
 import { activeSources, daysLeft, effectivePlan, trialEnd, TRIAL_DAYS } from "@/modules/plans/entitlement";
 import { isGrantedEmail } from "./grants";
 import { notify } from "./notify";
@@ -10,9 +11,9 @@ const DAY = 86_400_000;
 
 const sourcesOf = (w: { basePlan: Plan; trialEndsAt: Date | null; bonusUntil: Date | null; giftUntil: Date | null }) => ({ basePlan: w.basePlan, trialEndsAt: w.trialEndsAt, bonusUntil: w.bonusUntil, giftUntil: w.giftUntil });
 
-async function tellOwners(workspaceId: string, title: string, body: string, key: string): Promise<void> {
+async function tellOwners(workspaceId: string, title: string, body: string, key: string, text?: NoticeText): Promise<void> {
   const owners = await db.membership.findMany({ where: { workspaceId, role: "OWNER" }, select: { userId: true } });
-  for (const o of owners) await notify({ userId: o.userId, workspaceId, kind: "billing", title, body, url: "/settings/billing", dedupeKey: key }).catch(() => undefined);
+  for (const o of owners) await notify({ userId: o.userId, workspaceId, kind: "billing", title, body, url: "/settings/billing", dedupeKey: key, text }).catch(() => undefined);
 }
 
 /**
@@ -43,7 +44,7 @@ export async function startTrial(userId: string, workspaceId: string, now = new 
   if (had > 0) return false;
   await db.workspace.update({ where: { id: workspaceId }, data: { trialEndsAt: trialEnd(now) } });
   await syncPlan(workspaceId, now);
-  await tellOwners(workspaceId, `Your ${TRIAL_DAYS} days of Pro have started`, "Everything in Pro is on. Nothing is deleted when the trial ends.", `trial:start:${workspaceId}`);
+  await tellOwners(workspaceId, `Your ${TRIAL_DAYS} days of Pro have started`, "Everything in Pro is on. Nothing is deleted when the trial ends.", `trial:start:${workspaceId}`, { key: "trialStarted", params: { days: TRIAL_DAYS } });
   return true;
 }
 
@@ -79,11 +80,11 @@ export async function expireTimed(now = new Date()): Promise<{ ended: number; re
     const r = await syncPlan(w.id, now);
     if (r.before !== r.after && r.after === "FREE") {
       ended++;
-      await tellOwners(w.id, "Your Pro has ended: the workspace is on the Free plan", "Nothing was deleted. Limits apply to new items again; pick a plan to get Pro back.", `pro:ended:${w.id}:${now.toISOString().slice(0, 10)}`);
+      await tellOwners(w.id, "Your Pro has ended: the workspace is on the Free plan", "Nothing was deleted. Limits apply to new items again; pick a plan to get Pro back.", `pro:ended:${w.id}:${now.toISOString().slice(0, 10)}`, { key: "proEnded" });
     }
     if (w.basePlan === "FREE" && w.trialEndsAt && w.trialEndsAt.getTime() > now.getTime() && w.trialEndsAt.getTime() - now.getTime() <= 3 * DAY) {
       reminded++;
-      await tellOwners(w.id, "Your Pro trial ends in 3 days or less", "Pick a plan in Settings → Billing to keep Pro; otherwise the workspace goes to Free and nothing is deleted.", `trial:remind:${w.id}`);
+      await tellOwners(w.id, "Your Pro trial ends in 3 days or less", "Pick a plan in Settings → Billing to keep Pro; otherwise the workspace goes to Free and nothing is deleted.", `trial:remind:${w.id}`, { key: "trialEnding" });
     }
   }
   return { ended, reminded };

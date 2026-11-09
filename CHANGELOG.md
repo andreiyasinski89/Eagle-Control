@@ -751,3 +751,9 @@
 - On a phone the notifications panel hung from the bell in the middle of the top bar and ran off the left edge of the screen. There it now spans the screen width under the top bar, with a taller scrolling list; long titles wrap.
 - Old notices "… joined MeetOwl through your link" read "MLM CRM".
 - The parts of a person's card (partner, funnel, details, activities…) start open; one press on a title still folds it.
+
+## 0.68.0 — Notifications in the reader's language
+
+- Every notification (the bell, the e-mail copy and the bot) is now written in the language the recipient uses the platform in — Russian, Ukrainian, Polish or English — instead of always English: projects turning red, sprint results, reminders, deals going cold, no contact for a month, new and repeat leads, assignments (with proper plural forms), client comments, approvals and uploads, mentions, people joining through your links, plan and payment notices, AI allowance. Values (names, titles, numbers) are put into the text.
+- How: each call passes a key of the new "notices" texts with its values; `notify` renders it once in the recipient's language (`server/services/notice-text.ts`) and keeps the English text as a fallback. Notices already in the bell stay as they were written.
+- Texts in four languages; tests for the wording, plural forms, the fallback and the stored language.

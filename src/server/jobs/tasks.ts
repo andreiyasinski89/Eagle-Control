@@ -29,7 +29,7 @@ export async function refreshAllProjects(now = new Date()): Promise<{ projects: 
       const people = await db.membership.findMany({ where: { workspaceId: p.workspaceId, role: { in: ["OWNER", "ADMIN"] } }, select: { userId: true } });
       let first = true;
       for (const m of people) {
-        const id = await notify({ userId: m.userId, workspaceId: p.workspaceId, kind: "project_red", title: `Project “${p.title}” turned red`, url: `/projects/p/${p.id}`, dedupeKey: `project_red:${p.id}:${isoDay(now)}`, payload: { projectId: p.id } });
+        const id = await notify({ userId: m.userId, workspaceId: p.workspaceId, kind: "project_red", title: `Project “${p.title}” turned red`, text: { key: "projectRed", params: { title: p.title } }, url: `/projects/p/${p.id}`, dedupeKey: `project_red:${p.id}:${isoDay(now)}`, payload: { projectId: p.id } });
         if (id && first) {
           first = false; // the first new notification of the day also goes to the team channel, once
           await announceToSlack(p.workspaceId, "project_red", { title: `Project “${p.title}” turned red`, url: `/projects/p/${p.id}` });
@@ -61,7 +61,7 @@ export async function announceEndedSprints(now = new Date()): Promise<{ sprints:
     const people = await db.membership.findMany({ where: { workspaceId: s.workspaceId, role: { in: ["OWNER", "ADMIN"] } }, select: { userId: true } });
     let first = true;
     for (const m of people) {
-      const id = await notify({ userId: m.userId, workspaceId: s.workspaceId, kind: "sprint_ended", title, body, url: `/projects/p/${s.rootId ?? s.id}?node=${s.id}`, dedupeKey: `sprint_ended:${s.id}`, payload: { sprintId: s.id, done, total: tasks.length } });
+      const id = await notify({ userId: m.userId, workspaceId: s.workspaceId, kind: "sprint_ended", title, body, text: { key: "sprintEnded", params: { sprint: `${s.title}${project ? ` (${project.title})` : ""}`, done, total: tasks.length } }, url: `/projects/p/${s.rootId ?? s.id}?node=${s.id}`, dedupeKey: `sprint_ended:${s.id}`, payload: { sprintId: s.id, done, total: tasks.length } });
       if (id && first) {
         first = false;
         announced++;
@@ -85,7 +85,7 @@ export async function dispatchReminders(now = new Date()): Promise<{ manual: num
     const target = await db.node.findUnique({ where: { id: r.targetNodeId }, select: { title: true, workspaceId: true, type: true, rootId: true, id: true } });
     if (target) {
       const path = target.type === "PROJECT" || target.rootId ? `/projects/p/${target.rootId ?? target.id}?node=${target.id}` : target.type === "DEAL" ? `/crm?deal=${target.id}` : `/crm/contacts?contact=${target.id}`;
-      await notify({ userId: r.userId, workspaceId: target.workspaceId, kind: "reminder", title: `Reminder: ${target.title}`, url: path, dedupeKey: `reminder:${r.id}`, extraChannels: r.channel === "EMAIL" ? ["email"] : [] });
+      await notify({ userId: r.userId, workspaceId: target.workspaceId, kind: "reminder", title: `Reminder: ${target.title}`, text: { key: "reminder", params: { title: target.title } }, url: path, dedupeKey: `reminder:${r.id}`, extraChannels: r.channel === "EMAIL" ? ["email"] : [] });
     }
     await db.reminder.update({ where: { id: r.id }, data: { done: true } });
     manual++;
@@ -96,11 +96,11 @@ export async function dispatchReminders(now = new Date()): Promise<{ manual: num
     const day = await getMyDay(m.userId, m.workspaceId, now).catch(() => null);
     if (!day || !day.crm) continue;
     for (const d of day.attention.staleDeals) {
-      const id = await notify({ userId: m.userId, workspaceId: m.workspaceId, kind: "stale_deal", title: `“${d.title}” is going cold`, body: d.companyName ?? undefined, url: `/crm?deal=${d.id}`, dedupeKey: `stale:${d.id}:${isoWeek(now)}` });
+      const id = await notify({ userId: m.userId, workspaceId: m.workspaceId, kind: "stale_deal", title: `“${d.title}” is going cold`, text: { key: "staleDeal", params: { title: d.title } }, body: d.companyName ?? undefined, url: `/crm?deal=${d.id}`, dedupeKey: `stale:${d.id}:${isoWeek(now)}` });
       if (id) automatic++;
     }
     for (const c of day.attention.coldContacts) {
-      const id = await notify({ userId: m.userId, workspaceId: m.workspaceId, kind: "cold_contact", title: `No contact with ${c.name} for a month`, body: c.companyName ?? undefined, url: `/crm/contacts?contact=${c.id}`, dedupeKey: `cold:${c.id}:${isoWeek(now)}` });
+      const id = await notify({ userId: m.userId, workspaceId: m.workspaceId, kind: "cold_contact", title: `No contact with ${c.name} for a month`, text: { key: "coldContact", params: { name: c.name } }, body: c.companyName ?? undefined, url: `/crm/contacts?contact=${c.id}`, dedupeKey: `cold:${c.id}:${isoWeek(now)}` });
       if (id) automatic++;
     }
   }

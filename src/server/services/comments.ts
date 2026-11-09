@@ -65,7 +65,7 @@ export async function createComment(userId: string, nodeId: string, input: Creat
       const author = await tx.user.findUnique({ where: { id: userId }, select: { name: true, email: true } });
       for (const id of mentioned) {
         await notify(
-          { userId: id, workspaceId: node.workspaceId, kind: "mention", title: `${author?.name ?? author?.email ?? "Someone"} mentioned you in “${node.title}”`, url: nodePath(node), payload: { nodeId, projectId, commentId: comment.id, byUserId: userId } },
+          { userId: id, workspaceId: node.workspaceId, kind: "mention", title: `${author?.name ?? author?.email ?? "Someone"} mentioned you in “${node.title}”`, text: { key: "mention", params: { name: author?.name ?? author?.email ?? "?", title: node.title } }, url: nodePath(node), payload: { nodeId, projectId, commentId: comment.id, byUserId: userId } },
           tx,
         );
       }

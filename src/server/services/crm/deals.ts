@@ -332,7 +332,7 @@ export async function moveDeal(userId: string, dealId: string, input: z.infer<ty
       const admins = await tx.membership.findMany({ where: { workspaceId: node.workspaceId, role: { in: ["OWNER", "ADMIN"] } }, select: { userId: true } });
       const who = new Set([...admins.map((a) => a.userId), ...(deal.ownerId ? [deal.ownerId] : [])]);
       who.delete(userId);
-      for (const id of who) await notify({ userId: id, workspaceId: node.workspaceId, kind: "deal_won", title: `Deal won: ${node.title}`, body: `${toNum(deal.amount)} ${deal.currency}`, url: `/crm?deal=${dealId}`, dedupeKey: `won:${dealId}`, payload: { dealId } }, tx);
+      for (const id of who) await notify({ userId: id, workspaceId: node.workspaceId, kind: "deal_won", title: `Deal won: ${node.title}`, text: { key: "dealWon", params: { title: node.title } }, body: `${toNum(deal.amount)} ${deal.currency}`, url: `/crm?deal=${dealId}`, dedupeKey: `won:${dealId}`, payload: { dealId } }, tx);
     }
     if (deal.stageId !== target.id) {
       await tx.dealStageEvent.create({ data: { dealId, workspaceId: node.workspaceId, pipelineId: deal.pipelineId, fromStageId: deal.stageId, toStageId: target.id, actorId: userId, source: opts.source ?? null, at: now } });

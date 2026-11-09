@@ -45,7 +45,7 @@ export async function createTaskTree(ctx: OpContext, input: CreateTaskTreeInput)
   await recordStatusChanges(tx, all.map((n) => ({ nodeId: n.id, projectId: parent.projectId, type: n.type, from: null, to: "TODO" as const })), userId);
   await tx.activityLog.createMany({ data: all.map((n) => ({ workspaceId, nodeId: n.id, actorId: userId, action: "node.created", diff: { type: n.type, title: n.title, parentId: n.parentId } })) });
   if (input.assigneeId && input.assigneeId !== userId) {
-    await notify({ userId: input.assigneeId, workspaceId, kind: "assigned", title: `You were assigned ${all.length} ${all.length === 1 ? "task" : "tasks"}`, url: nodePath(parent.node), payload: { nodeId: parent.node.id } }, tx);
+    await notify({ userId: input.assigneeId, workspaceId, kind: "assigned", title: `You were assigned ${all.length} ${all.length === 1 ? "task" : "tasks"}`, text: { key: "assignedMany", params: { n: all.length } }, url: nodePath(parent.node), payload: { nodeId: parent.node.id } }, tx);
   }
   await logActivity(tx, { workspaceId, nodeId: parent.node.id, actorId: userId, action: "tasks.created", diff: { tasks: made.length, subtasks: all.length - made.length } });
   ctx.touched.add(parent.projectId);

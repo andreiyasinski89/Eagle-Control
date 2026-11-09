@@ -66,6 +66,7 @@ async function warnOwners(workspaceId: string, level: "80" | "100", plan: "FREE"
       workspaceId,
       kind: "billing",
       title: level === "100" ? "The AI allowance for this month is used up" : "80% of this month's AI allowance is used",
+      text: { key: level === "100" ? "aiUsedUp" : "aiAlmost", params: { used: used.toLocaleString("en"), limit: AI_MONTHLY_TOKENS[plan].toLocaleString("en") } },
       body: `${used.toLocaleString("en")} of ${AI_MONTHLY_TOKENS[plan].toLocaleString("en")} tokens`,
       url: "/settings/billing",
       dedupeKey: `ai${level}:${workspaceId}:${monthKey(now)}`,

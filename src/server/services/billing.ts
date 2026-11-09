@@ -2,6 +2,7 @@ import { createHmac } from "node:crypto";
 import type { Plan } from "@prisma/client";
 import { env } from "@/lib/env";
 import { db } from "@/server/db";
+import type { NoticeText } from "./notice-text";
 import { ApiError, forbidden } from "@/server/http/errors";
 import { httpJson, IntegrationError, notConfigured, safeEqual } from "@/server/integrations/common";
 import { graceEndsAt, planFor } from "@/modules/plans/billing";
@@ -144,9 +145,9 @@ async function setPlan(workspaceId: string, now: Date): Promise<Plan> {
   return (await syncPlan(workspaceId, now)).after;
 }
 
-async function tellOwners(workspaceId: string, title: string, body: string, key: string): Promise<void> {
+async function tellOwners(workspaceId: string, title: string, body: string, key: string, text?: NoticeText): Promise<void> {
   const owners = await db.membership.findMany({ where: { workspaceId, role: "OWNER" }, select: { userId: true } });
-  for (const o of owners) await notify({ userId: o.userId, workspaceId, kind: "billing", title, body, url: "/settings/billing", dedupeKey: key });
+  for (const o of owners) await notify({ userId: o.userId, workspaceId, kind: "billing", title, body, url: "/settings/billing", dedupeKey: key, text });
 }
 
 /**
@@ -198,7 +199,7 @@ async function applyEvent(ev: StripeEvent, now: Date): Promise<"applied" | "igno
     });
     const before = (await db.workspace.findUniqueOrThrow({ where: { id: wsId }, select: { plan: true } })).plan;
     const after = await setPlan(wsId, now);
-    if (before !== after) await tellOwners(wsId, after === "FREE" ? "Your subscription ended; the workspace is on the Free plan" : "Welcome to Pro", after === "FREE" ? "Nothing was deleted. Limits apply to new items again." : "All Pro features are on.", `plan:${ev.id}`);
+    if (before !== after) await tellOwners(wsId, after === "FREE" ? "Your subscription ended; the workspace is on the Free plan" : "Welcome to Pro", after === "FREE" ? "Nothing was deleted. Limits apply to new items again." : "All Pro features are on.", `plan:${ev.id}`, { key: after === "FREE" ? "subscriptionEnded" : "welcomePro" });
     return "applied";
   }
 
@@ -212,7 +213,7 @@ async function applyEvent(ev: StripeEvent, now: Date): Promise<"applied" | "igno
     }
     const sub = await db.subscription.findUniqueOrThrow({ where: { workspaceId: wsId } });
     if (!sub.pastDueSince) await db.subscription.update({ where: { workspaceId: wsId }, data: { pastDueSince: at } });
-    await tellOwners(wsId, "A payment failed", "Update the card in Settings → Billing within 7 days to keep Pro.", `payment_failed:${at.toISOString().slice(0, 10)}`);
+    await tellOwners(wsId, "A payment failed", "Update the card in Settings → Billing within 7 days to keep Pro.", `payment_failed:${at.toISOString().slice(0, 10)}`, { key: "paymentFailed" });
     return "applied";
   }
   return "ignored";
@@ -226,7 +227,7 @@ export async function expireGrace(now = new Date()): Promise<{ downgraded: numbe
     const before = (await db.workspace.findUniqueOrThrow({ where: { id: r.workspaceId }, select: { plan: true } })).plan;
     if ((await setPlan(r.workspaceId, now)) !== before) {
       downgraded++;
-      await tellOwners(r.workspaceId, "The workspace is back on the Free plan", "The last payment was not received. Nothing was deleted.", `grace:${r.workspaceId}:${now.toISOString().slice(0, 10)}`);
+      await tellOwners(r.workspaceId, "The workspace is back on the Free plan", "The last payment was not received. Nothing was deleted.", `grace:${r.workspaceId}:${now.toISOString().slice(0, 10)}`, { key: "graceEnded" });
     }
   }
   return { downgraded };

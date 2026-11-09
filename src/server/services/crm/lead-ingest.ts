@@ -296,7 +296,7 @@ export async function ingestLead(opts: IngestOptions, raw: unknown): Promise<Ing
         await createActivityIn(tx, actor, opts.workspaceId, { type: "MESSAGE", subject: `Inquiry via ${opts.sourceLabel}`, body: leadNote(lead) || null, contactId, companyId: null, dealId: null, completed: true, ownerId: actor });
         const who = fullName(lead.firstName, lead.lastName);
         const personal: IngestResult["status"] = existed ? "duplicate" : "created";
-        await notify({ userId: actor, workspaceId: opts.workspaceId, kind: "lead", title: personal === "created" ? `New lead: ${who}` : `Repeat inquiry from ${who}`, body: opts.sourceLabel, url: "/crm/touches", payload: { contactId, source: opts.sourceLabel, status: personal } }, tx);
+        await notify({ userId: actor, workspaceId: opts.workspaceId, kind: "lead", title: personal === "created" ? `New lead: ${who}` : `Repeat inquiry from ${who}`, text: { key: personal === "created" ? "leadNew" : "leadRepeat", params: { name: who } }, body: opts.sourceLabel, url: "/crm/touches", payload: { contactId, source: opts.sourceLabel, status: personal } }, tx);
         await tx.leadIngest.create({ data: { workspaceId: opts.workspaceId, source: opts.source, idempotencyKey: key, ipHash: opts.ipHash ?? null, status: personal, contactId, dealId: null, payload: raw as Prisma.InputJsonValue } });
         return { status: personal, contactId, dealId: null, companyId: null };
       }
@@ -338,7 +338,7 @@ export async function ingestLead(opts: IngestOptions, raw: unknown): Promise<Ing
         completed: true,
         ownerId: actor,
       });
-      await notify({ userId: actor, workspaceId: opts.workspaceId, kind: "lead", title: status === "created" ? `New lead: ${fullName(lead.firstName, lead.lastName)}` : `Repeat inquiry from ${fullName(lead.firstName, lead.lastName)}`, body: `${opts.sourceLabel}${lead.company ? ` · ${lead.company}` : ""}`, url: `/crm?deal=${dealId}`, payload: { dealId, contactId, source: opts.sourceLabel, status } }, tx);
+      await notify({ userId: actor, workspaceId: opts.workspaceId, kind: "lead", title: status === "created" ? `New lead: ${fullName(lead.firstName, lead.lastName)}` : `Repeat inquiry from ${fullName(lead.firstName, lead.lastName)}`, text: { key: status === "created" ? "leadNew" : "leadRepeat", params: { name: fullName(lead.firstName, lead.lastName) } }, body: `${opts.sourceLabel}${lead.company ? ` · ${lead.company}` : ""}`, url: `/crm?deal=${dealId}`, payload: { dealId, contactId, source: opts.sourceLabel, status } }, tx);
       await tx.leadIngest.create({
         data: { workspaceId: opts.workspaceId, source: opts.source, idempotencyKey: key, ipHash: opts.ipHash ?? null, status, contactId, dealId, payload: raw as Prisma.InputJsonValue },
       });

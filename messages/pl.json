@@ -2726,5 +2726,107 @@
     "runFailed": "Nie udało się uruchomić agenta",
     "sentToTelegram": "Wysłano do Telegrama",
     "notSentToTelegram": "Nie wysłano do Telegrama (bot lub czat nie jest połączony)"
+  },
+  "notices": {
+    "projectRed": {
+      "title": "Projekt „{title}” zrobił się czerwony"
+    },
+    "sprintEnded": {
+      "title": "Sprint zakończony: {sprint}",
+      "body": "Zrobione zadania: {done} z {total}"
+    },
+    "reminder": {
+      "title": "Przypomnienie: {title}"
+    },
+    "staleDeal": {
+      "title": "„{title}” stygnie"
+    },
+    "coldContact": {
+      "title": "Brak kontaktu z {name} od miesiąca"
+    },
+    "teamOff": {
+      "title": "Bezpłatny dostęp zespołowy się skończył: {days} dni Pro na decyzję",
+      "body": "Nic nie zostało usunięte. Wybierz plan w Ustawienia → Płatności, aby zachować Pro."
+    },
+    "subscriptionEnded": {
+      "title": "Subskrypcja się skończyła, przestrzeń jest na planie darmowym",
+      "body": "Nic nie zostało usunięte. Dla nowych wpisów znów obowiązują limity."
+    },
+    "welcomePro": {
+      "title": "Witaj w Pro",
+      "body": "Wszystkie funkcje Pro są włączone."
+    },
+    "paymentFailed": {
+      "title": "Płatność nie powiodła się",
+      "body": "Zaktualizuj płatność w Ustawienia → Płatności w ciągu 7 dni, aby zachować Pro."
+    },
+    "graceEnded": {
+      "title": "Przestrzeń wróciła na plan darmowy",
+      "body": "Ostatnia płatność nie wpłynęła. Nic nie zostało usunięte."
+    },
+    "trialStarted": {
+      "title": "Rozpoczęło się Twoje {days} dni Pro",
+      "body": "Wszystkie funkcje Pro są włączone. Po okresie próbnym nic nie zostanie usunięte."
+    },
+    "proEnded": {
+      "title": "Pro się skończył: przestrzeń jest na planie darmowym",
+      "body": "Nic nie zostało usunięte. Dla nowych wpisów znów obowiązują limity; wybierz plan, aby wrócić do Pro."
+    },
+    "trialEnding": {
+      "title": "Próbny Pro skończy się za 3 dni lub wcześniej",
+      "body": "Wybierz plan w Ustawienia → Płatności, aby zachować Pro; inaczej przestrzeń przejdzie na plan darmowy, nic nie zostanie usunięte."
+    },
+    "dealWon": {
+      "title": "Wygrany deal: {title}"
+    },
+    "leadNew": {
+      "title": "Nowy lead: {name}"
+    },
+    "leadRepeat": {
+      "title": "Ponowne zapytanie: {name}"
+    },
+    "assigned": {
+      "title": "Przypisano Ci „{title}”"
+    },
+    "assignedMany": {
+      "title": "Przypisano Ci {n, plural, one {# zadanie} few {# zadania} many {# zadań} other {# zadania}}"
+    },
+    "clientCommented": {
+      "title": "{name} skomentował(a) „{title}”"
+    },
+    "clientApproved": {
+      "title": "{name} zatwierdził(a) „{title}”"
+    },
+    "clientChanges": {
+      "title": "{name} prosi o zmiany w „{title}”"
+    },
+    "clientUploaded": {
+      "title": "{name} przesłał(a) „{file}” do „{title}”"
+    },
+    "approvalAsked": {
+      "title": "{name} prosi o Twoją akceptację: „{title}”"
+    },
+    "mention": {
+      "title": "{name} wspomniał(a) o Tobie w „{title}”"
+    },
+    "referralJoinedNew": {
+      "title": "{name} dołączył(a) przez Twój link",
+      "body": "Dodano do Twoich osób jako nowy kontakt."
+    },
+    "referralJoined": {
+      "title": "{name} dołączył(a) przez Twój link"
+    },
+    "inviteJoined": {
+      "title": "{name} dołączył(a) do MLM CRM przez Twój link",
+      "body": "+1 punkt bonusowy"
+    },
+    "aiUsedUp": {
+      "title": "Limit AI na ten miesiąc się wyczerpał",
+      "body": "{used} z {limit} tokenów"
+    },
+    "aiAlmost": {
+      "title": "Wykorzystano 80% limitu AI na ten miesiąc",
+      "body": "{used} z {limit} tokenów"
+    }
   }
 }

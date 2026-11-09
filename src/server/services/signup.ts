@@ -151,6 +151,7 @@ export async function joinByReferral(person: NewPerson, code: string): Promise<{
     workspaceId: link.workspaceId,
     kind: "lead",
     title: `${[first, person.lastName?.trim()].filter(Boolean).join(" ")} joined through your link`,
+    text: { key: result.created ? "referralJoinedNew" : "referralJoined", params: { name: [first, person.lastName?.trim()].filter(Boolean).join(" ") } },
     body: result.created ? "Added to your people as a new lead." : undefined,
     url: result.contactId ? `/crm/people?contact=${result.contactId}` : "/crm/people",
     dedupeKey: `referral:${link.id}:${person.id}`,
@@ -231,7 +232,7 @@ export async function joinByInvite(person: NewPerson, code: string): Promise<{ i
   const ws = await db.membership.findFirst({ where: { userId: inviter.id, role: { not: "CLIENT" } }, orderBy: { createdAt: "asc" }, select: { workspaceId: true } });
   if (ws) {
     const first = person.firstName?.trim() || person.email.split("@")[0] || person.email;
-    await notify({ userId: inviter.id, workspaceId: ws.workspaceId, kind: "invite_joined", title: `${[first, person.lastName?.trim()].filter(Boolean).join(" ")} joined MLM CRM through your link`, body: "+1 bonus point", url: "/account", dedupeKey: `invite:${person.id}` }).catch(() => undefined);
+    await notify({ userId: inviter.id, workspaceId: ws.workspaceId, kind: "invite_joined", title: `${[first, person.lastName?.trim()].filter(Boolean).join(" ")} joined MLM CRM through your link`, text: { key: "inviteJoined", params: { name: [first, person.lastName?.trim()].filter(Boolean).join(" ") } }, body: "+1 bonus point", url: "/account", dedupeKey: `invite:${person.id}` }).catch(() => undefined);
   }
   return { inviterId: inviter.id };
 }

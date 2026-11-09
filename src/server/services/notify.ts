@@ -5,6 +5,7 @@ import { env } from "@/lib/env";
 import type { Tx } from "./nodes/access";
 import { publishNotification } from "@/server/realtime";
 import { noticeHref } from "@/lib/notice-href";
+import { noticeText, type NoticeText } from "./notice-text";
 
 export const NOTIFY_KINDS = ["mention", "assigned", "lead", "deal_won", "project_red", "reminder", "sprint_ended", "due_today", "cold_contact", "stale_people", "stale_deal", "billing", "client_activity", "invite_joined"] as const;
 export type NotifyKind = (typeof NOTIFY_KINDS)[number];
@@ -42,6 +43,8 @@ export interface Notice {
   payload?: Record<string, unknown>;
   /** Force extra channels on top of preferences (e.g. a reminder that asked for e-mail). */
   extraChannels?: Channel[];
+  /** The words in the recipient's own language ("notices" texts); `title`/`body` above are the English fallback. */
+  text?: NoticeText;
 }
 
 export interface Recipient {
@@ -94,6 +97,12 @@ export async function notify(notice: Notice, tx: Tx | typeof db = db): Promise<s
     if (seen) return null;
   }
   const channels = await channelsFor(tx, notice.userId, notice.workspaceId, notice.kind, notice.extraChannels);
+  // Written once in the language the person reads the platform in, so the bell, the e-mail and the bot all say the same.
+  if (notice.text) {
+    const who = await tx.user.findUnique({ where: { id: notice.userId }, select: { locale: true } });
+    const said = noticeText(who?.locale, notice.text);
+    if (said) notice = { ...notice, title: said.title, body: said.body ?? notice.body };
+  }
   const row = await tx.notification.create({
     data: {
       userId: notice.userId,

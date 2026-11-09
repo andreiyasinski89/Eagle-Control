@@ -243,7 +243,7 @@ export async function setTeamAccess(actorId: string, userId: string, input: z.in
     for (const { workspace: w } of owned) {
       if (had && !after && w.basePlan === "FREE" && (await isEnforcedFor(w.id)) && !isActive(w.trialEndsAt, now) && !isActive(w.bonusUntil, now) && !isActive(w.giftUntil, now)) {
         await db.workspace.update({ where: { id: w.id }, data: { giftUntil: trialEnd(now) } });
-        await notify({ userId: id, workspaceId: w.id, kind: "billing", title: `Free team access has ended: ${TRIAL_DAYS} days of Pro to decide`, body: "Nothing was deleted. Pick a plan in Settings → Billing to keep Pro.", url: "/settings/billing", dedupeKey: `team:off:${w.id}:${now.toISOString().slice(0, 10)}` }).catch(() => undefined);
+        await notify({ userId: id, workspaceId: w.id, kind: "billing", title: `Free team access has ended: ${TRIAL_DAYS} days of Pro to decide`, text: { key: "teamOff", params: { days: TRIAL_DAYS } }, body: "Nothing was deleted. Pick a plan in Settings → Billing to keep Pro.", url: "/settings/billing", dedupeKey: `team:off:${w.id}:${now.toISOString().slice(0, 10)}` }).catch(() => undefined);
       }
       await syncPlan(w.id, now);
     }

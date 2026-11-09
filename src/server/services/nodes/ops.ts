@@ -162,7 +162,7 @@ export async function createNode(ctx: OpContext, input: CreateNodeInput): Promis
   });
   await recordStatusChanges(tx, [{ nodeId: node.id, projectId: parent.projectId, type: node.type, from: null, to: node.status }], userId);
   if (node.assigneeId && node.assigneeId !== userId) {
-    await notify({ userId: node.assigneeId, workspaceId: node.workspaceId, kind: "assigned", title: `You were assigned “${node.title}”`, url: nodePath(node), payload: { nodeId: node.id } }, tx);
+    await notify({ userId: node.assigneeId, workspaceId: node.workspaceId, kind: "assigned", title: `You were assigned “${node.title}”`, text: { key: "assigned", params: { title: node.title } }, url: nodePath(node), payload: { nodeId: node.id } }, tx);
   }
   await logActivity(tx, {
     workspaceId: node.workspaceId,
@@ -231,7 +231,7 @@ export async function patchNode(ctx: OpContext, nodeId: string, patch: PatchNode
   if (Object.keys(update).length === 0) return node;
   const updated = await tx.node.update({ where: { id: node.id }, data: update });
   if (updated.assigneeId && updated.assigneeId !== node.assigneeId && updated.assigneeId !== userId) {
-    await notify({ userId: updated.assigneeId, workspaceId: node.workspaceId, kind: "assigned", title: `You were assigned “${updated.title}”`, url: nodePath(updated), payload: { nodeId: node.id } }, tx);
+    await notify({ userId: updated.assigneeId, workspaceId: node.workspaceId, kind: "assigned", title: `You were assigned “${updated.title}”`, text: { key: "assigned", params: { title: updated.title } }, url: nodePath(updated), payload: { nodeId: node.id } }, tx);
   }
   if (updated.status !== node.status) await recordStatusChanges(tx, [{ nodeId: node.id, projectId, type: node.type, from: node.status, to: updated.status }], userId);
 

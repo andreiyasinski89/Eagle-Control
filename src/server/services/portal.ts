@@ -163,7 +163,7 @@ export async function addPortalComment(userId: string, nodeId: string, input: z.
   if (a.isClient) {
     const name = await who(userId);
     for (const t of await teamFor(a, node, userId)) {
-      await notify({ userId: t, workspaceId: node.workspaceId, kind: "client_activity", title: `${name} commented on “${node.title}”`, body: input.text.slice(0, 200), url: `/projects/p/${a.project.id}?node=${nodeId}`, payload: { nodeId, commentId: c.id } });
+      await notify({ userId: t, workspaceId: node.workspaceId, kind: "client_activity", title: `${name} commented on “${node.title}”`, text: { key: "clientCommented", params: { name, title: node.title } }, body: input.text.slice(0, 200), url: `/projects/p/${a.project.id}?node=${nodeId}`, payload: { nodeId, commentId: c.id } });
     }
   }
   publishComment(a.project.id, nodeId, userId);
@@ -186,7 +186,7 @@ export async function decide(userId: string, approvalId: string, input: z.infer<
   await logActivity(db, { workspaceId: node.workspaceId, nodeId: node.id, actorId: userId, action: input.decision === "APPROVED" ? "approval.approved" : "approval.changes_requested", diff: { approvalId } });
   const name = await who(userId);
   for (const t of new Set([ap.requestedById, ...(await teamFor(a, node, userId))])) {
-    await notify({ userId: t, workspaceId: node.workspaceId, kind: "client_activity", title: `${name} ${input.decision === "APPROVED" ? "approved" : "asked for changes on"} “${node.title}”`, body: input.note, url: `/projects/p/${a.project.id}?node=${node.id}`, payload: { approvalId, decision: input.decision } });
+    await notify({ userId: t, workspaceId: node.workspaceId, kind: "client_activity", title: `${name} ${input.decision === "APPROVED" ? "approved" : "asked for changes on"} “${node.title}”`, text: { key: input.decision === "APPROVED" ? "clientApproved" : "clientChanges", params: { name, title: node.title } }, body: input.note, url: `/projects/p/${a.project.id}?node=${node.id}`, payload: { approvalId, decision: input.decision } });
   }
   publishTreeSoon(a.project.id, userId);
   return { status: input.decision };
@@ -213,7 +213,7 @@ export async function confirmPortalUpload(userId: string, nodeId: string, input:
   await logActivity(db, { workspaceId: node.workspaceId, nodeId, actorId: userId, action: a.isClient ? "client.attachment" : "attachment.added", diff: { fileName: input.fileName } });
   if (a.isClient) {
     const name = await who(userId);
-    for (const t of await teamFor(a, node, userId)) await notify({ userId: t, workspaceId: node.workspaceId, kind: "client_activity", title: `${name} uploaded “${input.fileName}” to “${node.title}”`, url: `/projects/p/${a.project.id}?node=${nodeId}`, payload: { nodeId, attachmentId: att.id } });
+    for (const t of await teamFor(a, node, userId)) await notify({ userId: t, workspaceId: node.workspaceId, kind: "client_activity", title: `${name} uploaded “${input.fileName}” to “${node.title}”`, text: { key: "clientUploaded", params: { name, file: input.fileName, title: node.title } }, url: `/projects/p/${a.project.id}?node=${nodeId}`, payload: { nodeId, attachmentId: att.id } });
   }
   return { id: att.id };
 }
@@ -240,7 +240,7 @@ export async function requestApproval(userId: string, nodeId: string, input: z.i
   const name = await who(userId);
   const clients = await db.projectMember.findMany({ where: { nodeId: projectId, user: { memberships: { some: { workspaceId: node.workspaceId, role: "CLIENT" } } } }, select: { userId: true } });
   const slug = (await db.workspace.findUniqueOrThrow({ where: { id: node.workspaceId }, select: { slug: true } })).slug;
-  for (const c of clients) await notify({ userId: c.userId, workspaceId: node.workspaceId, kind: "client_activity", title: `${name} asks for your approval: “${node.title}”`, body: input.request, url: `/portal/${slug}/p/${projectId}?node=${nodeId}` });
+  for (const c of clients) await notify({ userId: c.userId, workspaceId: node.workspaceId, kind: "client_activity", title: `${name} asks for your approval: “${node.title}”`, text: { key: "approvalAsked", params: { name, title: node.title } }, body: input.request, url: `/portal/${slug}/p/${projectId}?node=${nodeId}` });
   publishTreeSoon(projectId, userId);
   return ap;
 }

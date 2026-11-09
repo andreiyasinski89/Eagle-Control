@@ -320,3 +320,4 @@
 | 313 | All contact and activity writes use one helper with a 30 s transaction | The same slow-database rollback hit touches before (0.52.1); fixing it per call left the stage move broken. |
 | 314 | A failed stage move is retried once and then reported | A silent snap-back looked like the app ignoring the person. |
 | 315 | Card sections open by default (folding stays available) | The owner prefers everything in sight; reverses the folded default of 0.64.0. |
+| 316 | Notices are rendered in the recipient's locale when created, from a "notices" key + values | One text for bell, e-mail and bot; no per-view translation of stored rows; old rows keep their words. |
