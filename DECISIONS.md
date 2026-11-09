@@ -319,3 +319,4 @@
 | 312 | Personal Play developer account recommended over organization | Organization needs a D-U-N-S for the Georgian IE (weeks); the 12-tester closed test is easy with the owner's team. |
 | 313 | All contact and activity writes use one helper with a 30 s transaction | The same slow-database rollback hit touches before (0.52.1); fixing it per call left the stage move broken. |
 | 314 | A failed stage move is retried once and then reported | A silent snap-back looked like the app ignoring the person. |
+| 315 | Card sections open by default (folding stays available) | The owner prefers everything in sight; reverses the folded default of 0.64.0. |

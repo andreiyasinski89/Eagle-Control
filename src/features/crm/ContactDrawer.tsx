@@ -79,8 +79,8 @@ export const messengerLinks: Record<string, (v: string) => string> = Object.from
   (["telegram", "whatsapp", "instagram"] as const).map((m) => [m, (v: string) => buildMessengerLink(m, { phones: [], messengers: { [m]: v } }, "").url]),
 );
 
-/** A part of the card below the actions. Folded unless it is asked to start open: the card stays short, one press opens a part. */
-function Section({ title, children, open = false, count }: { title: string; children: React.ReactNode; open?: boolean; count?: number }) {
+/** A part of the card below the actions. Open at first (the owner's choice: everything in sight); one press on the title folds it. */
+function Section({ title, children, open = true, count }: { title: string; children: React.ReactNode; open?: boolean; count?: number }) {
   return (
     <details open={open} className="group border-t border-border px-4 py-2" data-testid="card-section">
       <summary className="flex min-h-10 cursor-pointer list-none items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">
@@ -317,7 +317,7 @@ export function ContactDrawer({ workspaceId, slug, contactId, canWrite, canErase
       </Section>
 
       {(upcoming.length > 0 || canWrite) && (
-        <Section title={t("planUpcoming")} open={upcoming.length > 0} count={upcoming.length}>
+        <Section title={t("planUpcoming")} count={upcoming.length}>
           {upcoming.length === 0 && <p className="text-sm text-muted-foreground">{t("planNone")}</p>}
           <ul className="flex flex-col gap-2 text-sm" data-testid="planned-list">
             {upcoming.map((a) => (

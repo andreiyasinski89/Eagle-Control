@@ -745,3 +745,9 @@
 - Moving a person to another stage (and every other change to a person or an activity) runs as one database transaction of a dozen small queries: the stage event, the next step by rule, the temperature, the log, the card read back. With the database far from the server or waking up they could pass Prisma's default 5 seconds; everything was then rolled back and the card on the board silently jumped back after a couple of seconds. These transactions now have 30 seconds (`crmTx`), as the touch results already had.
 - The board retries a failed move once by itself, and if it still fails it says so ("The card could not be moved…") instead of snapping back in silence.
 - The list goal under "People" says "In the list: 323 · goal of 100 reached ✓" instead of "323 of 100".
+
+## 0.67.2 — Notifications fit the phone, card parts open
+
+- On a phone the notifications panel hung from the bell in the middle of the top bar and ran off the left edge of the screen. There it now spans the screen width under the top bar, with a taller scrolling list; long titles wrap.
+- Old notices "… joined MeetOwl through your link" read "MLM CRM".
+- The parts of a person's card (partner, funnel, details, activities…) start open; one press on a title still folds it.

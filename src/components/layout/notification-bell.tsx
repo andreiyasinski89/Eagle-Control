@@ -89,21 +89,22 @@ export function NotificationBell({ workspaceId, slug }: { workspaceId: string; s
         )}
       </button>
       {open && (
-        <div role="dialog" aria-label={t("title")} className="absolute right-0 z-50 mt-2 w-80 max-w-[90vw] rounded-lg border border-border bg-card shadow-xl">
+        <div role="dialog" aria-label={t("title")} className="absolute right-0 z-50 mt-2 w-80 max-w-[90vw] rounded-lg border border-border bg-card shadow-xl max-md:fixed max-md:inset-x-2 max-md:top-16 max-md:mt-0 max-md:w-auto max-md:max-w-none"
+          data-testid="bell-panel">
           <div className="flex items-center justify-between border-b border-border px-3 py-2 text-sm">
             <span className="font-medium">{t("title")}</span>
             <button className="text-xs text-primary hover:underline disabled:opacity-50" disabled={unread === 0} onClick={markAll}>
               {t("markAll")}
             </button>
           </div>
-          <ul className="max-h-96 overflow-auto">
+          <ul className="max-h-96 overflow-auto max-md:max-h-[65vh]">
             {items.length === 0 && <li className="px-3 py-8 text-center text-sm text-muted-foreground">{t("empty")}</li>}
             {items.map((n) => {
               const inner = (
                 <>
                   <span className={cn("mt-1.5 size-2 shrink-0 rounded-full", n.readAt ? "bg-transparent" : "bg-primary")} aria-hidden />
                   <span className="min-w-0 flex-1">
-                    <span className="block text-sm">{n.payload.title ?? n.kind}</span>
+                    <span className="block break-words text-sm">{(n.payload.title ?? n.kind).replace(/joined MeetOwl/g, "joined MLM CRM")}</span>
                     {n.payload.body && <span className="block truncate text-xs text-muted-foreground">{n.payload.body}</span>}
                     <span className="block text-xs text-muted-foreground">{new Date(n.createdAt).toLocaleString(locale, { dateStyle: "short", timeStyle: "short" })}</span>
                   </span>
