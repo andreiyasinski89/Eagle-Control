@@ -731,3 +731,11 @@
 ## 0.66.1 — The whole task title on the map card
 
 - A card on the map no longer cuts its title to one line: the title wraps (up to five lines; beyond that "…" and the full title on hover) and the card grows to fit it. The map makes room: a taller card pushes its neighbours apart, so no card covers another, and lines between cards still meet the middle of each card.
+
+## 0.67.0 — Ready for Google Play
+
+- **Android app links**: `/.well-known/assetlinks.json` lists the Play app (package and signing-key fingerprints from `ANDROID_PACKAGE_NAME` and `ANDROID_SHA256_FINGERPRINTS`), so the app opens the site full screen; empty until they are set.
+- **App mode without payment**: the app starts at `/?app=android` (Android also sends its own referrer); the mark is kept on the device and the server sees it as a cookie. In the app the billing page shows no upgrade or manage buttons ("Subscriptions are not sold in the Android app") and the trial banner has no link to pay — Google Play does not allow selling past Play Billing or pointing elsewhere to pay.
+- **App icon shortcuts**: long press on the icon opens My day, Touches, People or Calendar of the person's own workspace (`/?to=…`). Better store description in the manifest.
+- **Public account deletion page** `/legal/delete-account` in four languages (Google Play asks for one); the privacy policy links it, names PayPal instead of Stripe and says voice notes keep only the text.
+- **Store kit** in `docs/play-store/`: listing texts in ru/en/pl/uk (short descriptions within 80 characters), 512 px icon, 1024×500 feature graphics; owner's step-by-step guide `docs/PLAY-STORE.ru.md` (account, PWABuilder package, closed test with 12 testers for 14 days, asset links, Data safety answers).

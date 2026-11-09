@@ -1649,7 +1649,8 @@
     "betaPlan": "Open beta",
     "betaOpen": "Paid plans are not open yet: everything is free and without limits for now.",
     "teamPlan": "Pro · team",
-    "teamFree": "Free for you: you are in the MLM CRM team. No payment needed."
+    "teamFree": "Free for you: you are in the MLM CRM team. No payment needed.",
+    "androidNoPay": "Subscriptions are not sold in the Android app."
   },
   "developers": {
     "title": "API and webhooks",
@@ -1829,7 +1830,19 @@
     "operator": "Responsible for the service",
     "operatorMissing": "(not set yet)",
     "privacy": "Privacy policy",
-    "terms": "Terms of use"
+    "terms": "Terms of use",
+    "deleteTitle": "Delete your MLM CRM account",
+    "deleteIntro": "You can delete your MLM CRM account and the data in it at any time, in the app or on the website mlmcrm.app.",
+    "deleteHowTitle": "How to delete",
+    "deleteStep1": "Sign in at mlmcrm.app or open the app.",
+    "deleteStep2": "Open Settings → Account and press “Delete my account for good”.",
+    "deleteStep3": "Confirm. The account is erased after {days} days; until then you can cancel the deletion on the same page.",
+    "deleteWhatTitle": "What is deleted",
+    "deleteWhat": "Your profile (name, e-mail, phone), your sessions, and the workspaces you own with everything in them: people, notes, activities, projects, files. Workspaces of other people you were a member of stay theirs; your name is removed from them.",
+    "deleteKept": "A record that the deletion happened, without personal data, is kept. Backups age out on their own schedule.",
+    "deleteNoAccessTitle": "Cannot sign in?",
+    "deleteNoAccess": "Write to {contact} from the e-mail address of the account and ask for deletion.",
+    "deleteNoAccessNoContact": "Write to the operator named at the top of this page from the e-mail address of the account and ask for deletion."
   },
   "shell": {
     "search": "Search or jump to…",

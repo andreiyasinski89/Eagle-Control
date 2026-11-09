@@ -30,6 +30,10 @@ const schema = z.object({
   /** Shown in the privacy policy and terms as the party responsible for the service. */
   LEGAL_OPERATOR_NAME: z.string().optional(),
   LEGAL_CONTACT_EMAIL: z.string().optional(),
+  /** The Android app on Google Play (a Trusted Web Activity): its package name, e.g. app.mlmcrm.twa. */
+  ANDROID_PACKAGE_NAME: z.string().optional(),
+  /** SHA-256 fingerprint(s) of the app signing key from Play Console → App integrity, comma-separated (AA:BB:…). Public, not a secret. */
+  ANDROID_SHA256_FINGERPRINTS: z.string().optional(),
   SECRETS_KEY: z.string().optional(),
   ACCOUNT_DELETION_GRACE_DAYS: z.coerce.number().int().min(0).max(30).default(7),
   DEMO_MODE: z.preprocess((v) => v === "true" || v === "1", z.boolean()),

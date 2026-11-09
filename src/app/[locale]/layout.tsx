@@ -6,6 +6,7 @@ import { Inter } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { routing } from "@/i18n/routing";
 import { PwaRegister } from "@/components/pwa-register";
+import { AndroidAppMarker } from "@/components/android-app";
 import "../globals.css";
 
 // One family that covers all three interface languages (Latin, Latin Extended for Polish, Cyrillic for Russian).
@@ -33,6 +34,7 @@ export default async function LocaleLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <NextIntlClientProvider>{children}</NextIntlClientProvider>
           <PwaRegister />
+          <AndroidAppMarker />
         </ThemeProvider>
       </body>
     </html>

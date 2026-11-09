@@ -19,13 +19,14 @@ export default async function Privacy() {
       <ul className="list-disc pl-5">
         <li>Hosting and database providers (for example Vercel and Neon) that run the service.</li>
         <li>An e-mail provider that delivers sign-in links and notifications.</li>
-        <li>Only if switched on: payment (Stripe), calendar and chat integrations you connect, an AI provider (Anthropic) when you use AI features, a job scheduler (Inngest).</li>
+        <li>Only if switched on: a payment provider (PayPal), calendar and chat integrations you connect, an AI provider (Anthropic) when you use AI features, a job scheduler (Inngest).</li>
+        <li>Voice notes: your browser&apos;s own speech service turns speech into text; we keep only the text, never the recording.</li>
       </ul>
       <p>Some of these providers are outside the European Economic Area; transfers rely on the providers&apos; standard contractual clauses or equivalent safeguards.</p>
       <h2 className="font-semibold">How long</h2>
       <p>While your account exists. When you delete it (Settings → Account) it is erased after a short grace period you can cancel; backups age out afterwards. A record that the deletion happened, without personal data, is kept.</p>
       <h2 className="font-semibold">Your rights</h2>
-      <p>You can download your data and delete your account yourself in Settings → Account. You may also ask to correct or restrict processing, object to it, or complain to your data protection authority. Write to the contact above.</p>
+      <p>You can download your data and delete your account yourself in Settings → Account (how: mlmcrm.app/legal/delete-account). You may also ask to correct or restrict processing, object to it, or complain to your data protection authority. Write to the contact above.</p>
     </LegalPage>
   );
 }

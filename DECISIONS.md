@@ -314,3 +314,6 @@
 | 307 | SUBTASK may contain SUBTASK (and DOCUMENT), unlimited depth | The owner breaks work down further than two levels; progress aggregation was already recursive. |
 | 308 | The add-child "+" is always visible on map cards | No hover on phones; a lazy hand wants the action in sight. |
 | 309 | Map cards grow with the title (height estimated from its length, up to 5 lines) instead of measuring the DOM | The tree layout must know heights before drawing; an estimate on the safe side (22 letters a line) avoids a second layout pass. |
+| 310 | Android app as a Trusted Web Activity built with PWABuilder, not a native app | One code base: every site change is in the app at once; the owner can build it without programming. |
+| 311 | No payment UI in the Android app (cookie/flag from start_url ?app=android or android-app referrer) | Google Play Payments policy: digital subscriptions in the app only through Play Billing, no steering. The team uses it free anyway. |
+| 312 | Personal Play developer account recommended over organization | Organization needs a D-U-N-S for the Georgian IE (weeks); the 12-tester closed test is easy with the owner's team. |

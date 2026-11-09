@@ -1,5 +1,6 @@
 "use client";
 
+import { useAndroidApp } from "@/components/android-app";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
@@ -28,6 +29,8 @@ interface Billing {
 export function BillingPanel({ workspaceId, checkout }: { workspaceId: string; checkout: string | null }) {
   const t = useTranslations("billing");
   const locale = useLocale();
+  // Google Play does not allow selling the subscription inside the Android app or pointing to a payment elsewhere.
+  const android = useAndroidApp();
   const base = `/api/v1/workspaces/${workspaceId}/billing`;
   const { data, isLoading } = useQuery({ queryKey: ["billing", workspaceId], queryFn: () => api.get<Billing>(base), refetchInterval: checkout === "success" ? 3000 : false });
   const [error, setError] = useState<string | null>(null);
@@ -67,7 +70,7 @@ export function BillingPanel({ workspaceId, checkout }: { workspaceId: string; c
             </div>
             {data.renewsAt && data.plan !== "FREE" && <div className="text-xs text-muted-foreground">{data.cancelAtPeriodEnd ? t("endsOn", { date: date(data.renewsAt) }) : t("renewsOn", { date: date(data.renewsAt) })}</div>}
           </div>
-          {data.canManage && data.configured && (
+          {data.canManage && data.configured && !android && (
             <div className="flex gap-2">
               {data.enforced && !data.entitlement.teamFree && data.entitlement.basePlan === "FREE" && <Button onClick={() => void go("checkout")} data-testid="upgrade">{t("upgrade")}</Button>}
               {data.hasCustomer && (
@@ -78,6 +81,11 @@ export function BillingPanel({ workspaceId, checkout }: { workspaceId: string; c
             </div>
           )}
         </div>
+        {android && !data.entitlement.teamFree && data.enforced && (
+          <p className="mt-3 rounded-md bg-muted px-3 py-2 text-sm" data-testid="android-no-pay">
+            {t("androidNoPay")}
+          </p>
+        )}
         {data.entitlement.teamFree && (
           <p className="mt-3 rounded-md bg-[var(--health-green)]/10 px-3 py-2 text-sm" data-testid="team-free">
             {t("teamFree")}

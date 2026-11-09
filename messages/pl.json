@@ -1649,7 +1649,8 @@
     "betaPlan": "Otwarta beta",
     "betaOpen": "Płatne plany nie są jeszcze otwarte: na razie wszystko jest za darmo i bez limitów.",
     "teamPlan": "Pro · zespół",
-    "teamFree": "Dla Ciebie bezpłatnie: jesteś w zespole MLM CRM. Płatność nie jest potrzebna."
+    "teamFree": "Dla Ciebie bezpłatnie: jesteś w zespole MLM CRM. Płatność nie jest potrzebna.",
+    "androidNoPay": "Subskrypcja nie jest sprzedawana w aplikacji na Androida."
   },
   "developers": {
     "title": "API i webhooki",
@@ -1829,7 +1830,19 @@
     "operator": "Odpowiedzialny za usługę",
     "operatorMissing": "(jeszcze nie podano)",
     "privacy": "Polityka prywatności",
-    "terms": "Regulamin"
+    "terms": "Regulamin",
+    "deleteTitle": "Usunięcie konta MLM CRM",
+    "deleteIntro": "W każdej chwili możesz usunąć swoje konto MLM CRM i dane w nim — w aplikacji lub na stronie mlmcrm.app.",
+    "deleteHowTitle": "Jak usunąć",
+    "deleteStep1": "Zaloguj się na mlmcrm.app lub otwórz aplikację.",
+    "deleteStep2": "Otwórz Ustawienia → Konto i naciśnij „Usuń konto na zawsze”.",
+    "deleteStep3": "Potwierdź. Konto zostanie usunięte po {days} dniach; do tego czasu możesz anulować usunięcie na tej samej stronie.",
+    "deleteWhatTitle": "Co zostanie usunięte",
+    "deleteWhat": "Twój profil (imię, e-mail, telefon), sesje logowania i przestrzenie robocze, których jesteś właścicielem, z całą zawartością: osoby, notatki, aktywności, projekty, pliki. Przestrzenie innych osób, w których byłeś członkiem, zostają u nich; Twoje imię jest z nich usuwane.",
+    "deleteKept": "Zachowujemy tylko zapis, że usunięcie nastąpiło, bez danych osobowych. Kopie zapasowe wygasają według własnego harmonogramu.",
+    "deleteNoAccessTitle": "Nie możesz się zalogować?",
+    "deleteNoAccess": "Napisz na {contact} z adresu e-mail konta i poproś o usunięcie.",
+    "deleteNoAccessNoContact": "Napisz do operatora wskazanego na górze strony z adresu e-mail konta i poproś o usunięcie."
   },
   "shell": {
     "search": "Szukaj lub przejdź…",
