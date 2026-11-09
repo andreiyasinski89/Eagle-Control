@@ -317,3 +317,5 @@
 | 310 | Android app as a Trusted Web Activity built with PWABuilder, not a native app | One code base: every site change is in the app at once; the owner can build it without programming. |
 | 311 | No payment UI in the Android app (cookie/flag from start_url ?app=android or android-app referrer) | Google Play Payments policy: digital subscriptions in the app only through Play Billing, no steering. The team uses it free anyway. |
 | 312 | Personal Play developer account recommended over organization | Organization needs a D-U-N-S for the Georgian IE (weeks); the 12-tester closed test is easy with the owner's team. |
+| 313 | All contact and activity writes use one helper with a 30 s transaction | The same slow-database rollback hit touches before (0.52.1); fixing it per call left the stage move broken. |
+| 314 | A failed stage move is retried once and then reported | A silent snap-back looked like the app ignoring the person. |

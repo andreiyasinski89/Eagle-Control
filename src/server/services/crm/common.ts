@@ -1,4 +1,5 @@
 import type { Node, NodeType, Prisma } from "@prisma/client";
+import { db } from "@/server/db";
 import { ApiError, notFound } from "@/server/http/errors";
 import { loadNode, type Tx } from "@/server/services/nodes/access";
 
@@ -38,4 +39,14 @@ export function pageArgs(p: Partial<Page>): { skip: number; take: number; page: 
   const pageSize = Math.min(Math.max(p.pageSize ?? 50, 1), 200);
   const page = Math.max(p.page ?? 1, 1);
   return { skip: (page - 1) * pageSize, take: pageSize, page, pageSize };
+}
+
+/**
+ * A CRM write as one transaction with room to finish. A change to a person is a dozen small queries (the stage event, the next step, the
+ * temperature, the log, the card read back); with the database far from the server, or waking up, they can pass Prisma's default 5 seconds,
+ * and then everything is rolled back and the screen quietly snaps back (a card dragged to another stage returned to its place).
+ */
+export const CRM_TX = { timeout: 30_000, maxWait: 15_000 } as const;
+export function crmTx<T>(fn: (tx: Tx) => Promise<T>): Promise<T> {
+  return db.$transaction((tx) => fn(tx as Tx), CRM_TX);
 }

@@ -4,7 +4,7 @@ import { db } from "@/server/db";
 import { notFound } from "@/server/http/errors";
 import { can } from "@/server/policies";
 import { loadWorkspaceMember, type Tx } from "@/server/services/nodes/access";
-import { assertWorkspaceMember, invalid, pageArgs, toDate } from "./common";
+import { assertWorkspaceMember, invalid, pageArgs, toDate, crmTx } from "./common";
 import { contactScope, contactVisible } from "./scope";
 import { refreshTemperature } from "./temperature";
 
@@ -91,7 +91,7 @@ async function assertLinksVisible(tx: Tx, m: Parameters<typeof contactVisible>[1
 }
 
 export async function createActivity(userId: string, workspaceId: string, input: ActivityInput, opts: { source?: string } = {}) {
-  return db.$transaction(async (tx) => {
+  return crmTx(async (tx) => {
     const m = await loadWorkspaceMember(tx, userId, workspaceId, "crm:write");
     if (!can(m, "crm:full") && (input.dealId || input.companyId)) throw notFound("contact");
     await assertLinksVisible(tx, m, input);
@@ -108,7 +108,7 @@ async function loadActivity(tx: Tx, userId: string, id: string, action: "crm:rea
 }
 
 export async function updateActivity(userId: string, id: string, patch: z.infer<typeof patchActivitySchema>) {
-  return db.$transaction(async (tx) => {
+  return crmTx(async (tx) => {
     const cur = await loadActivity(tx, userId, id, "crm:write");
     await assertWorkspaceMember(tx, cur.workspaceId, patch.ownerId);
     const links = await resolveLinks(tx, cur.workspaceId, {
@@ -137,7 +137,7 @@ export async function updateActivity(userId: string, id: string, patch: z.infer<
 }
 
 export async function deleteActivity(userId: string, id: string) {
-  await db.$transaction(async (tx) => {
+  await crmTx(async (tx) => {
     const a = await loadActivity(tx, userId, id, "crm:write");
     await tx.crmActivity.delete({ where: { id } });
     // A touch that is taken back must not leave the person looking as if they had been written to: the last touch goes back to the one before it.

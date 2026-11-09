@@ -1092,7 +1092,10 @@
     "recEmail": "E-mail",
     "recNote": "Note",
     "recVoice": "By voice",
-    "recPlan": "Plan a call or meeting"
+    "recPlan": "Plan a call or meeting",
+    "moveFailed": "The card could not be moved: the server did not answer in time. Try again.",
+    "moveFailedWhy": "The card could not be moved: {why}",
+    "listCounterDone": "In the list: {n} · goal of {goal} reached ✓"
   },
   "myday": {
     "title": "My day",

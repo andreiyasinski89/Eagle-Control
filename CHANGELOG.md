@@ -739,3 +739,9 @@
 - **App icon shortcuts**: long press on the icon opens My day, Touches, People or Calendar of the person's own workspace (`/?to=…`). Better store description in the manifest.
 - **Public account deletion page** `/legal/delete-account` in four languages (Google Play asks for one); the privacy policy links it, names PayPal instead of Stripe and says voice notes keep only the text.
 - **Store kit** in `docs/play-store/`: listing texts in ru/en/pl/uk (short descriptions within 80 characters), 512 px icon, 1024×500 feature graphics; owner's step-by-step guide `docs/PLAY-STORE.ru.md` (account, PWABuilder package, closed test with 12 testers for 14 days, asset links, Data safety answers).
+
+## 0.67.1 — A card dragged to another stage stays there
+
+- Moving a person to another stage (and every other change to a person or an activity) runs as one database transaction of a dozen small queries: the stage event, the next step by rule, the temperature, the log, the card read back. With the database far from the server or waking up they could pass Prisma's default 5 seconds; everything was then rolled back and the card on the board silently jumped back after a couple of seconds. These transactions now have 30 seconds (`crmTx`), as the touch results already had.
+- The board retries a failed move once by itself, and if it still fails it says so ("The card could not be moved…") instead of snapping back in silence.
+- The list goal under "People" says "In the list: 323 · goal of 100 reached ✓" instead of "323 of 100".

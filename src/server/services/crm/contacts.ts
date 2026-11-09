@@ -15,7 +15,7 @@ import { contactScope, contactVisible, withoutSelf, withScope } from "./scope";
 import { refreshTemperature } from "./temperature";
 import { computeTemperature, manualUntil } from "@/modules/crm/temperature";
 import { deleteObject } from "@/server/storage";
-import { assertWorkspaceMember, fullName, invalid, loadCrmNode, pageArgs, toDate } from "./common";
+import { assertWorkspaceMember, fullName, invalid, loadCrmNode, pageArgs, toDate, crmTx } from "./common";
 import { assertGroup } from "./groups";
 import { assertPartnerLinks, listTransfers } from "./partners";
 import { autoPlan } from "./stage-rules";
@@ -253,7 +253,7 @@ export async function createContactsBulk(tx: Tx, userId: string, workspaceId: st
 }
 
 export async function createContact(userId: string, workspaceId: string, input: z.infer<typeof createContactSchema>) {
-  return db.$transaction(async (tx) => {
+  return crmTx(async (tx) => {
     await loadWorkspaceMember(tx, userId, workspaceId, "crm:write");
     await assertContactCapacity(tx, workspaceId, 1);
     if (!input.allowDuplicate) {
@@ -316,14 +316,14 @@ export async function updateContactIn(tx: Tx, userId: string, contactId: string,
 }
 
 export async function updateContact(userId: string, contactId: string, patch: z.infer<typeof patchContactSchema>, opts: { source?: string } = {}) {
-  return db.$transaction(async (tx) => {
+  return crmTx(async (tx) => {
     await updateContactIn(tx, userId, contactId, patch, opts);
     return getContactIn(tx, userId, contactId);
   });
 }
 
 export async function archiveContact(userId: string, contactId: string) {
-  await db.$transaction(async (tx) => {
+  await crmTx(async (tx) => {
     const node = await loadCrmNode(tx, userId, contactId, "CONTACT", true);
     await tx.deal.updateMany({ where: { primaryContactId: contactId }, data: { primaryContactId: null } });
     await tx.node.update({ where: { id: contactId }, data: { archivedAt: new Date() } });
@@ -333,7 +333,7 @@ export async function archiveContact(userId: string, contactId: string) {
 
 /** Consent is an auditable event, not just a flag: every change leaves a ConsentRecord. */
 export async function setConsent(userId: string, contactId: string, given: boolean, source = "manual") {
-  return db.$transaction(async (tx) => {
+  return crmTx(async (tx) => {
     const node = await loadCrmNode(tx, userId, contactId, "CONTACT", true);
     const now = new Date();
     if (given) {
@@ -357,7 +357,7 @@ export async function setConsent(userId: string, contactId: string, given: boole
  * A name that was new, or had gone quiet or said no, is a first contact again: the person answered.
  */
 export async function markReplied(userId: string, contactId: string, at = new Date(), extra: { text?: string | null; subject?: string } = {}) {
-  return db.$transaction(async (tx) => {
+  return crmTx(async (tx) => {
     const node = await loadCrmNode(tx, userId, contactId, "CONTACT", true);
     const cur = await tx.contact.findUniqueOrThrow({ where: { nodeId: contactId }, select: { stage: true } });
     const data: Prisma.ContactUncheckedUpdateInput = { repliedAt: at };
@@ -472,7 +472,7 @@ export async function listContacts(userId: string, workspaceId: string, f: z.inf
 }
 
 export async function getContact(userId: string, contactId: string) {
-  return db.$transaction((tx) => getContactIn(tx, userId, contactId));
+  return crmTx((tx) => getContactIn(tx, userId, contactId));
 }
 
 export async function getContactIn(tx: Tx, userId: string, contactId: string) {
@@ -553,7 +553,7 @@ async function assertKeeperOrCan(tx: Tx, userId: string, workspaceId: string, co
 
 /** Everything we hold about one person, as portable JSON. */
 export async function gdprExport(userId: string, contactId: string) {
-  return db.$transaction(async (tx) => {
+  return crmTx(async (tx) => {
     const node = await loadCrmNode(tx, userId, contactId, "CONTACT");
     await assertKeeperOrCan(tx, userId, node.workspaceId, contactId, "crm:export");
     const [contact, consent, activities, comments, ingests, deals, stageHistory] = await Promise.all([
@@ -578,7 +578,7 @@ export const erasureSchema = z.object({ confirm: z.literal("ERASE") });
  */
 export async function gdprErase(userId: string, contactId: string): Promise<void> {
   const files: string[] = [];
-  const workspaceId = await db.$transaction(async (tx) => {
+  const workspaceId = await crmTx(async (tx) => {
     const node = await loadCrmNode(tx, userId, contactId, "CONTACT", true);
     await assertKeeperOrCan(tx, userId, node.workspaceId, contactId, "crm:erase");
     const attachments = await tx.attachment.findMany({ where: { nodeId: contactId }, select: { url: true } });

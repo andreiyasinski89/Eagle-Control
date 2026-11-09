@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { selectClass } from "@/components/ui/modal";
 import { SkeletonBoard } from "@/components/ui/skeleton";
-import { api } from "@/features/mindmap/api";
+import { api, ApiFailure } from "@/features/mindmap/api";
 import { BOARD_STAGES, LIST_GOAL, PRIORITIES, SIDE_STAGES, SOURCES, TEMPERATURES, type Stage, type Temp } from "@/modules/crm/people";
 import { zonedParts } from "@/modules/views/tz";
 import { cn } from "@/lib/utils";
@@ -86,6 +86,7 @@ export function PeopleBoard({ workspaceId, slug, canWrite, canExport, canErase, 
   const [adding, setAdding] = useState(false);
   const [importing, setImporting] = useState(false);
   const [over, setOver] = useState<Stage | null>(null);
+  const [moveError, setMoveError] = useState<string | null>(null);
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [target, setTarget] = useState("");
   const [heldFilter, setHeldFilter] = useState("");
@@ -102,7 +103,9 @@ export function PeopleBoard({ workspaceId, slug, canWrite, canExport, canErase, 
   const decline = useDeclineAsk();
   const move = useMutation({
     mutationFn: ({ id, stage }: { id: string; stage: Stage }) => api.patch(`/api/v1/contacts/${id}`, { stage }),
-    onSuccess: (_d, { id, stage }) => stage === "DECLINED" && decline.ask(id),
+    // Setting a stage is safe to repeat: one quiet second try covers a database that was waking up.
+    retry: 1,
+    onSuccess: (_d, { id, stage }) => (setMoveError(null), stage === "DECLINED" && decline.ask(id)),
     onMutate: async ({ id, stage }) => {
       await qc.cancelQueries({ queryKey: ["people", workspaceId] });
       const prev = qc.getQueriesData<PeopleData>({ queryKey: ["people", workspaceId] });
@@ -114,7 +117,11 @@ export function PeopleBoard({ workspaceId, slug, canWrite, canExport, canErase, 
       }
       return { prev };
     },
-    onError: (_e, _v, ctx) => ctx?.prev.forEach(([k, v]) => qc.setQueryData(k, v)),
+    // The card goes back, and the person is told why instead of seeing it jump back in silence.
+    onError: (e, _v, ctx) => {
+      ctx?.prev.forEach(([k, v]) => qc.setQueryData(k, v));
+      setMoveError(e instanceof ApiFailure && e.message ? t("moveFailedWhy", { why: e.message }) : t("moveFailed"));
+    },
     onSettled: () => {
       void qc.invalidateQueries({ queryKey: ["people", workspaceId] });
       void qc.invalidateQueries({ queryKey: ["contacts"] });
@@ -276,7 +283,7 @@ export function PeopleBoard({ workspaceId, slug, canWrite, canExport, canErase, 
       <div className="flex flex-wrap items-center gap-2">
         <h1 className="mr-2 text-xl font-semibold">{t("peopleTitle")}</h1>
         <div className="flex min-w-48 flex-col gap-1" data-testid="list-goal">
-          <span className="text-xs text-muted-foreground">{t("listCounter", { n: total, goal: LIST_GOAL })}</span>
+          <span className="text-xs text-muted-foreground">{total >= LIST_GOAL ? t("listCounterDone", { n: total, goal: LIST_GOAL }) : t("listCounter", { n: total, goal: LIST_GOAL })}</span>
           <span className="h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden>
             <span className="block h-full rounded-full bg-primary" style={{ width: `${goalPct}%` }} />
           </span>
@@ -396,6 +403,14 @@ export function PeopleBoard({ workspaceId, slug, canWrite, canExport, canErase, 
       )}
 
       {isLoading && <SkeletonBoard columns={5} />}
+      {moveError && (
+        <p role="alert" className="flex items-center gap-2 rounded-lg border border-[var(--health-red)]/40 bg-[var(--health-red)]/10 px-3 py-2 text-sm" data-testid="move-error">
+          <span className="min-w-0 flex-1">{moveError}</span>
+          <button type="button" className="text-xs text-muted-foreground hover:underline" onClick={() => setMoveError(null)}>
+            {t("close")}
+          </button>
+        </p>
+      )}
       {isError && (
         <p role="alert" className="text-sm text-danger">
           {t("error")}
