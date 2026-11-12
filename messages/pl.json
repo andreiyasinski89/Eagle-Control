@@ -1095,7 +1095,8 @@
     "recPlan": "Zaplanuj rozmowę lub spotkanie",
     "moveFailed": "Nie udało się przenieść karty: serwer nie odpowiedział na czas. Spróbuj ponownie.",
     "moveFailedWhy": "Nie udało się przenieść karty: {why}",
-    "listCounterDone": "Na liście: {n} · cel {goal} osiągnięty ✓"
+    "listCounterDone": "Na liście: {n} · cel {goal} osiągnięty ✓",
+    "filtersButton": "Filtry"
   },
   "myday": {
     "title": "Mój dzień",

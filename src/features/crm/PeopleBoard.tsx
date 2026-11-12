@@ -5,6 +5,7 @@ import { useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CalendarClock, FileUp, Search, UserPlus, X, Zap } from "lucide-react";
+import { foldOnPhone, MobileToolsToggle } from "./MobileTools";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -83,6 +84,8 @@ export function PeopleBoard({ workspaceId, slug, canWrite, canExport, canErase, 
   const [priority, setPriority] = useState("");
   const [due, setDue] = useState(false);
   const [side, setSide] = useState(false);
+  // On a phone the search, filters and list buttons are folded until asked for, so the board is what you see first.
+  const [tools, setTools] = useState(false);
   const [adding, setAdding] = useState(false);
   const [importing, setImporting] = useState(false);
   const [over, setOver] = useState<Stage | null>(null);
@@ -282,13 +285,14 @@ export function PeopleBoard({ workspaceId, slug, canWrite, canExport, canErase, 
     <div className="flex h-full flex-col gap-3 p-4" data-testid="people-board">
       <div className="flex flex-wrap items-center gap-2">
         <h1 className="mr-2 text-xl font-semibold">{t("peopleTitle")}</h1>
-        <div className="flex min-w-48 flex-col gap-1" data-testid="list-goal">
+        <MobileToolsToggle open={tools} onToggle={() => setTools((v) => !v)} active={[q, owner, temp, priority, source, heldFilter].filter(Boolean).length} />
+        <div className={cn("flex min-w-48 flex-col gap-1", foldOnPhone(tools))} data-testid="list-goal">
           <span className="text-xs text-muted-foreground">{total >= LIST_GOAL ? t("listCounterDone", { n: total, goal: LIST_GOAL }) : t("listCounter", { n: total, goal: LIST_GOAL })}</span>
           <span className="h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden>
             <span className="block h-full rounded-full bg-primary" style={{ width: `${goalPct}%` }} />
           </span>
         </div>
-        <div className="ml-auto flex flex-wrap items-center gap-2">
+        <div className={cn("ml-auto flex flex-wrap items-center gap-2", foldOnPhone(tools))}>
           {canWrite && (
             <>
               <Button variant="outline" size="sm" onClick={() => setImporting(true)}>
@@ -305,6 +309,7 @@ export function PeopleBoard({ workspaceId, slug, canWrite, canExport, canErase, 
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
+        <div className={cn("contents", foldOnPhone(tools))}>
         <div className="relative">
           <Search className="pointer-events-none absolute left-2.5 top-2.5 size-4 text-muted-foreground" aria-hidden />
           <Input aria-label={t("search")} placeholder={t("search")} value={q} onChange={(e) => setQ(e.target.value)} className="w-52 pl-8" />
@@ -352,6 +357,7 @@ export function PeopleBoard({ workspaceId, slug, canWrite, canExport, canErase, 
             </option>
           ))}
         </select>
+        </div>
         <button
           type="button"
           aria-pressed={due}

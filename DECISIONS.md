@@ -321,3 +321,4 @@
 | 314 | A failed stage move is retried once and then reported | A silent snap-back looked like the app ignoring the person. |
 | 315 | Card sections open by default (folding stays available) | The owner prefers everything in sight; reverses the folded default of 0.64.0. |
 | 316 | Notices are rendered in the recipient's locale when created, from a "notices" key + values | One text for bell, e-mail and bot; no per-view translation of stored rows; old rows keep their words. |
+| 317 | Section tools fold behind a "Filters" button on phones only, closed by default | The board, not its controls, is what a person opens People for; desktop has room for both. |

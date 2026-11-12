@@ -4,6 +4,7 @@ import { useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, Download, FileUp, GitMerge, Plus, Search } from "lucide-react";
+import { foldOnPhone, MobileToolsToggle } from "./MobileTools";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -148,6 +149,8 @@ export function ContactsView({ workspaceId, slug, canWrite, canExport, canMerge,
   const [creating, setCreating] = useState(false);
   const [importing, setImporting] = useState(false);
   const [dupes, setDupes] = useState(false);
+  // On a phone the search, filter and buttons are folded until asked for (see MobileTools).
+  const [tools, setTools] = useState(false);
 
   const filters = { ...(q ? { q } : {}), ...(owner ? { ownerId: owner } : {}), ...(cold ? { noTouchDays: "30" } : {}) };
   const params = new URLSearchParams({ sort: sort.key, dir: sort.dir, page: String(page), pageSize: "50", ...filters });
@@ -263,7 +266,8 @@ export function ContactsView({ workspaceId, slug, canWrite, canExport, canMerge,
   return (
     <div className="flex h-full min-h-0">
       <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-auto p-4">
-        <div className="flex flex-wrap items-center gap-2">
+        <MobileToolsToggle open={tools} onToggle={() => setTools((v) => !v)} active={[q, owner, cold ? "1" : ""].filter(Boolean).length} />
+        <div className={cn("flex flex-wrap items-center gap-2", foldOnPhone(tools))}>
           <div className="relative">
             <Search className="pointer-events-none absolute left-2 top-2.5 size-4 text-muted-foreground" />
             <Input className="w-56 pl-8" placeholder={t("searchContacts")} aria-label={t("searchContacts")} value={q} onChange={(e) => (setQ(e.target.value), setPage(1))} />

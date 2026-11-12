@@ -757,3 +757,7 @@
 - Every notification (the bell, the e-mail copy and the bot) is now written in the language the recipient uses the platform in — Russian, Ukrainian, Polish or English — instead of always English: projects turning red, sprint results, reminders, deals going cold, no contact for a month, new and repeat leads, assignments (with proper plural forms), client comments, approvals and uploads, mentions, people joining through your links, plan and payment notices, AI allowance. Values (names, titles, numbers) are put into the text.
 - How: each call passes a key of the new "notices" texts with its values; `notify` renders it once in the recipient's language (`server/services/notice-text.ts`) and keeps the English text as a fallback. Notices already in the bell stay as they were written.
 - Texts in four languages; tests for the wording, plural forms, the fallback and the stored language.
+
+## 0.68.1 — Phones: filters folded on People and Contacts
+
+- On a phone the list goal, the import and add-list buttons, the search and the five filters of "People" (and the search, filter and buttons of "Contacts") filled the whole first screen. They are now folded behind one "Filters" button, closed at first; the button shows how many filters are on. "Due today" and "Declined and silent" stay in sight. From tablet width up nothing changes.
