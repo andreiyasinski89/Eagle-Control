@@ -2538,7 +2538,11 @@
     "voiceAgain": "Record again",
     "voiceNoMic": "No access to the microphone. Allow it in the browser and try again.",
     "voiceUnsupported": "This browser cannot record sound.",
-    "voiceAudioFailed": "The recording could not be saved; the text was saved as a note."
+    "voiceAudioFailed": "The recording could not be saved; the text was saved as a note.",
+    "voiceHeardNothing": "No words were recognised. Type the note or record again.",
+    "voiceNoNetwork": "Speech recognition needs the internet. Check the connection, or type the note.",
+    "voiceNoSpeech": "This browser cannot turn speech into text. Type the note — or use the microphone on your phone keyboard.",
+    "voiceListening": "Listening… speak now."
   },
   "materials": {
     "title": "Materials",

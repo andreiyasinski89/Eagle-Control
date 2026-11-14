@@ -322,3 +322,4 @@
 | 315 | Card sections open by default (folding stays available) | The owner prefers everything in sight; reverses the folded default of 0.64.0. |
 | 316 | Notices are rendered in the recipient's locale when created, from a "notices" key + values | One text for bell, e-mail and bot; no per-view translation of stored rows; old rows keep their words. |
 | 317 | Section tools fold behind a "Filters" button on phones only, closed by default | The board, not its controls, is what a person opens People for; desktop has room for both. |
+| 318 | Voice note uses speech recognition only (no MediaRecorder), restarting after pauses | Android serves the microphone to one listener; the recorder starved recognition. Audio is not stored anyway. |

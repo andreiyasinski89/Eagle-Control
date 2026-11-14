@@ -761,3 +761,9 @@
 ## 0.68.1 — Phones: filters folded on People and Contacts
 
 - On a phone the list goal, the import and add-list buttons, the search and the five filters of "People" (and the search, filter and buttons of "Contacts") filled the whole first screen. They are now folded behind one "Filters" button, closed at first; the button shows how many filters are on. "Due today" and "Declined and silent" stay in sight. From tablet width up nothing changes.
+
+## 0.68.2 — The voice note works on phones
+
+- On Android a voice note gave no words, so nothing could be saved: the note ran a sound recorder and speech recognition at the same time, Android lets one listener have the microphone, and recognition failed silently (the audio has not been kept since 0.61.3 anyway). Now only speech recognition listens. Android ends recognition after a pause in speech; it is started again until Stop is pressed.
+- What is heard shows live ("Listening… speak now"); Save is available once there are words. A blocked microphone or a lost connection is said plainly; "No words were recognised" replaces the placeholder that looked like an error.
+- Where the browser cannot recognise speech, the note can be typed straight away (the phone keyboard's microphone works there too).

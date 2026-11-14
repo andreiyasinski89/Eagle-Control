@@ -2538,7 +2538,11 @@
     "voiceAgain": "Nagraj ponownie",
     "voiceNoMic": "Brak dostępu do mikrofonu. Zezwól na niego w przeglądarce i spróbuj ponownie.",
     "voiceUnsupported": "Ta przeglądarka nie potrafi nagrywać dźwięku.",
-    "voiceAudioFailed": "Nie udało się zapisać nagrania; tekst zapisano jako notatkę."
+    "voiceAudioFailed": "Nie udało się zapisać nagrania; tekst zapisano jako notatkę.",
+    "voiceHeardNothing": "Nie rozpoznano słów. Wpisz notatkę lub nagraj ponownie.",
+    "voiceNoNetwork": "Rozpoznawanie mowy wymaga internetu. Sprawdź połączenie lub wpisz notatkę.",
+    "voiceNoSpeech": "Ta przeglądarka nie zamienia mowy na tekst. Wpisz notatkę — albo użyj mikrofonu na klawiaturze telefonu.",
+    "voiceListening": "Słucham… mów."
   },
   "materials": {
     "title": "Materiały",

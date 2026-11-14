@@ -1,0 +1,7 @@
+const fragment = {
+  en: { mobile: { voiceHeardNothing: "No words were recognised. Type the note or record again.", voiceNoNetwork: "Speech recognition needs the internet. Check the connection, or type the note.", voiceNoSpeech: "This browser cannot turn speech into text. Type the note — or use the microphone on your phone keyboard.", voiceListening: "Listening… speak now." } },
+  ru: { mobile: { voiceHeardNothing: "Слова не распознались. Наберите заметку или запишите заново.", voiceNoNetwork: "Для распознавания речи нужен интернет. Проверьте связь или наберите заметку.", voiceNoSpeech: "Этот браузер не умеет превращать речь в текст. Наберите заметку — или нажмите микрофон на клавиатуре телефона.", voiceListening: "Слушаю… говорите." } },
+  pl: { mobile: { voiceHeardNothing: "Nie rozpoznano słów. Wpisz notatkę lub nagraj ponownie.", voiceNoNetwork: "Rozpoznawanie mowy wymaga internetu. Sprawdź połączenie lub wpisz notatkę.", voiceNoSpeech: "Ta przeglądarka nie zamienia mowy na tekst. Wpisz notatkę — albo użyj mikrofonu na klawiaturze telefonu.", voiceListening: "Słucham… mów." } },
+  uk: { mobile: { voiceHeardNothing: "Слова не розпізналися. Наберіть нотатку або запишіть знову.", voiceNoNetwork: "Для розпізнавання мовлення потрібен інтернет. Перевірте зв'язок або наберіть нотатку.", voiceNoSpeech: "Цей браузер не вміє перетворювати мовлення на текст. Наберіть нотатку — або натисніть мікрофон на клавіатурі телефона.", voiceListening: "Слухаю… говоріть." } },
+};
+export default fragment;
