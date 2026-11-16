@@ -767,3 +767,9 @@
 - On Android a voice note gave no words, so nothing could be saved: the note ran a sound recorder and speech recognition at the same time, Android lets one listener have the microphone, and recognition failed silently (the audio has not been kept since 0.61.3 anyway). Now only speech recognition listens. Android ends recognition after a pause in speech; it is started again until Stop is pressed.
 - What is heard shows live ("Listening… speak now"); Save is available once there are words. A blocked microphone or a lost connection is said plainly; "No words were recognised" replaces the placeholder that looked like an error.
 - Where the browser cannot recognise speech, the note can be typed straight away (the phone keyboard's microphone works there too).
+
+## 0.69.0 — Ready for Google's app verification (Calendar)
+
+- **Public home page**: a visitor who is not signed in now sees what MLM CRM is (title, six features, "Start free" and "Sign in", links to the privacy policy, terms and account deletion) instead of being sent straight to sign-in. Google asks for such a page before it verifies an app that uses Calendar, and Google Play does too. The Android app and icon shortcuts still go straight to signing in; signed-in people still land in their workspace.
+- **Privacy policy: "Google user data (Google Calendar)"** — the one permission asked (`calendar.events`), what is done with it, what is stored (an encrypted token, the connected address, event ids), that it is not shared, sold, used for ads or AI training, how to disconnect (also revokes it at Google), and the required statement that use of Google API data adheres to the Google API Services User Data Policy, including Limited Use.
+- **Owner's kit** `docs/GOOGLE-VERIFICATION.ru.md`: domain check through a TXT record in Vercel, branding fields, the scope justification text, the video script, the submission and common rejection reasons. Logo 120×120 prepared.

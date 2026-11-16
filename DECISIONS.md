@@ -323,3 +323,5 @@
 | 316 | Notices are rendered in the recipient's locale when created, from a "notices" key + values | One text for bell, e-mail and bot; no per-view translation of stored rows; old rows keep their words. |
 | 317 | Section tools fold behind a "Filters" button on phones only, closed by default | The board, not its controls, is what a person opens People for; desktop has room for both. |
 | 318 | Voice note uses speech recognition only (no MediaRecorder), restarting after pauses | Android serves the microphone to one listener; the recorder starved recognition. Audio is not stored anyway. |
+| 319 | Visitors get a public landing at / (app start and shortcuts still go to sign-in) | Google OAuth verification and Google Play require a public home page describing the app with the privacy link. |
+| 320 | Privacy policy carries an explicit Google user data section with the Limited Use statement | Required for Google OAuth verification of the calendar.events scope. |

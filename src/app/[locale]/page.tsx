@@ -1,6 +1,7 @@
 import { redirect } from "@/i18n/navigation";
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
+import { Landing } from "@/features/landing/Landing";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,11 @@ export default async function Home({ params, searchParams }: { params: Promise<{
   // The Android app opens "/?app=android": the mark is carried on to the first real page, where it is remembered.
   const mark = app === "android" ? "?app=android" : "";
   const session = await auth();
-  if (!session?.user?.id) return redirect({ href: `/sign-in${mark}`, locale });
+  if (!session?.user?.id) {
+    // A visitor sees what MLM CRM is (Google and Google Play ask for such a page); the Android app and icon shortcuts go straight to signing in.
+    if (!mark && !to) return <Landing />;
+    return redirect({ href: `/sign-in${mark}`, locale });
+  }
   const memberships = await db.membership.findMany({ where: { userId: session.user.id }, orderBy: { createdAt: "asc" }, include: { workspace: { select: { slug: true } } } });
   // The team's workspace first; a person who is only a client lands in the portal.
   const team = memberships.find((m) => m.role !== "CLIENT");

@@ -2833,5 +2833,26 @@
       "title": "Wykorzystano 80% limitu AI na ten miesiąc",
       "body": "{used} z {limit} tokenów"
     }
+  },
+  "landing": {
+    "title": "Miejsce pracy osoby z marketingu sieciowego, która chce wyników",
+    "lead": "MLM CRM każdego ranka pokazuje, do kogo napisać dziś, kto czeka na Twoją odpowiedź i jakie spotkania są przed Tobą. Jedno naciśnięcie — gotowa wiadomość wysłana i zapisana. Start za darmo.",
+    "start": "Zacznij za darmo",
+    "signIn": "Zaloguj się",
+    "f1Title": "Ludzie i lejek",
+    "f1Text": "Od nowego kontaktu do partnera, z temperaturą i następnym krokiem dla każdego.",
+    "f2Title": "Kontakty jednym naciśnięciem",
+    "f2Text": "Kolejka osób na dziś, gotowe skrypty, Telegram, WhatsApp i Instagram jednym naciśnięciem.",
+    "f3Title": "Nikt nie jest zapomniany",
+    "f3Text": "Ci, którzy do Ciebie napisali i czekają na odpowiedź, są zawsze na górze.",
+    "f4Title": "Spotkania i kalendarz",
+    "f4Text": "„Jutro 12:00” jednym naciśnięciem, w razie potrzeby z Kalendarzem Google.",
+    "f5Title": "Twój zespół",
+    "f5Text": "Twoja struktura, aktywność partnerów i plan 30 dni dla nowych osób.",
+    "f6Title": "Telefon i komputer",
+    "f6Text": "Działa wszędzie i jest zsynchronizowane. Po polsku, rosyjsku, ukraińsku i angielsku.",
+    "privacy": "Polityka prywatności",
+    "terms": "Warunki korzystania",
+    "deleteAccount": "Usunięcie konta"
   }
 }
