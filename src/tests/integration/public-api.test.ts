@@ -126,6 +126,7 @@ describe("public form", () => {
   });
 
   it("takes the site's own payload: one contact box, quiz answers and the page kept in the note", async () => {
+    await holder.db.user.update({ where: { id: owner }, data: { locale: "ru" } }); // the words the CRM writes follow the person the lead goes to
     const form = new URLSearchParams({ name: "Мария", contact: "@maria_travel", consent: "yes", form: "Квиз", message: "Результат квиза: Охотник за выгодой", "Q1 Как часто ты путешествуешь?": "2–3 раза в год", utm_source: "instagram", lang: "RU", page: "/quiz.html" });
     const res = await postLead(req(`/api/public/leads/${siteKey}`, { headers: { "content-type": "application/x-www-form-urlencoded", origin: "https://clever-travel.club" }, body: form.toString() }), ctx(siteKey));
     expect(res.status).toBe(201);
@@ -136,6 +137,10 @@ describe("public form", () => {
     expect(note.body).toContain("Результат квиза: Охотник за выгодой");
     expect(note.body).toContain("Q1 Как часто ты путешествуешь?: 2–3 раза в год");
     expect(note.body).toContain("page: /quiz.html");
+    expect(note.subject).toBe("Заявка: Site form");
+    const deal = await holder.db.deal.findFirstOrThrow({ where: { primaryContactId: c.nodeId } });
+    expect(deal.nextStep).toBe("Ответить на заявку");
+    await holder.db.user.update({ where: { id: owner }, data: { locale: "en" } });
   });
 
   it("honours Idempotency-Key and rate-limits abusive senders", async () => {

@@ -184,6 +184,18 @@ export interface IngestResult {
 
 const REUSE_WINDOW_MS = 14 * 86_400_000;
 
+/** Words the CRM writes into the record itself (stored text, not UI), in the language of the person the lead goes to. */
+const LEAD_WORDS: Record<string, { nextStep: string; inquiry: string }> = {
+  en: { nextStep: "Reply to the inquiry", inquiry: "Inquiry via" },
+  ru: { nextStep: "Ответить на заявку", inquiry: "Заявка:" },
+  pl: { nextStep: "Odpowiedzieć na zgłoszenie", inquiry: "Zgłoszenie:" },
+  uk: { nextStep: "Відповісти на заявку", inquiry: "Заявка:" },
+};
+async function leadWords(tx: Tx, userId: string) {
+  const u = await tx.user.findUnique({ where: { id: userId }, select: { locale: true } });
+  return LEAD_WORDS[u?.locale ?? "en"] ?? LEAD_WORDS.en!;
+}
+
 async function pickActor(tx: Tx, workspaceId: string, ownerId?: string | null): Promise<string> {
   if (ownerId) {
     const m = await tx.membership.findUnique({ where: { userId_workspaceId: { userId: ownerId, workspaceId } } });
@@ -253,6 +265,7 @@ export async function ingestLead(opts: IngestOptions, raw: unknown): Promise<Ing
       // A lead that came through somebody's own link belongs to them and is a person to talk to, not a deal; without a label it goes to the leader.
       const refOwner = lead.ref ? await ownerOfRef(tx, opts.workspaceId, lead.ref) : null;
       const actor = refOwner ?? (await pickActor(tx, opts.workspaceId, opts.ownerId));
+      const words = await leadWords(tx, actor);
       const now = new Date();
 
       let contactId = (await findContactMatches(tx, opts.workspaceId, lead.email ? [lead.email] : [], lead.phone ? [lead.phone] : [], undefined, lead.telegram))[0]?.id ?? null;
@@ -293,7 +306,7 @@ export async function ingestLead(opts: IngestOptions, raw: unknown): Promise<Ing
       await markForReply(tx, contactId, actor, now);
 
       if (refOwner) {
-        await createActivityIn(tx, actor, opts.workspaceId, { type: "MESSAGE", subject: `Inquiry via ${opts.sourceLabel}`, body: leadNote(lead) || null, contactId, companyId: null, dealId: null, completed: true, ownerId: actor });
+        await createActivityIn(tx, actor, opts.workspaceId, { type: "MESSAGE", subject: `${words.inquiry} ${opts.sourceLabel}`, body: leadNote(lead) || null, contactId, companyId: null, dealId: null, completed: true, ownerId: actor });
         const who = fullName(lead.firstName, lead.lastName);
         const personal: IngestResult["status"] = existed ? "duplicate" : "created";
         await notify({ userId: actor, workspaceId: opts.workspaceId, kind: "lead", title: personal === "created" ? `New lead: ${who}` : `Repeat inquiry from ${who}`, text: { key: personal === "created" ? "leadNew" : "leadRepeat", params: { name: who } }, body: opts.sourceLabel, url: "/crm/touches", payload: { contactId, source: opts.sourceLabel, status: personal } }, tx);
@@ -322,7 +335,7 @@ export async function ingestLead(opts: IngestOptions, raw: unknown): Promise<Ing
             primaryContactId: contactId,
             ownerId: actor,
             source: opts.sourceLabel,
-            nextStep: "Reply to the inquiry",
+            nextStep: words.nextStep,
             nextStepAt: new Date(now.getTime() + 86_400_000).toISOString(),
           })
         ).id;
@@ -330,7 +343,7 @@ export async function ingestLead(opts: IngestOptions, raw: unknown): Promise<Ing
 
       await createActivityIn(tx, actor, opts.workspaceId, {
         type: "MESSAGE",
-        subject: `Inquiry via ${opts.sourceLabel}`,
+        subject: `${words.inquiry} ${opts.sourceLabel}`,
         body: leadNote(lead) || null,
         contactId,
         companyId,

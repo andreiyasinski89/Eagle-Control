@@ -804,3 +804,7 @@
 
 - **Fix: a lead from a site or a webhook failed with "Internal error" after about 5 seconds.** Saving a lead (the person, the deal, the note, the notification, the journal entry) runs as one database transaction, and it still had Prisma's default 5-second limit; with the database far from the server it did not finish in time and everything was rolled back. It now has the same room as the other CRM writes (30 s). Found on the first real request from clever-travel.club.
 - The "Telegram" field in the lead form editor showed a code (`crm.formField.telegram`) instead of its name. Fragment p107.
+
+## 0.75.0 — A lead's next step and note title in your language
+
+- A lead from a site or a webhook was written into the CRM with English words: the next step "Reply to the inquiry" and the note title "Inquiry via …". They now follow the language of the person the lead goes to (ru "Ответить на заявку" / "Заявка: …", pl, uk; en unchanged). Leads already in the CRM keep their text.
