@@ -4,7 +4,7 @@ import { useTimeZone } from "@/features/views/useTimeZone";
 import { AiLeadReply } from "@/features/ai/ai";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, CalendarPlus, FolderPlus, Mail, MessageSquare, Phone, StickyNote, Trophy, X, XCircle } from "lucide-react";
+import { AlertTriangle, Archive, CalendarPlus, FolderPlus, Mail, MessageSquare, Phone, StickyNote, Trophy, X, XCircle } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -96,6 +96,14 @@ export function DealDrawer({ workspaceId, slug, dealId, canWrite, meId, onClose,
     onError: (e) => setError(e instanceof ApiFailure ? e.message : t("error")),
   });
   const reopen = useMutation({ mutationFn: () => api.post(`/api/v1/deals/${dealId}/reopen`, {}), onSuccess: refresh });
+  const archive = useMutation({
+    mutationFn: () => api.del(`/api/v1/deals/${dealId}`),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["board"] });
+      onClose();
+    },
+    onError: (e) => setError(e instanceof ApiFailure ? e.message : t("error")),
+  });
 
   if (isError) {
     return (
@@ -195,6 +203,10 @@ export function DealDrawer({ workspaceId, slug, dealId, canWrite, meId, onClose,
               {t("createProject")}
             </Button>
           )}
+          <Button size="sm" variant="ghost" disabled={archive.isPending} onClick={() => window.confirm(t("archiveDealConfirm")) && archive.mutate()}>
+            <Archive className="size-4" />
+            {t("archiveDeal")}
+          </Button>
         </div>
       )}
 

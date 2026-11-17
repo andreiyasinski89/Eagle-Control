@@ -1097,7 +1097,9 @@
     "moveFailed": "The card could not be moved: the server did not answer in time. Try again.",
     "moveFailedWhy": "The card could not be moved: {why}",
     "listCounterDone": "In the list: {n} · goal of {goal} reached ✓",
-    "filtersButton": "Filters"
+    "filtersButton": "Filters",
+    "archiveDeal": "Archive",
+    "archiveDealConfirm": "Archive this deal? It leaves the board and the lists. The person and their history stay."
   },
   "myday": {
     "title": "My day",

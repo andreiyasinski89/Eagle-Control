@@ -1097,7 +1097,9 @@
     "moveFailed": "Nie udało się przenieść karty: serwer nie odpowiedział na czas. Spróbuj ponownie.",
     "moveFailedWhy": "Nie udało się przenieść karty: {why}",
     "listCounterDone": "Na liście: {n} · cel {goal} osiągnięty ✓",
-    "filtersButton": "Filtry"
+    "filtersButton": "Filtry",
+    "archiveDeal": "Do archiwum",
+    "archiveDealConfirm": "Przenieść transakcję do archiwum? Zniknie z tablicy i z list. Osoba i jej historia zostaną."
   },
   "myday": {
     "title": "Mój dzień",

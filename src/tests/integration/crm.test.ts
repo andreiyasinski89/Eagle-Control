@@ -15,7 +15,7 @@ import { createNode, patchNode, transact } from "@/server/services/nodes/ops";
 import { getTree } from "@/server/services/nodes/queries";
 import { getNodeDetail } from "@/server/services/nodes/queries";
 import { createPipeline, createLostReason, listLostReasons, listPipelines, replaceStages } from "@/server/services/crm/pipelines";
-import { createDeal, createProjectFromDeal, getBoard, getDeal, listDeals, loseDeal, moveDeal, reopenDeal, updateDeal, winDeal } from "@/server/services/crm/deals";
+import { archiveDeal, createDeal, createProjectFromDeal, getBoard, getDeal, listDeals, loseDeal, moveDeal, reopenDeal, updateDeal, winDeal } from "@/server/services/crm/deals";
 import { getCompany, listCompanies } from "@/server/services/crm/companies";
 import { archiveContact, contactDuplicateGroups, createContact, gdprErase, gdprExport, getContact, listContacts, setConsent } from "@/server/services/crm/contacts";
 import { createActivity, listActivities } from "@/server/services/crm/activities";
@@ -238,6 +238,14 @@ describe("lead → deal → project → Client Map (the phase 3 scenario)", () =
     expect((await getDeal(sales, stale.id)).health).toBe("RED");
     const upd = await updateDeal(sales, stale.id, { nextStep: "" });
     expect(upd.nextStep).toBeNull();
+  });
+
+  it("an archived deal leaves the board (the card's Archive button)", async () => {
+    const junk = await createDeal(sales, ws.id, { title: "Test junk", amount: 0, currency: "EUR", companyId });
+    await expect(archiveDeal(plain, junk.id)).rejects.toMatchObject({ status: 404 }); // no CRM access: the deal is not even visible
+    await archiveDeal(sales, junk.id);
+    const board = await getBoard(sales, pipelineId, {});
+    expect(board.columns.flatMap((c) => c.deals).some((d) => d.id === junk.id)).toBe(false);
   });
 
   it("activity logging resets the idle clock and the contact's last touch", async () => {

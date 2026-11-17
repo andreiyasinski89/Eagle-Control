@@ -808,3 +808,7 @@
 ## 0.75.0 — A lead's next step and note title in your language
 
 - A lead from a site or a webhook was written into the CRM with English words: the next step "Reply to the inquiry" and the note title "Inquiry via …". They now follow the language of the person the lead goes to (ru "Ответить на заявку" / "Заявка: …", pl, uk; en unchanged). Leads already in the CRM keep their text.
+
+## 0.76.0 — Archive a deal from its card
+
+- The deal card has an **Archive** button (after a confirmation): the deal leaves the board and the lists; the person and their history stay. Until now a deal could only be closed as won or lost, so a test or junk lead stayed in the reports. Fragment p108.
