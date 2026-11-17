@@ -38,6 +38,8 @@ const ALIASES: Record<string, string[]> = {
   email: ["email", "mail", "emailaddress", "почта", "youremail"],
   phone: ["phone", "tel", "telephone", "mobile", "телефон", "telefon", "phonenumber"],
   telegram: ["telegram", "tg", "telegramusername", "telegramnick", "телеграм", "тг"],
+  /** One box for "how to reach you": an e-mail, a phone or a Telegram name, told apart by its shape. */
+  contact: ["contact", "contacts", "contactinfo", "howtocontact", "контакт", "контакты", "связь", "kontakt"],
   ref: ["ref", "referral", "refcode", "referralcode", "utmref", "метка", "реф"],
   company: ["company", "companyname", "organization", "organisation", "компания", "firma"],
   website: ["website", "site", "url", "сайт"],
@@ -83,14 +85,24 @@ export function parseLead(raw: unknown): LeadInput {
   };
 
   const rawEmail = str(pick("email"));
-  const email = normalizeEmail(rawEmail);
+  let email = normalizeEmail(rawEmail);
   if (rawEmail && !email) throw new LeadRejected("invalid_email");
   const phoneRaw = str(pick("phone"));
-  const phone = normalizePhone(phoneRaw) ? phoneRaw : null;
+  let phone = normalizePhone(phoneRaw) ? phoneRaw : null;
   const tgRaw = str(pick("telegram"));
-  const telegram = tgRaw ? (normalizeTelegram(tgRaw)?.toLowerCase() ?? null) : null;
+  let telegram = tgRaw ? (normalizeTelegram(tgRaw)?.toLowerCase() ?? null) : null;
+  const contactRaw = str(pick("contact"));
+  let contactLeft: string | null = null;
+  if (contactRaw) {
+    const c = classifyContact(contactRaw);
+    if (c.kind === "email" && !email) email = c.value;
+    else if (c.kind === "phone" && !phone) phone = c.value;
+    else if (c.kind === "telegram" && !telegram) telegram = c.value;
+    else contactLeft = contactRaw; // unrecognised, or a second way to reach them: keep it in the note
+  }
   const ref = str(pick("ref"));
-  if (!email && !phone && !telegram) throw new LeadRejected("no_contact_method");
+  // A contact box we could not read (say "Instagram anna") still reaches a person: keep the lead, the note shows it.
+  if (!email && !phone && !telegram && !contactLeft) throw new LeadRejected("no_contact_method");
 
   let firstName = str(pick("firstName"));
   let lastName = str(pick("lastName"));
@@ -108,6 +120,7 @@ export function parseLead(raw: unknown): LeadInput {
   const amount = amountRaw ? Number(amountRaw.replace(/[^\d.,-]/g, "").replace(",", ".")) : NaN;
 
   const extra: Record<string, string> = {};
+  if (contactLeft) extra.contact = contactLeft.slice(0, 500);
   for (const [k, v] of Object.entries(obj)) {
     const kk = key(k);
     if (used.has(kk) || HONEYPOTS.includes(kk) || kk === "idempotencykey") continue;
@@ -129,6 +142,29 @@ export function parseLead(raw: unknown): LeadInput {
     consent,
     extra,
   };
+}
+
+/**
+ * Tells what a single "contact" box holds: an e-mail (has an @ between text), a Telegram name (starts with @ or is a t.me link,
+ * or is a bare name with a digit or an underscore), or a phone (digits). Anything else is "unknown".
+ */
+export function classifyContact(input: string): { kind: "email" | "phone" | "telegram"; value: string } | { kind: "unknown" } {
+  const v = input.trim();
+  if (/^[^@\s]+@[^@\s]+$/.test(v)) {
+    const email = normalizeEmail(v);
+    return email ? { kind: "email", value: email } : { kind: "unknown" };
+  }
+  if (/^@|(^|\/\/|\.)(t|telegram)\.me\//i.test(v)) {
+    const tg = normalizeTelegram(v);
+    return tg ? { kind: "telegram", value: tg.toLowerCase() } : { kind: "unknown" };
+  }
+  if (normalizePhone(v)) return { kind: "phone", value: v };
+  // A bare word counts only with a digit or an underscore in it: "Anna" or "Viber" is a name, not a Telegram account.
+  if (/[a-z]/i.test(v) && /[0-9_]/.test(v)) {
+    const tg = normalizeTelegram(v);
+    if (tg) return { kind: "telegram", value: tg.toLowerCase() };
+  }
+  return { kind: "unknown" };
 }
 
 /** Plain-text activity note summarising what the sender wrote. */

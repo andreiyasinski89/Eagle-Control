@@ -34,7 +34,7 @@ import {
   COMPANY_FIELDS,
   MAX_CSV_ROWS,
 } from "@/modules/crm/csv";
-import { LeadRejected, leadNote, parseLead } from "@/modules/crm/lead-intake";
+import { LeadRejected, classifyContact, leadNote, parseLead } from "@/modules/crm/lead-intake";
 import { BUILT_IN_TEMPLATES, flattenTemplate, scheduleNode, templateNodeSchema } from "@/modules/nodes/templates";
 
 const d = (s: string) => new Date(`${s}T12:00:00Z`);
@@ -306,6 +306,32 @@ describe("lead intake", () => {
   });
   it("accepts a phone-only lead and falls back for the name", () => {
     expect(parseLead({ phone: "600 123 456" })).toMatchObject({ firstName: "600 123 456", email: null });
+  });
+  it("reads one combined contact box by its shape", () => {
+    expect(parseLead({ name: "Анна", contact: " Anna@Mail.ru " })).toMatchObject({ email: "anna@mail.ru", phone: null, telegram: null });
+    expect(parseLead({ name: "Анна", Контакт: "+48 731 135 317" })).toMatchObject({ email: null, phone: "+48 731 135 317" });
+    expect(parseLead({ name: "Анна", contact: "@Anna_Travel" })).toMatchObject({ telegram: "anna_travel", phone: null });
+    expect(parseLead({ name: "Анна", contact: "https://t.me/anna_travel" })).toMatchObject({ telegram: "anna_travel" });
+    expect(parseLead({ name: "Анна", contact: "anna_travel" })).toMatchObject({ telegram: "anna_travel" });
+    // A box we cannot read still keeps the lead: the text goes to the note.
+    const odd = parseLead({ name: "Анна", contact: "Инстаграм анна" });
+    expect(odd).toMatchObject({ email: null, phone: null, telegram: null });
+    expect(leadNote(odd)).toBe("contact: Инстаграм анна");
+    // An explicit e-mail wins; the box then is a second way to reach them and goes to the note.
+    const both = parseLead({ email: "a@b.co", contact: "+48 600 123 456" });
+    expect(both).toMatchObject({ email: "a@b.co", phone: "+48 600 123 456" });
+    const twoMails = parseLead({ email: "a@b.co", contact: "c@d.co" });
+    expect(twoMails.email).toBe("a@b.co");
+    expect(twoMails.extra).toEqual({ contact: "c@d.co" });
+  });
+  it("tells e-mail, phone and Telegram apart", () => {
+    expect(classifyContact("x@y.pl")).toEqual({ kind: "email", value: "x@y.pl" });
+    expect(classifyContact("8 (900) 123-45-67")).toMatchObject({ kind: "phone" });
+    expect(classifyContact("@ivn")).toEqual({ kind: "unknown" }); // shorter than Telegram allows
+    expect(classifyContact("@ivan_p")).toEqual({ kind: "telegram", value: "ivan_p" });
+    expect(classifyContact("WhatsApp")).toEqual({ kind: "unknown" });
+    expect(classifyContact("anna1990")).toEqual({ kind: "telegram", value: "anna1990" });
+    expect(classifyContact("—")).toEqual({ kind: "unknown" });
   });
 });
 

@@ -125,6 +125,19 @@ describe("public form", () => {
     expect(pre.headers.get("access-control-allow-origin")).toBe("https://clever-travel.club");
   });
 
+  it("takes the site's own payload: one contact box, quiz answers and the page kept in the note", async () => {
+    const form = new URLSearchParams({ name: "Мария", contact: "@maria_travel", consent: "yes", form: "Квиз", message: "Результат квиза: Охотник за выгодой", "Q1 Как часто ты путешествуешь?": "2–3 раза в год", utm_source: "instagram", lang: "RU", page: "/quiz.html" });
+    const res = await postLead(req(`/api/public/leads/${siteKey}`, { headers: { "content-type": "application/x-www-form-urlencoded", origin: "https://clever-travel.club" }, body: form.toString() }), ctx(siteKey));
+    expect(res.status).toBe(201);
+    expect(res.headers.get("access-control-allow-origin")).toBe("https://clever-travel.club");
+    const c = await holder.db.contact.findFirstOrThrow({ where: { workspaceId: wsId, firstName: "Мария" } });
+    expect(c.messengers).toMatchObject({ telegram: "@maria_travel" });
+    const note = await holder.db.crmActivity.findFirstOrThrow({ where: { contactId: c.nodeId } });
+    expect(note.body).toContain("Результат квиза: Охотник за выгодой");
+    expect(note.body).toContain("Q1 Как часто ты путешествуешь?: 2–3 раза в год");
+    expect(note.body).toContain("page: /quiz.html");
+  });
+
   it("honours Idempotency-Key and rate-limits abusive senders", async () => {
     const headers = json({ "idempotency-key": "retry-1" });
     const body = JSON.stringify({ name: "Retry Rita", email: "rita@retry.io" });
