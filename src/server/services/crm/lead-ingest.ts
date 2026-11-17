@@ -13,7 +13,7 @@ import { notify } from "../notify";
 import { createActivityIn } from "./activities";
 import { createCompanyIn } from "./companies";
 import { assertContactCapacity, createContactIn, findContactMatches } from "./contacts";
-import { fullName } from "./common";
+import { CRM_TX, fullName } from "./common";
 import { createDealIn } from "./deals";
 
 // ── forms ──────────────────────────────────────────────────────────────────
@@ -343,7 +343,7 @@ export async function ingestLead(opts: IngestOptions, raw: unknown): Promise<Ing
         data: { workspaceId: opts.workspaceId, source: opts.source, idempotencyKey: key, ipHash: opts.ipHash ?? null, status, contactId, dealId, payload: raw as Prisma.InputJsonValue },
       });
       return { status, contactId, dealId, companyId };
-    });
+    }, CRM_TX); // the default 5 s is too short for this many round trips to a distant database
     if (out.status === "created") await emitWebhook(opts.workspaceId, "lead.created", { dealId: out.dealId, contactId: out.contactId, source: opts.sourceLabel });
     if (out.status === "created") await announceToSlack(opts.workspaceId, "lead", { title: `New lead: ${fullName(lead.firstName, lead.lastName)}`, body: `${opts.sourceLabel}${lead.company ? ` · ${lead.company}` : ""}`, url: `/crm?deal=${out.dealId}` });
     return out;

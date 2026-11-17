@@ -799,3 +799,8 @@
 - **One "Contact" box is understood.** Sites often ask "how to reach you" in a single field. A field called `contact` / "Контакт" / "связь" / `kontakt` is now read by its shape: an e-mail, a phone, or a Telegram name (`@name`, a `t.me` link, or a bare name with a digit or an underscore). Something else ("Instagram anna") no longer loses the request: it is accepted and the text is kept in the note. When the sender also gave an e-mail or phone, the box goes to the note as a second way to reach them.
 - **The clever-travel.club site** (separate repository) now sends every request from its contact form and its quiz to an MLM CRM lead form as well, with the quiz result and answers, the language, the page and any `utm_*`/`ref` in the note. E-mail (FormSubmit) and the quiz spreadsheet keep working as before; a contact-form request counts as sent when either the e-mail or the CRM took it. Nothing goes to the CRM until the form's public key is put into the site.
 - `docs/INTEGRATIONS.md` says how to connect a site that has one combined contact field.
+
+## 0.74.0 — Leads from a site are saved again
+
+- **Fix: a lead from a site or a webhook failed with "Internal error" after about 5 seconds.** Saving a lead (the person, the deal, the note, the notification, the journal entry) runs as one database transaction, and it still had Prisma's default 5-second limit; with the database far from the server it did not finish in time and everything was rolled back. It now has the same room as the other CRM writes (30 s). Found on the first real request from clever-travel.club.
+- The "Telegram" field in the lead form editor showed a code (`crm.formField.telegram`) instead of its name. Fragment p107.

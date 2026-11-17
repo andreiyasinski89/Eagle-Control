@@ -608,7 +608,8 @@
       "phone": "Phone",
       "company": "Company",
       "message": "Message",
-      "amount": "Budget"
+      "amount": "Budget",
+      "telegram": "Telegram"
     },
     "required": "required",
     "successMessage": "Thank-you message",

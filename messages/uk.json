@@ -1788,7 +1788,8 @@
       "phone": "Телефон",
       "company": "Компанія",
       "message": "Повідомлення",
-      "amount": "Бюджет"
+      "amount": "Бюджет",
+      "telegram": "Telegram"
     },
     "required": "обов'язково",
     "successMessage": "Повідомлення після надсилання",
