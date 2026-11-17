@@ -780,3 +780,10 @@
 - Moving the meeting here moves the event; deleting it here deletes the event; changing its time, length or title in Google comes back to MLM CRM; deleting a planned meeting in Google calls it off here (a meeting that already took place stays in the history).
 - Upcoming meetings made before the calendar was connected, and any whose sending failed, are sent on connecting and with the regular check every 10 minutes.
 - New table `ActivityCalendarLink` (migration 0042, additive).
+
+## 0.71.0 — Your Google Calendar inside the MLM CRM calendar
+
+- **The other events of your Google Calendar now show in the MLM CRM calendar**, so the whole day is in one place: from about a month back to three months ahead, repeating ones on each of their dates, all-day ones on their day. They are drawn in grey with a dashed edge; a press opens the event in Google Calendar, where it is edited. Events made in MLM CRM are not shown twice.
+- Seen only by the person who connected the calendar, never by the team or the rest of the workspace. Refreshed right after every change in Google (Google tells MLM CRM) and at the regular check every 10 minutes; "Sync now" and disconnecting work as before, disconnecting deletes the copy at once.
+- Privacy policy (Google section) and the scope justification in `docs/GOOGLE-VERIFICATION.ru.md` now say that these events are shown to the user alone and what is kept (title, time, link).
+- New table `GoogleEventCopy` (migration 0043, additive). Texts in fragment p105.

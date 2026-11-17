@@ -1231,6 +1231,23 @@ model ActivityCalendarLink {
   @@index([userId, workspaceId])
 }
 
+/// An event of the person's connected Google Calendar not made in MLM CRM, shown to that person alone in the MLM CRM calendar. Replaced at each sync.
+model GoogleEventCopy {
+  id          String    @id @default(cuid())
+  userId      String
+  workspaceId String
+  externalId  String
+  title       String
+  startsAt    DateTime
+  endsAt      DateTime?
+  allDay      Boolean   @default(false)
+  htmlLink    String?
+  syncedAt    DateTime  @default(now())
+
+  @@unique([userId, workspaceId, externalId])
+  @@index([userId, workspaceId, startsAt])
+}
+
 model NotificationPreference {
   userId      String
   workspaceId String

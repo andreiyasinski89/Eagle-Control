@@ -1,7 +1,8 @@
 import { zonedParts } from "./tz";
 
 export interface CalendarApiItem {
-  kind: "task" | "milestone" | "event" | "crm_activity" | "deal_step" | "deal_close";
+  kind: "task" | "milestone" | "event" | "crm_activity" | "deal_step" | "deal_close" | "google";
+  /** A Google all-day event comes as midnight UTC with no end, like the other all-day items. */
   /** ISO instant; a date-only item is midnight UTC. */
   at: string;
   endAt: string | null;
@@ -23,7 +24,7 @@ export interface Placement {
  * An event or a scheduled call or meeting with a length is drawn as a block from its start to its end.
  */
 export function placeItem(i: CalendarApiItem, tz: string): Placement {
-  const instant = i.kind === "event" || i.kind === "crm_activity";
+  const instant = i.kind === "event" || i.kind === "crm_activity" || i.kind === "google";
   const allDay = !instant || (!i.endAt && i.at.slice(11, 19) === "00:00:00");
   if (allDay) return { day: i.at.slice(0, 10) };
   const start = zonedParts(i.at, tz);

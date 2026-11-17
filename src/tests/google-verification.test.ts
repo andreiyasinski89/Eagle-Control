@@ -10,6 +10,7 @@ describe("what Google's app verification checks", () => {
     expect(p).toContain("calendar.events");
     expect(p).toContain("Google API Services User Data Policy");
     expect(p).toContain("Limited Use");
+    expect(p).toContain("to you alone"); // the copy of the other Google events is shown to the person who connected the calendar only
   });
   it("only the narrow calendar.events scope is asked for", () => {
     expect(read("src/server/integrations/google.ts")).toMatch(/auth\/calendar\.events openid email/);

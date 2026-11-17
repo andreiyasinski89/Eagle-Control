@@ -1316,7 +1316,8 @@
       "event": "Wydarzenie",
       "crm_activity": "Aktywność CRM",
       "deal_step": "Następny krok szansy",
-      "deal_close": "Oczekiwane zamknięcie szansy"
+      "deal_close": "Oczekiwane zamknięcie szansy",
+      "google": "Kalendarz Google — otworzy się tam"
     },
     "zoom": "Skala",
     "zoomLevel": {

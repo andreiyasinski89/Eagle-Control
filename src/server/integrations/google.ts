@@ -106,6 +106,7 @@ export async function disconnectGoogle(userId: string, workspaceId: string): Pro
   await revokeGoogle(row).catch(() => undefined); // take the permission away at Google too, not only forget it here
   await db.calendarLink.deleteMany({ where: { userId, node: { workspaceId } } }); // events stay in Google; the link is what we drop
   await db.activityCalendarLink.deleteMany({ where: { userId, workspaceId } });
+  await db.googleEventCopy.deleteMany({ where: { userId, workspaceId } }); // the copies of the person's own Google events go at once
   await db.userIntegration.delete({ where: { id: row.id } });
   accessTokens.delete(row.id);
 }
@@ -161,6 +162,7 @@ interface GoogleEvent {
   summary?: string;
   updated?: string;
   hangoutLink?: string;
+  htmlLink?: string;
   start?: { dateTime?: string; date?: string };
   end?: { dateTime?: string; date?: string };
   extendedProperties?: { private?: Record<string, string> };
@@ -334,6 +336,53 @@ async function pullActivity(row: UserIntegration, item: GoogleEvent, activityId:
   return "applied";
 }
 
+// ── the rest of the Google Calendar, shown in MLM CRM ─────────────────────
+
+/** The stretch of the person's Google Calendar copied for the MLM CRM calendar. */
+const COPY_BACK_DAYS = 31;
+const COPY_AHEAD_DAYS = 92;
+
+/**
+ * Copies the events of the connected calendar that were not made in MLM CRM (those already show as themselves), about a month back and three
+ * months ahead, repeating ones as their single dates. The copy is replaced as a whole, so what was moved or deleted in Google goes here too.
+ * Shown to the person who connected the calendar only; editing stays in Google.
+ */
+export async function refreshCopies(row: UserIntegration, now = new Date()): Promise<number> {
+  if (!row.workspaceId) return 0;
+  const workspaceId = row.workspaceId;
+  const calendarId = encodeURIComponent(cfg(row).calendarId);
+  const items: GoogleEvent[] = [];
+  let next: string | null = null;
+  for (let page = 0; page < 10; page++) {
+    const q = new URLSearchParams({
+      singleEvents: "true",
+      orderBy: "startTime",
+      maxResults: "250",
+      timeMin: new Date(now.getTime() - COPY_BACK_DAYS * 86_400_000).toISOString(),
+      timeMax: new Date(now.getTime() + COPY_AHEAD_DAYS * 86_400_000).toISOString(),
+    });
+    if (next) q.set("pageToken", next);
+    const list = await gcal<EventList>(row, `/calendars/${calendarId}/events?${q}`);
+    items.push(...(list.items ?? []));
+    next = list.nextPageToken ?? null;
+    if (!next) break;
+  }
+  const rows: Prisma.GoogleEventCopyCreateManyInput[] = [];
+  const seen = new Set<string>();
+  for (const e of items) {
+    const own = e.extendedProperties?.private;
+    if (e.status === "cancelled" || own?.meetowlNodeId || own?.meetowlActivityId || seen.has(e.id)) continue;
+    const allDay = !e.start?.dateTime && !!e.start?.date;
+    const startsAt = e.start?.dateTime ? new Date(e.start.dateTime) : e.start?.date ? new Date(`${e.start.date}T00:00:00.000Z`) : null;
+    if (!startsAt || Number.isNaN(startsAt.getTime())) continue;
+    const endsAt = !allDay && e.end?.dateTime ? new Date(e.end.dateTime) : null;
+    seen.add(e.id);
+    rows.push({ userId: row.userId, workspaceId, externalId: e.id, title: (e.summary ?? "").slice(0, 300), startsAt, endsAt, allDay, htmlLink: e.htmlLink ?? null, syncedAt: now });
+  }
+  await db.$transaction([db.googleEventCopy.deleteMany({ where: { userId: row.userId, workspaceId } }), db.googleEventCopy.createMany({ data: rows })]);
+  return rows.length;
+}
+
 // ── pull: Google → MLM CRM ─────────────────────────────────────────────────
 
 interface EventList {
@@ -348,6 +397,7 @@ const INITIAL_LOOKBACK_MS = 7 * 86_400_000;
 async function startSync(row: UserIntegration): Promise<void> {
   await pull(row, true);
   await catchUpMeetings(row);
+  await refreshCopies(row).catch((e) => console.error("google copy failed", e instanceof Error ? e.message : e));
   if (appUrl().startsWith("https://")) await startWatch(row).catch((e) => console.error("google watch not started", e instanceof Error ? e.message : e));
 }
 
@@ -436,7 +486,9 @@ export async function syncNow(userId: string, workspaceId: string) {
   await loadWorkspaceMember(db, userId, workspaceId, "workspace:read");
   const row = await db.userIntegration.findFirst({ where: { userId, kind: "GOOGLE_CALENDAR", workspaceId } });
   if (!row) throw new ApiError(409, "not_connected", "Google Calendar is not connected");
-  return pull(row);
+  const out = await pull(row);
+  await refreshCopies(row);
+  return out;
 }
 
 // ── watch channel (push notifications from Google) ─────────────────────────
@@ -466,6 +518,7 @@ export async function handleGoogleWebhook(headers: { channelId: string | null; t
   if (!row || !watch || !safeEqual(watch.token, headers.token)) return "ignored";
   if (headers.state === "sync") return "ignored"; // handshake after registering the channel
   await pull(row);
+  await refreshCopies(row).catch((e) => console.error("google copy failed", e instanceof Error ? e.message : e));
   return "pulled";
 }
 
@@ -480,6 +533,7 @@ export async function pollAll(now = new Date()): Promise<{ polled: number; faile
     try {
       await pull(row);
       await catchUpMeetings(row, now);
+      await refreshCopies(row, now);
       const w = cfg(row).watch;
       if (appUrl().startsWith("https://") && (!w || w.expiration - now.getTime() < 24 * HOUR)) {
         await stopWatch(row).catch(() => undefined);

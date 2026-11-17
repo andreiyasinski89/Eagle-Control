@@ -1316,7 +1316,8 @@
       "event": "Event",
       "crm_activity": "CRM activity",
       "deal_step": "Deal next step",
-      "deal_close": "Deal expected close"
+      "deal_close": "Deal expected close",
+      "google": "Google Calendar — opens there"
     },
     "zoom": "Zoom",
     "zoomLevel": {

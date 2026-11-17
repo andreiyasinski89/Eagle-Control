@@ -25,7 +25,7 @@ export const calendarQuerySchema = z
   .refine((q) => q.from <= q.to, "from must not be after to")
   .refine((q) => new Date(q.to).getTime() - new Date(q.from).getTime() <= 62 * DAY, "Ask for at most about two months");
 
-export type CalendarKind = "task" | "milestone" | "event" | "crm_activity" | "deal_step" | "deal_close";
+export type CalendarKind = "task" | "milestone" | "event" | "crm_activity" | "deal_step" | "deal_close" | "google";
 
 export interface CalendarItem {
   id: string;
@@ -40,6 +40,8 @@ export interface CalendarItem {
   context: string | null;
   /** Set on a date of a repeating event: the event's own id, since `id` then carries the date as well. */
   seriesId?: string;
+  /** `href` is a full address outside MLM CRM (an event of the person's Google Calendar, opened there). */
+  external?: boolean;
 }
 
 /**
@@ -133,6 +135,12 @@ export async function workspaceCalendar(userId: string, workspaceId: string, q: 
       if (d.nextStepAt && d.nextStepAt >= from && d.nextStepAt < to) items.push({ id: `${d.nodeId}:step`, kind: "deal_step", title: d.nextStep || d.node.title, at: d.nextStepAt.toISOString(), endAt: null, done: false, href, context: d.node.title });
       if (d.expectedCloseDate && d.expectedCloseDate >= from && d.expectedCloseDate < to) items.push({ id: `${d.nodeId}:close`, kind: "deal_close", title: d.node.title, at: d.expectedCloseDate.toISOString(), endAt: null, done: false, href, context: d.company?.legalName ?? null });
     }
+  }
+
+  // The person's own Google Calendar (events not made here), copied at each sync: for the person who connected it, never for the rest of the team.
+  const copies = await db.googleEventCopy.findMany({ where: { userId, workspaceId, startsAt: { lt: to }, OR: [{ endsAt: { gt: from } }, { startsAt: { gte: from } }] }, orderBy: { startsAt: "asc" }, take: 1000 });
+  for (const g of copies) {
+    items.push({ id: `google:${g.id}`, kind: "google", title: g.title, at: g.startsAt.toISOString(), endAt: g.allDay ? null : (g.endsAt?.toISOString() ?? null), done: false, href: g.htmlLink ?? "https://calendar.google.com/", context: null, external: true });
   }
 
   items.sort((a, b) => a.at.localeCompare(b.at) || a.title.localeCompare(b.title));

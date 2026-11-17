@@ -17,9 +17,11 @@ export interface GridItem {
   title: string;
   /** Day key, YYYY-MM-DD. */
   day: string;
-  tone?: "default" | "done" | "red" | "event" | "crm";
+  tone?: "default" | "done" | "red" | "event" | "crm" | "google";
   /** In-app link, or a click handler. */
   href?: string;
+  /** `href` leads out of MLM CRM (Google Calendar): opened in a new tab. */
+  external?: boolean;
   onOpen?: () => void;
   /** Start time of day (HH:MM): shown before the title, and where the item sits on the hour grid. No time = an all-day item. */
   time?: string;
@@ -44,6 +46,7 @@ const TONE: Record<NonNullable<GridItem["tone"]>, string> = {
   red: "bg-[var(--health-red)]/20 hover:bg-[var(--health-red)]/30",
   event: "bg-sky-500/20 hover:bg-sky-500/30",
   crm: "bg-amber-500/20 hover:bg-amber-500/30",
+  google: "border border-dashed border-border bg-muted/60 text-muted-foreground hover:bg-muted",
 };
 
 /**
@@ -80,6 +83,12 @@ export function CalendarGrid({ anchor, mode, onAnchor, onMode, items, onMove, on
       </>
     );
     const common = { title: i.hint ? `${i.title} — ${i.hint}` : i.title, "data-testid": "calendar-item", style: placed?.style };
+    if (i.href && i.external)
+      return (
+        <a key={i.id} href={i.href} target="_blank" rel="noopener noreferrer" className={cls} {...common}>
+          {label}
+        </a>
+      );
     return i.href ? (
       <Link key={i.id} href={i.href} className={cls} {...common}>
         {label}

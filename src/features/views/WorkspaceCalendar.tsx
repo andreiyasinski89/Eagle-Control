@@ -19,7 +19,7 @@ import { useTimeZone } from "./useTimeZone";
 
 interface Item {
   id: string;
-  kind: "task" | "milestone" | "event" | "crm_activity" | "deal_step" | "deal_close";
+  kind: "task" | "milestone" | "event" | "crm_activity" | "deal_step" | "deal_close" | "google";
   title: string;
   at: string;
   endAt: string | null;
@@ -27,6 +27,7 @@ interface Item {
   href: string;
   context: string | null;
   seriesId?: string;
+  external?: boolean;
 }
 
 /** Deadlines, events, CRM follow-ups and deal dates for the whole workspace in one calendar, drawn in the person's own time zone. */
@@ -54,8 +55,9 @@ export function WorkspaceCalendar({ workspaceId, slug }: { workspaceId: string; 
     id: i.id,
     title: i.title,
     ...placeItem(i, tz),
-    tone: i.done ? "done" : i.kind === "event" ? "event" : i.kind === "task" || i.kind === "milestone" ? "default" : "crm",
-    href: `/w/${slug}${i.href}`,
+    tone: i.done ? "done" : i.kind === "google" ? "google" : i.kind === "event" ? "event" : i.kind === "task" || i.kind === "milestone" ? "default" : "crm",
+    href: i.external ? i.href : `/w/${slug}${i.href}`,
+    external: i.external,
     hint: [t(`itemKind.${i.kind}`), i.context].filter(Boolean).join(" · "),
     repeat: !!i.seriesId,
   }));

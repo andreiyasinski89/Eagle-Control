@@ -37,6 +37,7 @@ import { notify, deliverPending, setPreference } from "@/server/services/notify"
 import { createDeal, winDeal } from "@/server/services/crm/deals";
 import { createContact } from "@/server/services/crm/contacts";
 import { createActivity, deleteActivity, updateActivity } from "@/server/services/crm/activities";
+import { workspaceCalendar } from "@/server/services/nodes/views";
 import { decryptJson } from "@/lib/crypto";
 import { signState, verifyState } from "@/server/integrations/common";
 import { createLinkCode, disconnectTelegram, handleUpdate, setTelegramWebhook, telegramStatus, verifyTelegramSecret } from "@/server/integrations/telegram";
@@ -393,6 +394,7 @@ describe("Google Calendar", () => {
     created.clear();
     await holder.db.calendarLink.deleteMany({});
     await holder.db.activityCalendarLink.deleteMany({});
+    await holder.db.googleEventCopy.deleteMany({});
     await holder.db.crmActivity.deleteMany({ where: { type: "MEETING" } });
     await holder.db.userIntegration.deleteMany({ where: { kind: "GOOGLE_CALENDAR" } });
   });
@@ -637,6 +639,38 @@ describe("Google Calendar", () => {
       on(/events\?.*syncToken/, () => ({ items: [remote({ etag: '"remote-10"', status: "cancelled" })], nextSyncToken: "s" }), "GET");
       expect(await pull(row)).toMatchObject({ deleted: 1 });
       expect(await holder.db.crmActivity.count({ where: { id } })).toBe(0);
+    });
+  });
+
+  describe("the rest of the Google Calendar, shown here", () => {
+    const window = () => ({ from: new Date(Date.now() - 86_400_000).toISOString().slice(0, 10), to: new Date(Date.now() + 20 * 86_400_000).toISOString().slice(0, 10), mine: "0" as const });
+    const soon = (days: number, hour: number) => new Date(Math.floor(Date.now() / 86_400_000) * 86_400_000 + days * 86_400_000 + hour * 3_600_000).toISOString();
+    const googleDay = (items: unknown[]) => on(/events\?.*singleEvents=true/, () => ({ items }), "GET");
+
+    it("shows the person's other Google events in their own MLM CRM calendar only, and follows Google at each sync", async () => {
+      await connect();
+      on(/events\?.*syncToken/, () => ({ items: [], nextSyncToken: "s" }), "GET");
+      googleDay([
+        { id: "dentist", status: "confirmed", summary: "Dentist", start: { dateTime: soon(2, 8) }, end: { dateTime: soon(2, 9) }, htmlLink: "https://calendar.google.com/event?eid=dentist" },
+        { id: "bday", status: "confirmed", summary: "Birthday", start: { date: soon(3, 0).slice(0, 10) }, end: { date: soon(4, 0).slice(0, 10) } },
+        { id: "ours", status: "confirmed", summary: "Made here", start: { dateTime: soon(2, 10) }, end: { dateTime: soon(2, 11) }, extendedProperties: { private: { meetowlNodeId: "n1" } } },
+        { id: "gone", status: "cancelled" },
+      ]);
+      await syncNow(owner, ws.id);
+      const mine = (await workspaceCalendar(owner, ws.id, window())).items.filter((i) => i.kind === "google");
+      expect(mine.map((i) => i.title)).toEqual(["Dentist", "Birthday"]);
+      expect(mine[0]).toMatchObject({ at: soon(2, 8), endAt: soon(2, 9), href: "https://calendar.google.com/event?eid=dentist", external: true });
+      expect(mine[1]).toMatchObject({ at: `${soon(3, 0).slice(0, 10)}T00:00:00.000Z`, endAt: null }); // all day
+      expect((await workspaceCalendar(member, ws.id, window())).items.filter((i) => i.kind === "google")).toHaveLength(0); // never for the team
+
+      googleDay([{ id: "dentist", status: "confirmed", summary: "Dentist (moved)", start: { dateTime: soon(5, 8) }, end: { dateTime: soon(5, 9) } }]);
+      await syncNow(owner, ws.id);
+      expect((await workspaceCalendar(owner, ws.id, window())).items.filter((i) => i.kind === "google").map((i) => [i.title, i.at])).toEqual([["Dentist (moved)", soon(5, 8)]]);
+
+      on(/channels\/stop/, () => ({}), "POST");
+      on(/oauth2\.googleapis\.com\/revoke/, () => ({}), "POST");
+      await disconnectGoogle(owner, ws.id);
+      expect(await holder.db.googleEventCopy.count()).toBe(0);
     });
   });
 
