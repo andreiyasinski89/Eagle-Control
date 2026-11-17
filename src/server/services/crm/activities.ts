@@ -7,6 +7,7 @@ import { loadWorkspaceMember, type Tx } from "@/server/services/nodes/access";
 import { assertWorkspaceMember, invalid, pageArgs, toDate, crmTx } from "./common";
 import { contactScope, contactVisible } from "./scope";
 import { refreshTemperature } from "./temperature";
+import { pushMeetingsSoon } from "./calendar-push";
 
 export const activitySchema = z.object({
   type: z.enum(["CALL", "EMAIL", "MEETING", "NOTE", "TASK", "MESSAGE"]),
@@ -91,12 +92,14 @@ async function assertLinksVisible(tx: Tx, m: Parameters<typeof contactVisible>[1
 }
 
 export async function createActivity(userId: string, workspaceId: string, input: ActivityInput, opts: { source?: string } = {}) {
-  return crmTx(async (tx) => {
+  const a = await crmTx(async (tx) => {
     const m = await loadWorkspaceMember(tx, userId, workspaceId, "crm:write");
     if (!can(m, "crm:full") && (input.dealId || input.companyId)) throw notFound("contact");
     await assertLinksVisible(tx, m, input);
     return createActivityIn(tx, userId, workspaceId, input, opts);
   });
+  if (a.type === "MEETING") pushMeetingsSoon([a.id]); // into the owner's Google Calendar, if connected
+  return a;
 }
 
 async function loadActivity(tx: Tx, userId: string, id: string, action: "crm:read" | "crm:write") {
@@ -108,8 +111,10 @@ async function loadActivity(tx: Tx, userId: string, id: string, action: "crm:rea
 }
 
 export async function updateActivity(userId: string, id: string, patch: z.infer<typeof patchActivitySchema>) {
-  return crmTx(async (tx) => {
+  let wasMeeting = false;
+  const updated = await crmTx(async (tx) => {
     const cur = await loadActivity(tx, userId, id, "crm:write");
+    wasMeeting = cur.type === "MEETING";
     await assertWorkspaceMember(tx, cur.workspaceId, patch.ownerId);
     const links = await resolveLinks(tx, cur.workspaceId, {
       contactId: patch.contactId !== undefined ? patch.contactId : cur.contactId,
@@ -134,10 +139,12 @@ export async function updateActivity(userId: string, id: string, patch: z.infer<
     if (patch.completed && !cur.completedAt) await recordTouch(tx, a, now);
     return a;
   });
+  if (wasMeeting || updated.type === "MEETING") pushMeetingsSoon([updated.id]); // moved, renamed, or no longer a meeting: Google follows
+  return updated;
 }
 
 export async function deleteActivity(userId: string, id: string) {
-  await crmTx(async (tx) => {
+  const type = await crmTx(async (tx) => {
     const a = await loadActivity(tx, userId, id, "crm:write");
     await tx.crmActivity.delete({ where: { id } });
     // A touch that is taken back must not leave the person looking as if they had been written to: the last touch goes back to the one before it.
@@ -146,7 +153,9 @@ export async function deleteActivity(userId: string, id: string) {
       await tx.contact.update({ where: { nodeId: a.contactId }, data: { lastContactedAt: last?.completedAt ?? null } });
       await refreshTemperature(tx, a.contactId, new Date());
     }
+    return a.type;
   });
+  if (type === "MEETING") pushMeetingsSoon([id]); // its Google event goes too
 }
 
 export const listActivitiesSchema = z.object({

@@ -14,6 +14,7 @@ import { updateContactIn } from "./contacts";
 import { contactScope, dueBefore, withScope } from "./scope";
 import { staleFilter } from "./stale-people";
 import { refreshTemperature } from "./temperature";
+import { pushMeetingsSoon } from "./calendar-push";
 
 /** The people shown in one queue; the rest wait for the next one. */
 const QUEUE_LIMIT = 300;
@@ -177,7 +178,8 @@ export async function recordTouchResult(userId: string, contactId: string, input
   const { tz, locale: saved } = await zoneOf(userId);
   const locale = input.locale ?? saved;
   const today = todayIn(tz, now);
-  return db.$transaction(async (tx) => {
+  let meetingId: string | null = null;
+  const result = await db.$transaction(async (tx) => {
     const node = await loadCrmNode(tx, userId, contactId, "CONTACT", true);
     const member = await loadWorkspaceMember(tx, userId, node.workspaceId, "crm:write");
     const c = await tx.contact.findUniqueOrThrow({ where: { nodeId: contactId } });
@@ -211,9 +213,10 @@ export async function recordTouchResult(userId: string, contactId: string, input
       },
     });
     if (input.outcome === "MEETING_SET") {
-      await tx.crmActivity.create({
+      meetingId = (await tx.crmActivity.create({
         data: { workspaceId: node.workspaceId, type: "MEETING", subject: `${words.meeting}: ${[c.firstName, c.lastName].filter(Boolean).join(" ")}`, ownerId: userId, contactId, dueAt: new Date(input.meetingAt as string), durationMin: input.durationMin ?? 30 },
-      });
+        select: { id: true },
+      })).id;
     }
     // The stage and the next step go through the same door as every other change to a person: the stage event, the guards, the temperature.
     await updateContactIn(tx, userId, contactId, {
@@ -230,6 +233,8 @@ export async function recordTouchResult(userId: string, contactId: string, input
     // A result is dozens of small queries in one go. With the database far from the server (or waking up) they can pass the 5 seconds a transaction
     // is allowed by default, and the press then fails once and works the second time; so it is given room.
   }, { timeout: 30_000, maxWait: 15_000 });
+  if (meetingId) pushMeetingsSoon([meetingId]); // the meeting set goes into the Google Calendar, if connected
+  return result;
 }
 
 /** How many touches in a row, the latest first, went without an answer. A touch with no recorded result stops the count. */

@@ -325,3 +325,4 @@
 | 318 | Voice note uses speech recognition only (no MediaRecorder), restarting after pauses | Android serves the microphone to one listener; the recorder starved recognition. Audio is not stored anyway. |
 | 319 | Visitors get a public landing at / (app start and shortcuts still go to sign-in) | Google OAuth verification and Google Play require a public home page describing the app with the privacy link. |
 | 320 | Privacy policy carries an explicit Google user data section with the Limited Use statement | Required for Google OAuth verification of the calendar.events scope. |
+| 321 | CRM meetings (MEETING activities) sync to the owner's Google Calendar through their own link table, without attendees | Meetings with people are the main appointments of a networker; inviting the contact would hand their address to Google and send them mail they did not ask for. |

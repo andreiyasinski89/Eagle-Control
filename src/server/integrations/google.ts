@@ -105,6 +105,7 @@ export async function disconnectGoogle(userId: string, workspaceId: string): Pro
   await stopWatch(row).catch(() => undefined);
   await revokeGoogle(row).catch(() => undefined); // take the permission away at Google too, not only forget it here
   await db.calendarLink.deleteMany({ where: { userId, node: { workspaceId } } }); // events stay in Google; the link is what we drop
+  await db.activityCalendarLink.deleteMany({ where: { userId, workspaceId } });
   await db.userIntegration.delete({ where: { id: row.id } });
   accessTokens.delete(row.id);
 }
@@ -229,6 +230,110 @@ export async function pushEvent(nodeId: string): Promise<"created" | "updated" |
   return link ? "updated" : "created";
 }
 
+// ── push: CRM meetings → Google ────────────────────────────────────────────
+
+/** How long a CRM meeting with no length set is drawn in Google. */
+const MEETING_DEFAULT_MIN = 60;
+
+const integrationOf = (userId: string, workspaceId: string) => db.userIntegration.findFirst({ where: { userId, kind: "GOOGLE_CALENDAR", workspaceId } });
+
+/**
+ * Makes Google match a CRM meeting (the "Meeting" of a person's card or of the touch queue): an event in the owner's own calendar, with a link back
+ * to the person. Only the owner's calendar: the person met is not invited, their address is not handed to Google. A meeting that is deleted, loses
+ * its date, stops being a meeting or passes to another owner leaves the calendar it was in. Safe to call any number of times.
+ */
+export async function pushActivity(activityId: string): Promise<"created" | "updated" | "deleted" | "skipped"> {
+  if (!googleConfigured()) return "skipped";
+  const a = await db.crmActivity.findUnique({ where: { id: activityId } });
+  const link = await db.activityCalendarLink.findUnique({ where: { activityId } });
+  const wanted = !!a && a.type === "MEETING" && !!a.dueAt;
+  let dropped = false;
+  if (link && (!wanted || link.userId !== a?.ownerId)) {
+    const old = await integrationOf(link.userId, link.workspaceId);
+    if (old && !cfg(old).error) {
+      await gcal(old, `/calendars/${encodeURIComponent(link.calendarId)}/events/${encodeURIComponent(link.externalId)}`, { method: "DELETE" }).catch((e) => {
+        if (!(e instanceof IntegrationError && (e.status === 404 || e.status === 410))) throw e; // already gone is fine
+      });
+    }
+    await db.activityCalendarLink.delete({ where: { activityId } });
+    dropped = true;
+  }
+  if (!wanted || !a?.dueAt) return dropped ? "deleted" : "skipped";
+  const row = await integrationOf(a.ownerId, a.workspaceId);
+  if (!row || cfg(row).error) return dropped ? "deleted" : "skipped";
+  const current = dropped ? null : link;
+  const calendarId = cfg(row).calendarId;
+
+  const start = a.dueAt;
+  const end = new Date(start.getTime() + (a.durationMin ?? MEETING_DEFAULT_MIN) * 60_000);
+  const ws = await db.workspace.findUniqueOrThrow({ where: { id: a.workspaceId }, select: { slug: true } });
+  const back = a.contactId ? `/crm/contacts?contact=${a.contactId}` : a.dealId ? `/crm?deal=${a.dealId}` : a.companyId ? `/crm/companies/${a.companyId}` : "/crm/activities";
+  const body = {
+    id: googleEventId(`activity:${a.id}`),
+    summary: a.subject,
+    description: [a.body, `${appUrl()}/w/${ws.slug}${back}`].filter(Boolean).join("\n\n"),
+    start: { dateTime: start.toISOString(), timeZone: "UTC" },
+    end: { dateTime: end.toISOString(), timeZone: "UTC" },
+    extendedProperties: { private: { meetowlActivityId: a.id } },
+  };
+  const path = `/calendars/${encodeURIComponent(calendarId)}/events`;
+  const update = (externalId: string) => gcal<GoogleEvent>(row, `${path}/${encodeURIComponent(externalId)}`, { method: "PATCH", json: body });
+  const res = current
+    ? await update(current.externalId)
+    : await gcal<GoogleEvent>(row, path, { method: "POST", json: body }).catch((e) => {
+        if (e instanceof IntegrationError && e.status === 409) return update(body.id); // made a moment ago by another push: update that one
+        throw e;
+      });
+  await db.activityCalendarLink.upsert({
+    where: { activityId },
+    create: { activityId, userId: row.userId, workspaceId: a.workspaceId, calendarId, externalId: res.id, etag: res.etag ?? null },
+    update: { externalId: res.id, etag: res.etag ?? null, lastSyncedAt: new Date() },
+  });
+  return current ? "updated" : "created";
+}
+
+/**
+ * Upcoming meetings of this calendar's owner that are not in Google yet: those made before the calendar was connected, and any whose push failed.
+ * Run on connecting and with every poll, a few at a time.
+ */
+async function catchUpMeetings(row: UserIntegration, now = new Date()): Promise<number> {
+  if (!row.workspaceId) return 0;
+  const linked = (await db.activityCalendarLink.findMany({ where: { userId: row.userId, workspaceId: row.workspaceId }, select: { activityId: true } })).map((l) => l.activityId);
+  const due = await db.crmActivity.findMany({
+    where: { workspaceId: row.workspaceId, ownerId: row.userId, type: "MEETING", dueAt: { gte: now }, ...(linked.length ? { id: { notIn: linked } } : {}) },
+    orderBy: { dueAt: "asc" },
+    take: 50,
+    select: { id: true },
+  });
+  let n = 0;
+  for (const m of due) if ((await pushActivity(m.id).catch((e) => console.error("meeting push failed", e instanceof Error ? e.message : e))) === "created") n++;
+  return n;
+}
+
+/** A change made in Google to a CRM meeting: new time, length or title; deleted there = a planned meeting called off. Returns what it did. */
+async function pullActivity(row: UserIntegration, item: GoogleEvent, activityId: string): Promise<"applied" | "deleted" | null> {
+  const link = await db.activityCalendarLink.findUnique({ where: { activityId } });
+  if (!link || link.userId !== row.userId || link.externalId !== item.id) return null;
+  if (item.etag && item.etag === link.etag) return null; // our own change coming back
+  const a = await db.crmActivity.findUnique({ where: { id: activityId } });
+  if (item.status === "cancelled") {
+    // A meeting still to come is called off; one that already took place stays in the person's history, only its calendar event is gone.
+    if (a && !a.completedAt) await db.crmActivity.delete({ where: { id: activityId } });
+    await db.activityCalendarLink.delete({ where: { activityId } });
+    return "deleted";
+  }
+  if (!a) return null;
+  const startsAt = item.start?.dateTime ? new Date(item.start.dateTime) : null;
+  const endsAt = item.end?.dateTime ? new Date(item.end.dateTime) : null;
+  const minutes = startsAt && endsAt ? Math.round((endsAt.getTime() - startsAt.getTime()) / 60_000) : null;
+  await db.crmActivity.update({
+    where: { id: activityId },
+    data: { ...(startsAt ? { dueAt: startsAt } : {}), ...(minutes && minutes >= 5 && minutes <= 1440 ? { durationMin: minutes } : {}), ...(item.summary ? { subject: item.summary.slice(0, 200) } : {}) },
+  });
+  await db.activityCalendarLink.update({ where: { activityId }, data: { etag: item.etag ?? null, lastSyncedAt: new Date() } });
+  return "applied";
+}
+
 // ── pull: Google → MLM CRM ─────────────────────────────────────────────────
 
 interface EventList {
@@ -242,6 +347,7 @@ const INITIAL_LOOKBACK_MS = 7 * 86_400_000;
 
 async function startSync(row: UserIntegration): Promise<void> {
   await pull(row, true);
+  await catchUpMeetings(row);
   if (appUrl().startsWith("https://")) await startWatch(row).catch((e) => console.error("google watch not started", e instanceof Error ? e.message : e));
 }
 
@@ -284,6 +390,13 @@ export async function pull(row: UserIntegration, initial = false): Promise<{ app
 
   const pushBack: string[] = [];
   for (const item of items) {
+    const activityId = item.extendedProperties?.private?.meetowlActivityId;
+    if (activityId) {
+      const done = await pullActivity(row, item, activityId);
+      if (done === "applied") out.applied++;
+      if (done === "deleted") out.deleted++;
+      continue;
+    }
     const nodeId = item.extendedProperties?.private?.meetowlNodeId;
     if (!nodeId) continue;
     const link = await db.calendarLink.findUnique({ where: { nodeId }, include: { node: true } });
@@ -366,6 +479,7 @@ export async function pollAll(now = new Date()): Promise<{ polled: number; faile
     if (cfg(row).error) continue;
     try {
       await pull(row);
+      await catchUpMeetings(row, now);
       const w = cfg(row).watch;
       if (appUrl().startsWith("https://") && (!w || w.expiration - now.getTime() < 24 * HOUR)) {
         await stopWatch(row).catch(() => undefined);

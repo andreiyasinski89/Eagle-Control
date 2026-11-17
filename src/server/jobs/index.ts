@@ -8,7 +8,7 @@ import { expireTimed, recomputePlans } from "@/server/services/entitlements";
 import { purgeIdempotency } from "@/server/public-api/dispatch";
 import { purgeOAuth } from "@/server/services/oauth";
 import { deliverDue, purgeDeliveries } from "@/server/webhooks";
-import { pollAll, pushEvent } from "@/server/integrations/google";
+import { pollAll, pushActivity, pushEvent } from "@/server/integrations/google";
 import { recalcTemperatures } from "@/server/services/crm/temperature";
 import { closeYesterdays } from "@/server/services/crm/day-history";
 import { dispatchStalePeople } from "@/server/services/crm/stale-people";
@@ -30,6 +30,10 @@ export const handlers = {
   /** One Google Calendar event per changed EVENT node; failures are logged, the next change or the poll fixes them. */
   "calendar/push": async (data) => {
     for (const id of Array.isArray(data.nodeIds) ? (data.nodeIds as string[]) : []) await pushEvent(id).catch((e) => console.error("calendar push failed", e instanceof Error ? e.message : e));
+  },
+  /** The same for CRM meetings (activities): each into its owner's Google Calendar. */
+  "calendar/push-activity": async (data) => {
+    for (const id of Array.isArray(data.activityIds) ? (data.activityIds as string[]) : []) await pushActivity(id).catch((e) => console.error("meeting push failed", e instanceof Error ? e.message : e));
   },
   "calendar/poll": async () => pollAll(),
   // Failed payments past their grace period, then trials, bonuses and gifts that have run out.

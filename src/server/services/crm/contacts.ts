@@ -19,6 +19,7 @@ import { assertWorkspaceMember, fullName, invalid, loadCrmNode, pageArgs, toDate
 import { assertGroup } from "./groups";
 import { assertPartnerLinks, listTransfers } from "./partners";
 import { autoPlan } from "./stage-rules";
+import { pushMeetingsSoon } from "./calendar-push";
 
 const text = (max: number) => z.string().trim().max(max).nullable().optional();
 /** Travel or business: the team's letters (П, Б) and words are accepted and stored as the code. */
@@ -578,11 +579,13 @@ export const erasureSchema = z.object({ confirm: z.literal("ERASE") });
  */
 export async function gdprErase(userId: string, contactId: string): Promise<void> {
   const files: string[] = [];
+  const meetings: string[] = [];
   const workspaceId = await crmTx(async (tx) => {
     const node = await loadCrmNode(tx, userId, contactId, "CONTACT", true);
     await assertKeeperOrCan(tx, userId, node.workspaceId, contactId, "crm:erase");
     const attachments = await tx.attachment.findMany({ where: { nodeId: contactId }, select: { url: true } });
     files.push(...attachments.map((a) => a.url));
+    meetings.push(...(await tx.crmActivity.findMany({ where: { contactId, type: "MEETING" }, select: { id: true } })).map((m) => m.id));
     await tx.crmActivity.deleteMany({ where: { contactId } });
     await tx.consentRecord.deleteMany({ where: { contactNodeId: contactId } });
     await tx.leadIngest.deleteMany({ where: { contactId } });
@@ -593,5 +596,6 @@ export async function gdprErase(userId: string, contactId: string): Promise<void
     return node.workspaceId;
   });
   void workspaceId;
+  pushMeetingsSoon(meetings); // their Google events go with them
   for (const key of files) await deleteObject(key).catch(() => undefined);
 }

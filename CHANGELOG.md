@@ -773,3 +773,10 @@
 - **Public home page**: a visitor who is not signed in now sees what MLM CRM is (title, six features, "Start free" and "Sign in", links to the privacy policy, terms and account deletion) instead of being sent straight to sign-in. Google asks for such a page before it verifies an app that uses Calendar, and Google Play does too. The Android app and icon shortcuts still go straight to signing in; signed-in people still land in their workspace.
 - **Privacy policy: "Google user data (Google Calendar)"** — the one permission asked (`calendar.events`), what is done with it, what is stored (an encrypted token, the connected address, event ids), that it is not shared, sold, used for ads or AI training, how to disconnect (also revokes it at Google), and the required statement that use of Google API data adheres to the Google API Services User Data Policy, including Limited Use.
 - **Owner's kit** `docs/GOOGLE-VERIFICATION.ru.md`: domain check through a TXT record in Vercel, branding fields, the scope justification text, the video script, the submission and common rejection reasons. Logo 120×120 prepared.
+
+## 0.70.0 — CRM meetings go to Google Calendar
+
+- **Meetings set with people now appear in Google Calendar.** Until now only events of the project map were sent; a meeting set from a person's card ("Meeting") or from the touch queue ("Meeting set") stayed in MLM CRM. Now it becomes an event in the owner's own Google Calendar with a link back to the person's card. The person met is not invited and their address is not given to Google.
+- Moving the meeting here moves the event; deleting it here deletes the event; changing its time, length or title in Google comes back to MLM CRM; deleting a planned meeting in Google calls it off here (a meeting that already took place stays in the history).
+- Upcoming meetings made before the calendar was connected, and any whose sending failed, are sent on connecting and with the regular check every 10 minutes.
+- New table `ActivityCalendarLink` (migration 0042, additive).

@@ -1218,6 +1218,19 @@ model CalendarLink {
   @@unique([userId, calendarId, externalId])
 }
 
+/// A CRM meeting sent to its owner's Google Calendar. Not tied to the activity by a foreign key: the link outlives a deleted meeting until the Google event is gone too.
+model ActivityCalendarLink {
+  activityId   String   @id
+  userId       String
+  workspaceId  String
+  calendarId   String
+  externalId   String
+  etag         String?
+  lastSyncedAt DateTime @default(now())
+
+  @@index([userId, workspaceId])
+}
+
 model NotificationPreference {
   userId      String
   workspaceId String

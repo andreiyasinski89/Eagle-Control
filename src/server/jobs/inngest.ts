@@ -29,5 +29,6 @@ export const functions = [
   job("webhooks/deliver", { cron: "*/5 * * * *" }),
   job("api/purge", { cron: "45 3 * * *" }),
   job("calendar/push"),
+  job("calendar/push-activity"),
   job("calendar/poll", { cron: "*/10 * * * *" }), // fallback for missed Google notifications, and channel renewal
 ];

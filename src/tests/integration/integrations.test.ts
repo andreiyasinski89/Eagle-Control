@@ -35,6 +35,8 @@ import { archiveNode, createNode, createProject, patchNode, transact } from "@/s
 import { getTree } from "@/server/services/nodes/queries";
 import { notify, deliverPending, setPreference } from "@/server/services/notify";
 import { createDeal, winDeal } from "@/server/services/crm/deals";
+import { createContact } from "@/server/services/crm/contacts";
+import { createActivity, deleteActivity, updateActivity } from "@/server/services/crm/activities";
 import { decryptJson } from "@/lib/crypto";
 import { signState, verifyState } from "@/server/integrations/common";
 import { createLinkCode, disconnectTelegram, handleUpdate, setTelegramWebhook, telegramStatus, verifyTelegramSecret } from "@/server/integrations/telegram";
@@ -390,6 +392,8 @@ describe("Google Calendar", () => {
   afterEach(async () => {
     created.clear();
     await holder.db.calendarLink.deleteMany({});
+    await holder.db.activityCalendarLink.deleteMany({});
+    await holder.db.crmActivity.deleteMany({ where: { type: "MEETING" } });
     await holder.db.userIntegration.deleteMany({ where: { kind: "GOOGLE_CALENDAR" } });
   });
 
@@ -561,6 +565,78 @@ describe("Google Calendar", () => {
       expect((await row()).config).toMatchObject({ error: "reconnect" });
       calls.length = 0;
       expect(await pollAll()).toEqual({ polled: 0, failed: 0 }); // skipped until reconnected
+    });
+  });
+
+  describe("meetings of the CRM", () => {
+    const person = { emails: [] as string[], phones: [] as string[], messengers: {}, allowDuplicate: false, consentGiven: false };
+    let contactId: string;
+    const settle = () => new Promise((r) => setTimeout(r, 600)); // the push runs after the save, in the background
+    const meeting = async (at = "2099-01-10T12:00:00.000Z", type: "MEETING" | "NOTE" = "MEETING") => {
+      contactId ??= (await createContact(owner, ws.id, { ...person, firstName: "Полина" })).id;
+      const a = await createActivity(owner, ws.id, { type, subject: "Встреча: Полина", body: "Обсудить старт", dueAt: at, durationMin: 30, contactId, completed: false });
+      await settle();
+      return a.id;
+    };
+    const posts = () => sent(/calendar\/v3\/calendars\/primary\/events$/).filter((c) => c.method === "POST");
+
+    it("puts a meeting set on a person's card into the owner's Google Calendar, without inviting the person", async () => {
+      await connect();
+      answerWrites();
+      const id = await meeting();
+      expect(posts()).toHaveLength(1);
+      expect(posts()[0]!.body).toMatchObject({
+        id: googleEventId(`activity:${id}`),
+        summary: "Встреча: Полина",
+        start: { dateTime: "2099-01-10T12:00:00.000Z" },
+        end: { dateTime: "2099-01-10T12:30:00.000Z" },
+        extendedProperties: { private: { meetowlActivityId: id } },
+      });
+      expect(posts()[0]!.body?.attendees).toBeUndefined();
+      expect(String(posts()[0]!.body?.description)).toContain(`/w/${ws.slug}/crm/contacts?contact=${contactId}`);
+      expect(await holder.db.activityCalendarLink.findUniqueOrThrow({ where: { activityId: id } })).toMatchObject({ userId: owner, workspaceId: ws.id, externalId: googleEventId(`activity:${id}`) });
+      await meeting(undefined, "NOTE");
+      expect(posts()).toHaveLength(1); // a note is not an appointment
+    });
+
+    it("moves the Google event with the meeting and deletes it with the meeting", async () => {
+      await connect();
+      answerWrites();
+      const id = await meeting();
+      await updateActivity(owner, id, { dueAt: "2099-01-11T09:00:00.000Z" });
+      await settle();
+      expect(calls.filter((c) => c.method === "PATCH").at(-1)!.body).toMatchObject({ start: { dateTime: "2099-01-11T09:00:00.000Z" } });
+      await deleteActivity(owner, id);
+      await settle();
+      expect(calls.filter((c) => c.method === "DELETE").map((c) => c.url)).toEqual([expect.stringContaining(googleEventId(`activity:${id}`))]);
+      expect(await holder.db.activityCalendarLink.count({ where: { activityId: id } })).toBe(0);
+    });
+
+    it("sends the upcoming meetings made before the calendar was connected, once", async () => {
+      const id = await meeting();
+      expect(sent(/googleapis/)).toHaveLength(0);
+      answerWrites();
+      await connect();
+      expect(posts().map((c) => c.body?.id)).toEqual([googleEventId(`activity:${id}`)]);
+      await pollAll();
+      expect(posts()).toHaveLength(1);
+    });
+
+    it("takes a new time from Google, and a meeting deleted there is called off here", async () => {
+      await connect();
+      answerWrites();
+      const id = await meeting();
+      const link = await holder.db.activityCalendarLink.findUniqueOrThrow({ where: { activityId: id } });
+      const row = await holder.db.userIntegration.findFirstOrThrow({ where: { userId: owner, kind: "GOOGLE_CALENDAR" } });
+      const remote = (over: Record<string, unknown>) => ({ id: link.externalId, etag: '"remote-9"', status: "confirmed", summary: "Встреча с Полиной", start: { dateTime: "2099-01-12T15:00:00+01:00" }, end: { dateTime: "2099-01-12T16:30:00+01:00" }, extendedProperties: { private: { meetowlActivityId: id } }, ...over });
+      on(/events\?.*syncToken/, () => ({ items: [remote({ etag: link.etag })], nextSyncToken: "s" }), "GET");
+      expect(await pull(row)).toMatchObject({ applied: 0 }); // our own push coming back
+      on(/events\?.*syncToken/, () => ({ items: [remote({})], nextSyncToken: "s" }), "GET");
+      expect(await pull(row)).toMatchObject({ applied: 1 });
+      expect(await holder.db.crmActivity.findUniqueOrThrow({ where: { id } })).toMatchObject({ dueAt: new Date("2099-01-12T14:00:00.000Z"), durationMin: 90, subject: "Встреча с Полиной" });
+      on(/events\?.*syncToken/, () => ({ items: [remote({ etag: '"remote-10"', status: "cancelled" })], nextSyncToken: "s" }), "GET");
+      expect(await pull(row)).toMatchObject({ deleted: 1 });
+      expect(await holder.db.crmActivity.count({ where: { id } })).toBe(0);
     });
   });
 
