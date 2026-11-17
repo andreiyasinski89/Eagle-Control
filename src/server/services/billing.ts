@@ -12,6 +12,9 @@ import { notify } from "./notify";
 import { entitlementOf, syncPlan } from "./entitlements";
 import { isEnforcedFor } from "./paid-plans";
 import { getUsage } from "./workspace";
+import { z } from "zod";
+import { extendBonus, POINTS_PER_MONTH } from "@/modules/plans/entitlement";
+import { workspaceHasTeamAccess } from "./team-access";
 
 export const billingConfigured = () => !!env().STRIPE_SECRET_KEY && !!env().STRIPE_PRICE_PRO;
 const appUrl = () => env().APP_URL.replace(/\/$/, "");
@@ -52,8 +55,41 @@ export async function getBilling(userId: string, workspaceId: string, now = new 
     graceEndsAt: grace,
     graceExpired: !!grace && grace <= now,
     hasCustomer: !!sub?.stripeCustomerId,
+    /** The signed-in person's bonus points (their own, from people who joined through their link), and what one month of Pro costs. */
+    points: await pointsOf(userId),
+    pointsPerMonth: POINTS_PER_MONTH,
     ...(await getUsage(workspaceId, ws.plan)),
   };
+}
+
+// ── bonus points → months of Pro ──────────────────────────────────────────
+
+const pointsOf = async (userId: string): Promise<number> => (await db.bonusPoint.aggregate({ where: { userId }, _sum: { points: true } }))._sum.points ?? 0;
+
+export const redeemSchema = z.object({ months: z.number().int().min(1).max(12) });
+
+/**
+ * Spends the owner's bonus points on months of Pro for this workspace: 3 points a month, added after any bonus time still running. The spending is a
+ * line of its own in the points journal ("redeem", minus the points, the workspace in the note). Refused while Pro costs nothing here (paid plans
+ * off, or the owner's team), so points are not spent for nothing.
+ */
+export async function redeemPoints(userId: string, workspaceId: string, input: z.infer<typeof redeemSchema>, now = new Date()) {
+  await owner(userId, workspaceId);
+  if (!(await isEnforcedFor(workspaceId)) || (await workspaceHasTeamAccess(workspaceId))) throw new ApiError(409, "pro_free", "Pro is free for this workspace now: keep your points");
+  const cost = input.months * POINTS_PER_MONTH;
+  const bonusUntil = await db.$transaction(async (tx) => {
+    // One spending at a time per person, so two quick presses cannot spend the same points twice.
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`points:${userId}`}))`;
+    const balance = (await tx.bonusPoint.aggregate({ where: { userId }, _sum: { points: true } }))._sum.points ?? 0;
+    if (balance < cost) throw new ApiError(409, "not_enough_points", `This needs ${cost} points; you have ${balance}`, { cost, balance });
+    const ws = await tx.workspace.findUniqueOrThrow({ where: { id: workspaceId }, select: { bonusUntil: true } });
+    const until = extendBonus(ws.bonusUntil, input.months, now);
+    await tx.bonusPoint.create({ data: { userId, points: -cost, reason: "redeem", note: `${input.months} mo Pro · workspace ${workspaceId}` } });
+    await tx.workspace.update({ where: { id: workspaceId }, data: { bonusUntil: until } });
+    return until;
+  });
+  await syncPlan(workspaceId, now);
+  return { bonusUntil, points: await pointsOf(userId) };
 }
 
 // ── starting a subscription, managing it ───────────────────────────────────

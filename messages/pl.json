@@ -1655,7 +1655,15 @@
     "betaOpen": "Płatne plany nie są jeszcze otwarte: na razie wszystko jest za darmo i bez limitów.",
     "teamPlan": "Pro · zespół",
     "teamFree": "Dla Ciebie bezpłatnie: jesteś w zespole MLM CRM. Płatność nie jest potrzebna.",
-    "androidNoPay": "Subskrypcja nie jest sprzedawana w aplikacji na Androida."
+    "androidNoPay": "Subskrypcja nie jest sprzedawana w aplikacji na Androida.",
+    "pointsTitle": "Punkty bonusowe",
+    "pointsBalance": "Masz {n, plural, one {# punkt} few {# punkty} many {# punktów} other {# punktu}}.",
+    "pointsRate": "{n} punkty = 1 miesiąc Pro dla tej przestrzeni.",
+    "pointsMonths": "Miesiące Pro",
+    "pointsOption": "{n, plural, one {# miesiąc} few {# miesiące} many {# miesięcy} other {# miesiąca}} za {cost} punktów",
+    "pointsRedeem": "Wymień",
+    "pointsDone": "Gotowe: Pro z punktów bonusowych do {date}.",
+    "pointsHow": "Za każdą osobę, która dołączy przez Twój link z zaproszeniem (strona „Konto”), dostajesz 1 punkt. {n} punkty = miesiąc Pro."
   },
   "developers": {
     "title": "API i webhooki",
@@ -2855,5 +2863,14 @@
     "privacy": "Polityka prywatności",
     "terms": "Warunki korzystania",
     "deleteAccount": "Usunięcie konta"
+  },
+  "pro": {
+    "available": "Dostępne w Pro",
+    "upgrade": "Przejdź na Pro",
+    "networkTitle": "Mapa sieci",
+    "networkText": "Cała struktura na jednej mapie: kto kogo przyprowadził, etapy i temperatura na pierwszy rzut oka.",
+    "teamsTitle": "Zespoły",
+    "teamsText": "Łącz ludzi w zespoły z liderem i własnym dostępem do CRM.",
+    "teamWeekText": "Co zrobili ludzie każdego partnera w tym tygodniu, obok siebie."
   }
 }

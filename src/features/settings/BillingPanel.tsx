@@ -2,7 +2,7 @@
 
 import { useAndroidApp } from "@/components/android-app";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { api, ApiFailure } from "@/features/mindmap/api";
@@ -23,6 +23,8 @@ interface Billing {
   enforced: boolean;
   entitlement: { teamFree?: boolean; plan: string; basePlan: "FREE" | "PRO" | "ENTERPRISE"; sources: { source: "trial" | "bonus" | "gift"; until: string; daysLeft: number }[]; trialDaysLeft: number | null; trialEnded: boolean };
   usage: Record<string, { used: number; limit: number | null }>;
+  points: number;
+  pointsPerMonth: number;
 }
 
 /** Plan, limits, and the two buttons that hand over to Stripe. The plan itself only ever changes through Stripe's webhook. */
@@ -34,6 +36,24 @@ export function BillingPanel({ workspaceId, checkout }: { workspaceId: string; c
   const base = `/api/v1/workspaces/${workspaceId}/billing`;
   const { data, isLoading } = useQuery({ queryKey: ["billing", workspaceId], queryFn: () => api.get<Billing>(base), refetchInterval: checkout === "success" ? 3000 : false });
   const [error, setError] = useState<string | null>(null);
+  const qc = useQueryClient();
+  const [months, setMonths] = useState(1);
+  const [redeeming, setRedeeming] = useState(false);
+  const [redeemed, setRedeemed] = useState<string | null>(null);
+  const redeem = async () => {
+    setError(null);
+    setRedeeming(true);
+    try {
+      const r = await api.post<{ bonusUntil: string }>(`${base}/redeem`, { months });
+      setRedeemed(r.bonusUntil);
+      setMonths(1);
+      await qc.invalidateQueries({ queryKey: ["billing", workspaceId] });
+    } catch (e) {
+      setError(e instanceof ApiFailure ? e.message : t("error"));
+    } finally {
+      setRedeeming(false);
+    }
+  };
   const go = async (path: "checkout" | "portal") => {
     setError(null);
     try {
@@ -114,6 +134,39 @@ export function BillingPanel({ workspaceId, checkout }: { workspaceId: string; c
         {data.enforced && !data.configured && !data.granted && <p className="mt-3 text-sm text-muted-foreground">{t("notConfigured")}</p>}
         {!data.canManage && <p className="mt-3 text-sm text-muted-foreground">{t("ownerOnly")}</p>}
       </section>
+      {data.enforced && !data.entitlement.teamFree && data.canManage && (() => {
+        // Bonus points (one for each person who joined through the owner's link) buy months of Pro for this workspace.
+        const most = Math.min(12, Math.floor(data.points / data.pointsPerMonth));
+        return (
+          <section className="rounded-lg border border-border bg-card p-4" data-testid="points">
+            <h2 className="text-sm font-semibold">{t("pointsTitle")}</h2>
+            <p className="mt-1 text-sm">
+              {t("pointsBalance", { n: data.points })} <span className="text-muted-foreground">{t("pointsRate", { n: data.pointsPerMonth })}</span>
+            </p>
+            {redeemed && (
+              <p role="status" className="mt-2 rounded-md bg-[var(--health-green)]/10 px-3 py-2 text-sm" data-testid="points-done">
+                {t("pointsDone", { date: date(redeemed) })}
+              </p>
+            )}
+            {most > 0 ? (
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <select aria-label={t("pointsMonths")} className="h-11 rounded-md border border-border bg-background px-3 text-sm md:h-9" value={Math.min(months, most)} onChange={(e) => setMonths(Number(e.target.value))} data-testid="points-months">
+                  {Array.from({ length: most }, (_, i) => i + 1).map((n) => (
+                    <option key={n} value={n}>
+                      {t("pointsOption", { n, cost: n * data.pointsPerMonth })}
+                    </option>
+                  ))}
+                </select>
+                <Button className="min-h-11 md:min-h-9" disabled={redeeming} onClick={() => void redeem()} data-testid="points-redeem">
+                  {t("pointsRedeem")}
+                </Button>
+              </div>
+            ) : (
+              <p className="mt-2 text-sm text-muted-foreground">{t("pointsHow", { n: data.pointsPerMonth })}</p>
+            )}
+          </section>
+        );
+      })()}
       <section className="rounded-lg border border-border bg-card p-4">
         <h2 className="mb-2 text-sm font-semibold">{t("limits")}</h2>
         <ul className="flex flex-col gap-2 text-sm">

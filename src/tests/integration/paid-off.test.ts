@@ -16,7 +16,7 @@ vi.mock("@/server/mail", () => ({ sendMail: vi.fn() }));
 
 import { createWorkspace } from "@/server/services/workspace";
 import { entitlementOf, expireTimed, recomputePlans, startTrial, syncPlan } from "@/server/services/entitlements";
-import { getBilling, startCheckout } from "@/server/services/billing";
+import { getBilling, redeemPoints, startCheckout } from "@/server/services/billing";
 import { isEnforcedFor, paidMode } from "@/server/services/paid-plans";
 import { listUsers, recomputeAllPlans } from "@/server/services/admin";
 
@@ -57,6 +57,9 @@ describe("paid plans switched off", () => {
   it("the billing page says it is open, and nothing can be bought", async () => {
     expect(await getBilling(anna, ws.id)).toMatchObject({ enforced: false, plan: "PRO" });
     await expect(startCheckout(anna, ws.id)).rejects.toMatchObject({ status: 409, code: "paid_plans_off" });
+    await raw.bonusPoint.create({ data: { userId: anna, points: 3, reason: "adjustment" } });
+    await expect(redeemPoints(anna, ws.id, { months: 1 })).rejects.toMatchObject({ status: 409, code: "pro_free" }); // points are kept while Pro costs nothing
+    expect((await getBilling(anna, ws.id)).points).toBe(3);
   });
   it("recomputing brings every workspace to open, and does it once", async () => {
     const other = await createWorkspace(anna, "Other");

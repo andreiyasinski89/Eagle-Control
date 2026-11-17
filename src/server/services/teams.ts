@@ -3,6 +3,7 @@ import { db } from "@/server/db";
 import { ApiError, notFound } from "@/server/http/errors";
 import { teamGrant } from "@/modules/crm/access";
 import { loadWorkspaceMember, logActivity, type Tx } from "@/server/services/nodes/access";
+import { requirePlanFeature } from "./plan-gate";
 
 export const TEAM_LIMIT = 50;
 
@@ -50,6 +51,7 @@ export async function listTeams(userId: string, workspaceId: string) {
 export async function createTeam(userId: string, workspaceId: string, input: z.infer<typeof createTeamSchema>) {
   return db.$transaction(async (tx) => {
     await loadWorkspaceMember(tx, userId, workspaceId, "member:invite");
+    await requirePlanFeature(workspaceId, "teams", tx);
     if ((await tx.team.count({ where: { workspaceId } })) >= TEAM_LIMIT) throw invalid("team_limit", `A workspace holds up to ${TEAM_LIMIT} teams`);
     if (await tx.team.findUnique({ where: { workspaceId_name: { workspaceId, name: input.name } } })) throw new ApiError(409, "team_exists", "A team with this name is already there");
     const leaderId = input.leaderId ?? null;
@@ -67,6 +69,7 @@ export async function updateTeam(userId: string, teamId: string, patch: z.infer<
     const team = await tx.team.findUnique({ where: { id: teamId }, include: { members: { select: { userId: true } } } });
     if (!team) throw notFound("team");
     await loadWorkspaceMember(tx, userId, team.workspaceId, "member:invite");
+    await requirePlanFeature(team.workspaceId, "teams", tx); // deleting a team stays open, so a workspace back on Free can tidy up
     if (patch.name && patch.name !== team.name && (await tx.team.findUnique({ where: { workspaceId_name: { workspaceId: team.workspaceId, name: patch.name } } }))) throw new ApiError(409, "team_exists", "A team with this name is already there");
     const leaderId = patch.leaderId !== undefined ? patch.leaderId : team.leaderId;
     const before = team.members.map((m) => m.userId);

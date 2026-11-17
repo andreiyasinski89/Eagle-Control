@@ -787,3 +787,9 @@
 - Seen only by the person who connected the calendar, never by the team or the rest of the workspace. Refreshed right after every change in Google (Google tells MLM CRM) and at the regular check every 10 minutes; "Sync now" and disconnecting work as before, disconnecting deletes the copy at once.
 - Privacy policy (Google section) and the scope justification in `docs/GOOGLE-VERIFICATION.ru.md` now say that these events are shown to the user alone and what is kept (title, time, link).
 - New table `GoogleEventCopy` (migration 0043, additive). Texts in fragment p105.
+
+## 0.72.0 — Pro locks and bonus points for months of Pro
+
+- **Bonus points buy Pro.** On the plan page the owner sees their points (1 for each person who joined through their invitation link) and exchanges them: 3 points = 1 month of Pro for this workspace, up to 12 months at once, added after any bonus time still running. The spending is its own line in the points journal ("redeem", minus the points). Not offered while Pro costs nothing (paid plans off, or the owner's team), so nobody spends points for nothing; two quick presses cannot spend the same points twice.
+- **Pro parts are locked on the Free plan**, on the server and on the screen with one "Available in Pro" block and an "Upgrade to Pro" button to the plan page: network map, teams (creating and changing; deleting stays open), the team's week in the day plan, contacts export, smart sort of the timeline (worked out on the screen, so locked there), and — as before, now with the same block — reports, integrations, API and portal; AI was already refused on the server.
+- **Nothing changes for anyone today:** while `PAID_PLANS` is off every workspace is on Pro, so no lock is drawn and the exchange is not offered. Fragment p106.

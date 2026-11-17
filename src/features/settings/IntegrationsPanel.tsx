@@ -1,8 +1,9 @@
 "use client";
 
+import { ProLock } from "@/components/pro-lock";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Calendar, Check, Copy, Lock, Hash, MessageCircle, Send, Sparkles } from "lucide-react";
+import { Calendar, Check, Copy, Hash, MessageCircle, Send, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
@@ -113,11 +114,7 @@ export function IntegrationsPanel({ workspaceId, banner }: { workspaceId: string
   if (isLoading || !data) return <div className="p-6"><SkeletonRows rows={5} /></div>;
   if (!data.allowed) {
     return (
-      <div data-testid="paywall" className="m-6 flex flex-col items-center gap-3 rounded-lg border border-dashed border-border p-10 text-center">
-        <Lock className="size-8 text-muted-foreground" aria-hidden />
-        <h2 className="text-lg font-semibold">{t("paywallTitle")}</h2>
-        <p className="max-w-md text-sm text-muted-foreground">{t("paywallText")}</p>
-      </div>
+      <ProLock title={t("paywallTitle")} text={t("paywallText")} className="m-6" />
     );
   }
   const g = data.google;

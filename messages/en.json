@@ -1655,7 +1655,15 @@
     "betaOpen": "Paid plans are not open yet: everything is free and without limits for now.",
     "teamPlan": "Pro · team",
     "teamFree": "Free for you: you are in the MLM CRM team. No payment needed.",
-    "androidNoPay": "Subscriptions are not sold in the Android app."
+    "androidNoPay": "Subscriptions are not sold in the Android app.",
+    "pointsTitle": "Bonus points",
+    "pointsBalance": "You have {n, plural, one {# point} other {# points}}.",
+    "pointsRate": "{n} points = 1 month of Pro for this workspace.",
+    "pointsMonths": "Months of Pro",
+    "pointsOption": "{n, plural, one {# month} other {# months}} for {cost} points",
+    "pointsRedeem": "Exchange",
+    "pointsDone": "Done: Pro from bonus points until {date}.",
+    "pointsHow": "You get 1 point for each person who joins through your invitation link (Account page). {n} points make a month of Pro."
   },
   "developers": {
     "title": "API and webhooks",
@@ -2855,5 +2863,14 @@
     "privacy": "Privacy policy",
     "terms": "Terms of use",
     "deleteAccount": "Delete an account"
+  },
+  "pro": {
+    "available": "Available in Pro",
+    "upgrade": "Upgrade to Pro",
+    "networkTitle": "Network map",
+    "networkText": "Your whole structure on one map: who brought whom, stages and warmth at a glance.",
+    "teamsTitle": "Teams",
+    "teamsText": "Group people into teams with a leader and their own access to the CRM.",
+    "teamWeekText": "What each partner's people did this week, side by side."
   }
 }

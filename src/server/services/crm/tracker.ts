@@ -5,6 +5,7 @@ import { isValidTimeZone, todayIn } from "@/modules/views/tz";
 import { loadWorkspaceMember } from "@/server/services/nodes/access";
 import { fullName, invalid, loadCrmNode } from "./common";
 import { contactScope, withScope } from "./scope";
+import { planHas } from "@/server/services/plan-gate";
 
 export const weekSchema = z.object({ week: z.coerce.number().int().min(-52).max(0).default(0) });
 export const goalsSchema = z.object({ goals: z.record(z.enum(METRICS), z.number().int().min(0).max(9999)) });
@@ -55,7 +56,9 @@ export async function getWeek(userId: string, workspaceId: string, f: z.infer<ty
   const partners = await db.contact.findMany({ where: withScope({ nodeId: { in: [...byPartner.keys()] } }, scope), select: { nodeId: true, firstName: true, lastName: true } });
   const team = partners.map((p) => ({ id: p.nodeId, name: fullName(p.firstName, p.lastName), ...(byPartner.get(p.nodeId) as Counts) })).sort((a, b) => b.presentations + b.clients + b.partners - (a.presentations + a.clients + a.partners) || a.name.localeCompare(b.name));
 
-  return { week: f.week, from: w.from, to: w.to, counts, goals: cleanGoals(goalRow?.goals), team };
+  // The team's week is a Pro part: on Free the summary is left out, and the screen says there is one to see in Pro.
+  const teamOpen = team.length === 0 || (await planHas(workspaceId, "teams"));
+  return { week: f.week, from: w.from, to: w.to, counts, goals: cleanGoals(goalRow?.goals), team: teamOpen ? team : [], teamLocked: !teamOpen };
 }
 
 export async function saveGoals(userId: string, workspaceId: string, input: z.infer<typeof goalsSchema>) {

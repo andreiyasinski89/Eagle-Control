@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Lock } from "lucide-react";
+import { ProLock } from "@/components/pro-lock";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { AgileReports } from "./AgileReports";
@@ -36,12 +36,7 @@ export function ReportsView({ workspaceId, hasMetrics, canCrm, canExport, canSee
       {tabs.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("nothing")}</p>
       ) : !hasMetrics ? (
-        <div data-testid="paywall" className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border p-10 text-center">
-          <Lock className="size-8 text-muted-foreground" aria-hidden />
-          <h2 className="text-lg font-semibold">{t("paywallTitle")}</h2>
-          <p className="max-w-md text-sm text-muted-foreground">{tab === "agile" ? t("paywallAgile") : t("paywallCrm")}</p>
-          <p className="text-xs text-muted-foreground">{t("paywallHint")}</p>
-        </div>
+        <ProLock title={t("paywallTitle")} text={tab === "agile" ? t("paywallAgile") : t("paywallCrm")} />
       ) : tab === "agile" ? (
         <AgileReports projects={projects} />
       ) : (

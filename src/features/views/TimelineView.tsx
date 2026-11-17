@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
 import { EyeOff, Maximize2, Minus, Plus, Wand2 } from "lucide-react";
+import { ProLockButton, usePlan } from "@/components/pro-lock";
 import { Button } from "@/components/ui/button";
 import { api } from "@/features/mindmap/api";
 import { undo, updateNode } from "@/features/mindmap/actions";
@@ -34,6 +35,7 @@ const isDone = (status: string) => status === "DONE" || status === "CANCELLED";
  */
 export function TimelineView() {
   const t = useTranslations("views");
+  const { pro } = usePlan(); // the smart sort is a Pro part
   const locale = useLocale();
   const items = useWorkItems();
   const projectId = useMapStore((s) => s.projectId);
@@ -193,7 +195,8 @@ export function TimelineView() {
           {t("hideDone")}
           {doneCount > 0 && <span className="rounded-full bg-muted px-1.5 text-xs tabular-nums text-muted-foreground">{doneCount}</span>}
         </button>
-        {canWrite && (
+        {canWrite && !pro && <ProLockButton label={t("sortButton")} className="ml-auto shrink-0 whitespace-nowrap" />}
+        {canWrite && pro && (
           <Button type="button" size="sm" variant="outline" className="ml-auto shrink-0 whitespace-nowrap" onClick={() => setSorting(true)} data-testid="smart-sort-button" title={t("sortHint")}>
             <Wand2 className="size-4" />
             {t("sortButton")}

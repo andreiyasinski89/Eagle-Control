@@ -29,6 +29,7 @@ import { contactScope, withScope } from "./scope";
 import { createCompaniesBulk, type CompanyFields } from "./companies";
 import { assertContactCapacity, cleanEmails, contactWhere, createContactsBulk, updateContactIn, type BulkContact, type listContactsSchema } from "./contacts";
 import { invalid, toNum } from "./common";
+import { requirePlanFeature } from "@/server/services/plan-gate";
 
 export const importOptionsSchema = z.object({
   entity: z.enum(["contacts", "companies"]),
@@ -240,6 +241,7 @@ const stamp = (d: Date | null) => (d ? d.toISOString().slice(0, 10) : "");
 
 export async function exportContactsCsv(userId: string, workspaceId: string, filter: z.infer<typeof listContactsSchema>): Promise<string> {
   const m = await loadWorkspaceMember(db, userId, workspaceId, "crm:export");
+  await requirePlanFeature(workspaceId, "contactsExport");
   const rows = await db.contact.findMany({ where: withScope(contactWhere(workspaceId, filter), await contactScope(db, m)), orderBy: { firstName: "asc" }, take: 20_000, include: { company: { select: { legalName: true } } } });
   await db.activityLog.create({ data: { workspaceId, nodeId: null, actorId: userId, action: "export.contacts", diff: { rows: rows.length } } });
   return toCsv(

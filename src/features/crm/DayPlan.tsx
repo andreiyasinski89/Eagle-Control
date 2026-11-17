@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronLeft, ChevronRight, ClipboardCopy } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import { ProLock } from "@/components/pro-lock";
 import { api } from "@/features/mindmap/api";
 import { METRICS, progress, type Counts, type Goals, type Metric } from "@/modules/crm/tracker";
 import type { Stage, Temp } from "@/modules/crm/people";
@@ -19,6 +20,8 @@ interface Week {
   counts: Counts;
   goals: Goals;
   team: ({ id: string; name: string } & Counts)[];
+  /** The team's week is there but is a Pro part (Free plan). */
+  teamLocked?: boolean;
 }
 interface Due {
   id: string;
@@ -45,6 +48,7 @@ const TEAM_METRICS: Metric[] = ["contacted", "presentations", "clients", "partne
 export function DayPlan({ workspaceId, slug, canWrite, canExport, canErase, meId }: { workspaceId: string; slug: string; canWrite: boolean; canExport: boolean; canErase: boolean; meId: string }) {
   const t = useTranslations("crm");
   const locale = useLocale();
+  const tp = useTranslations("pro");
   const qc = useQueryClient();
   const router = useRouter();
   const pathname = usePathname();
@@ -205,6 +209,7 @@ export function DayPlan({ workspaceId, slug, canWrite, canExport, canErase, meId
         </ul>
       </section>
 
+      {wk.data?.teamLocked && <ProLock compact title={t("teamWeekTitle")} text={tp("teamWeekText")} />}
       {wk.data && wk.data.team.length > 0 && (
         <section className="flex flex-col gap-2" data-testid="team-week">
           <h2 className="text-lg font-semibold">{t("teamWeekTitle")}</h2>

@@ -2,6 +2,7 @@ import { db } from "@/server/db";
 import { loadWorkspaceMember } from "@/server/services/nodes/access";
 import { fullName } from "./common";
 import { contactScope, withScope } from "./scope";
+import { requirePlanFeature } from "@/server/services/plan-gate";
 
 /** Everyone the network map draws; beyond this the map would be unreadable, and the view says it was cut. */
 export const NETWORK_LIMIT = 2000;
@@ -9,6 +10,7 @@ export const NETWORK_LIMIT = 2000;
 /** The light facts about every person and group the network map needs, in one read. */
 export async function getNetwork(userId: string, workspaceId: string) {
   const member = await loadWorkspaceMember(db, userId, workspaceId, "crm:read");
+  await requirePlanFeature(workspaceId, "network");
   const scope = await contactScope(db, member);
   const where = withScope({ workspaceId, node: { archivedAt: null } }, scope);
   const [me, rows, groups, total] = await Promise.all([

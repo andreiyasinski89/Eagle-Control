@@ -8,7 +8,7 @@ export const PLAN_LIMITS: Record<Plan, Record<LimitKey, number>> = {
   ENTERPRISE: { users: Infinity, projects: Infinity, pipelines: Infinity, contacts: Infinity },
 };
 
-export type Feature = "integrations" | "ai" | "metrics" | "clientPortal" | "sso" | "auditLog" | "api";
+export type Feature = "integrations" | "ai" | "metrics" | "clientPortal" | "sso" | "auditLog" | "api" | "teams" | "network" | "smartSort" | "contactsExport";
 
 const FEATURES: Record<Feature, Plan[]> = {
   integrations: ["PRO", "ENTERPRISE"],
@@ -18,6 +18,13 @@ const FEATURES: Record<Feature, Plan[]> = {
   sso: ["ENTERPRISE"],
   auditLog: ["ENTERPRISE"],
   api: ["PRO", "ENTERPRISE"],
+  /** Teams with their own access to the CRM, and the team's week in the day plan. */
+  teams: ["PRO", "ENTERPRISE"],
+  /** The network map of the whole structure. */
+  network: ["PRO", "ENTERPRISE"],
+  /** Laying the tasks of the timeline out one after another (worked out on the screen, so locked there). */
+  smartSort: ["PRO", "ENTERPRISE"],
+  contactsExport: ["PRO", "ENTERPRISE"],
 };
 
 export function hasFeature(plan: Plan, feature: Feature): boolean {

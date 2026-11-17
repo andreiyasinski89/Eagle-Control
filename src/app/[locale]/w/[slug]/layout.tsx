@@ -11,6 +11,7 @@ import { TrialBanner } from "@/components/layout/trial-banner";
 import { DeletionBanner } from "@/components/layout/deletion-banner";
 import { Topbar } from "@/components/layout/topbar";
 import { QueryProvider } from "@/components/query-provider";
+import { PlanProvider } from "@/components/pro-lock";
 import { getSession } from "@/server/session";
 import { isSuperAdminEmail } from "@/server/services/admin";
 import { db } from "@/server/db";
@@ -33,7 +34,7 @@ export default async function WorkspaceLayout({
 
   // Three independent questions to the database, asked together: every question is a trip there, and the trips used to be taken one after another.
   const [membership, workspaces, me] = await Promise.all([
-    db.membership.findFirst({ where: { userId, workspace: { slug } }, include: { workspace: { select: { id: true, slug: true, name: true } } } }),
+    db.membership.findFirst({ where: { userId, workspace: { slug } }, include: { workspace: { select: { id: true, slug: true, name: true, plan: true } } } }),
     listWorkspacesForUser(userId),
     personFlags(userId),
   ]);
@@ -47,6 +48,7 @@ export default async function WorkspaceLayout({
   const shell: ShellProps = { slug, showCrm: can(membership, "crm:read"), workspaces, user: { name: session?.user?.name ?? null, email: session?.user?.email ?? "", isSuperAdmin: isSuperAdminEmail(session?.user?.email) } };
   const body = (
     <QueryProvider>
+      <PlanProvider pro={membership.workspace.plan !== "FREE"} slug={slug}>
       <UiModeAttr mode={mode} />
       <div className="flex min-h-screen" data-ui-mode={mode}>
         <Sidebar {...shell} />
@@ -59,6 +61,7 @@ export default async function WorkspaceLayout({
       </div>
       {shell.showCrm && <BottomNav slug={slug} workspaceId={membership.workspace.id} />}
       <CommandPalette workspaceId={membership.workspace.id} {...shell} />
+      </PlanProvider>
     </QueryProvider>
   );
   return messages ? (

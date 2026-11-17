@@ -4,6 +4,7 @@ import { useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, Download, FileUp, GitMerge, Plus, Search } from "lucide-react";
+import { ProLockButton, usePlan } from "@/components/pro-lock";
 import { foldOnPhone, MobileToolsToggle } from "./MobileTools";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
@@ -151,6 +152,7 @@ export function ContactsView({ workspaceId, slug, canWrite, canExport, canMerge,
   const [dupes, setDupes] = useState(false);
   // On a phone the search, filter and buttons are folded until asked for (see MobileTools).
   const [tools, setTools] = useState(false);
+  const { pro } = usePlan(); // the export is a Pro part
 
   const filters = { ...(q ? { q } : {}), ...(owner ? { ownerId: owner } : {}), ...(cold ? { noTouchDays: "30" } : {}) };
   const params = new URLSearchParams({ sort: sort.key, dir: sort.dir, page: String(page), pageSize: "50", ...filters });
@@ -291,7 +293,8 @@ export function ContactsView({ workspaceId, slug, canWrite, canExport, canMerge,
                 {t("findDuplicates")}
               </Button>
             )}
-            {canExport && (
+            {canExport && !pro && <ProLockButton label={t("exportCsv")} />}
+            {canExport && pro && (
               <Button variant="outline" size="sm" asChild>
                 <a href={exportHref} download>
                   <Download className="size-4" />

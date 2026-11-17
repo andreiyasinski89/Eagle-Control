@@ -1,8 +1,9 @@
 "use client";
 
+import { ProLock } from "@/components/pro-lock";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Copy, Lock } from "lucide-react";
+import { Check, Copy } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -110,11 +111,7 @@ export function DevelopersPanel({ workspaceId, canManageHooks }: { workspaceId: 
 
   if (tokens.error instanceof ApiFailure && tokens.error.code === "plan_feature") {
     return (
-      <div data-testid="paywall" className="m-6 flex flex-col items-center gap-3 rounded-lg border border-dashed border-border p-10 text-center">
-        <Lock className="size-8 text-muted-foreground" aria-hidden />
-        <h2 className="text-lg font-semibold">{t("paywallTitle")}</h2>
-        <p className="max-w-md text-sm text-muted-foreground">{t("paywallText")}</p>
-      </div>
+      <ProLock title={t("paywallTitle")} text={t("paywallText")} className="m-6" />
     );
   }
   if (tokens.error) return <p role="alert" className="p-6 text-sm text-danger">{tokens.error instanceof ApiFailure ? tokens.error.message : t("error")}</p>;

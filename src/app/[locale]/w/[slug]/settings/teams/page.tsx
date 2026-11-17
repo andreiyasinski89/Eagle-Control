@@ -5,6 +5,7 @@ import { db } from "@/server/db";
 import { can } from "@/server/policies";
 import { listTeams } from "@/server/services/teams";
 import { TeamsPanel } from "@/features/teams/TeamsPanel";
+import { ProGate } from "@/components/pro-lock";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,7 @@ export default async function TeamsPage({ params }: { params: Promise<{ slug: st
   const { slug } = await params;
   const session = await getSession();
   const t = await getTranslations("teams");
+  const tp = await getTranslations("pro");
   const workspace = await db.workspace.findUniqueOrThrow({ where: { slug }, select: { id: true } });
   const me = await db.membership.findUnique({ where: { userId_workspaceId: { userId: session?.user?.id ?? "", workspaceId: workspace.id } } });
   if (!me || !can(me, "member:invite")) notFound();
@@ -23,7 +25,9 @@ export default async function TeamsPage({ params }: { params: Promise<{ slug: st
     <section className="max-w-3xl p-6">
       <h1 className="mb-1 text-2xl font-semibold">{t("title")}</h1>
       <p className="mb-4 text-sm text-muted-foreground">{t("hint")}</p>
-      <TeamsPanel workspaceId={workspace.id} teams={teams} people={people.map((p) => ({ userId: p.userId, name: p.user.name ?? p.user.email }))} />
+      <ProGate title={tp("teamsTitle")} text={tp("teamsText")}>
+        <TeamsPanel workspaceId={workspace.id} teams={teams} people={people.map((p) => ({ userId: p.userId, name: p.user.name ?? p.user.email }))} />
+      </ProGate>
     </section>
   );
 }
