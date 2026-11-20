@@ -812,3 +812,9 @@
 ## 0.76.0 — Archive a deal from its card
 
 - The deal card has an **Archive** button (after a confirmation): the deal leaves the board and the lists; the person and their history stay. Until now a deal could only be closed as won or lost, so a test or junk lead stayed in the reports. Fragment p108.
+
+## 0.77.0 — Meetings reach Google Calendar reliably
+
+- **Fix: a meeting made here could fail to appear in Google Calendar.** Two causes. (1) The hand-over to the Google sync was started "in the air" and not waited for; on Vercel the function can be stopped as soon as the answer has gone, so the push was lost (with the database far away it needs several seconds). It now runs with Next's `after`, which the host keeps alive until it is done. The same for events (project calendar). (2) What did not reach Google was supposed to be caught up by the regular poll, but that poll was scheduled only in Inngest. It is now also in `vercel.json` (every 10 minutes, Vercel Cron), so the meetings that were missed in the last days go to Google by themselves. Running it twice is harmless (a meeting has one fixed Google id).
+- Checked and left as is: the Google event id built for a meeting is valid; a meeting made by any path (card, touch queue, schedule dialog) goes through the same push.
+- Test only: the billing grace-period test used November 2026 dates and began to fail once the real clock passed them; its dates are moved to 2099, as the other fixed-"now" tests do.

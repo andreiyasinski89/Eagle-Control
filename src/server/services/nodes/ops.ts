@@ -24,6 +24,7 @@ import { loadNode, loadWorkspaceMember, logActivity, type Tx } from "./access";
 import { recordStatusChanges, type StatusChange } from "./events";
 import { nodePath } from "../links";
 import { notify } from "../notify";
+import { afterResponse } from "@/server/jobs/after-response";
 import { publishTree } from "@/server/realtime";
 import { emitProjectsChanged } from "@/server/webhooks";
 import { recomputeProject, type Change } from "./recompute";
@@ -39,7 +40,7 @@ export interface OpContext {
 
 /** Hands changed events to the calendar sync without making the caller wait for, or fail because of, Google. */
 function pushCalendarEvents(nodeIds: string[]): void {
-  void import("@/server/jobs").then((m) => m.enqueue("calendar/push", { nodeIds })).catch((e) => console.error("calendar push not queued", e instanceof Error ? e.message : e));
+  afterResponse(() => import("@/server/jobs").then((m) => m.enqueue("calendar/push", { nodeIds })).catch((e) => console.error("calendar push not queued", e instanceof Error ? e.message : e)));
 }
 
 /** Runs `fn` in one transaction, then recomputes every touched project. */

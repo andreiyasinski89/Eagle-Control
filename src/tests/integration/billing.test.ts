@@ -31,7 +31,7 @@ const DAY = 86_400_000;
 const at = (s: string) => new Date(`${s}Z`);
 
 describe("plan from subscription state", () => {
-  const now = at("2026-11-10T00:00:00");
+  const now = at("2099-11-10T00:00:00");
   it("pays → Pro, not paying → Free, enterprise never touched", () => {
     expect(planFor("FREE", { status: "active", pastDueSince: null }, now)).toBe("PRO");
     expect(planFor("FREE", { status: "trialing", pastDueSince: null }, now)).toBe("PRO");
@@ -61,8 +61,8 @@ const fake = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
 });
 
 let n = 0;
-const sub = (over: Record<string, unknown> = {}) => ({ id: "sub_1", status: "active", customer: "cus_1", cancel_at_period_end: false, current_period_end: Math.floor(at("2026-12-10T00:00:00").getTime() / 1000), metadata: { workspaceId: ws.id }, ...over });
-const event = (type: string, object: Record<string, unknown>, created = "2026-11-10T00:00:00") => ({ id: `evt_${++n}`, type, created: Math.floor(at(created).getTime() / 1000), data: { object } });
+const sub = (over: Record<string, unknown> = {}) => ({ id: "sub_1", status: "active", customer: "cus_1", cancel_at_period_end: false, current_period_end: Math.floor(at("2099-12-10T00:00:00").getTime() / 1000), metadata: { workspaceId: ws.id }, ...over });
+const event = (type: string, object: Record<string, unknown>, created = "2099-11-10T00:00:00") => ({ id: `evt_${++n}`, type, created: Math.floor(at(created).getTime() / 1000), data: { object } });
 const planNow = async () => (await holder.db.workspace.findUniqueOrThrow({ where: { id: ws.id } })).plan;
 
 beforeAll(async () => {
@@ -123,14 +123,14 @@ describe("subscription lifecycle", () => {
     await createProject(owner, ws.id, { name: "P4" });
     const b = await getBilling(owner, ws.id);
     expect(b).toMatchObject({ status: "active", pastDue: false, hasCustomer: true, canManage: true });
-    expect(b.renewsAt?.toISOString()).toBe("2026-12-10T00:00:00.000Z");
+    expect(b.renewsAt?.toISOString()).toBe("2099-12-10T00:00:00.000Z");
   });
 
   it("is idempotent and ignores older snapshots arriving late", async () => {
-    const e = event("customer.subscription.updated", sub({ cancel_at_period_end: true }), "2026-11-11T00:00:00");
+    const e = event("customer.subscription.updated", sub({ cancel_at_period_end: true }), "2099-11-11T00:00:00");
     expect(await handleStripeEvent(e)).toBe("applied");
     expect(await handleStripeEvent(e)).toBe("duplicate");
-    expect(await handleStripeEvent(event("customer.subscription.updated", sub({ status: "canceled" }), "2026-11-05T00:00:00"))).toBe("ignored");
+    expect(await handleStripeEvent(event("customer.subscription.updated", sub({ status: "canceled" }), "2099-11-05T00:00:00"))).toBe("ignored");
     expect(await planNow()).toBe("PRO");
     expect((await getBilling(owner, ws.id)).cancelAtPeriodEnd).toBe(true);
   });
@@ -142,26 +142,26 @@ describe("subscription lifecycle", () => {
   });
 
   it("warns owners on a failed payment, keeps Pro through the grace period, then drops to Free without deleting anything", async () => {
-    await handleStripeEvent(event("invoice.payment_failed", { customer: "cus_1" }, "2026-11-12T00:00:00"));
-    await handleStripeEvent(event("customer.subscription.updated", sub({ status: "past_due" }), "2026-11-12T00:01:00"));
+    await handleStripeEvent(event("invoice.payment_failed", { customer: "cus_1" }, "2099-11-12T00:00:00"));
+    await handleStripeEvent(event("customer.subscription.updated", sub({ status: "past_due" }), "2099-11-12T00:01:00"));
     expect(await planNow()).toBe("PRO");
-    const b = await getBilling(owner, ws.id, at("2026-11-15T00:00:00"));
+    const b = await getBilling(owner, ws.id, at("2099-11-15T00:00:00"));
     expect(b).toMatchObject({ pastDue: true, graceExpired: false });
     expect(await holder.db.notification.count({ where: { userId: owner, kind: "billing" } })).toBeGreaterThan(0);
 
-    expect(await expireGrace(at("2026-11-15T00:00:00"))).toEqual({ downgraded: 0 });
-    expect(await expireGrace(at("2026-11-20T00:00:00"))).toEqual({ downgraded: 1 });
+    expect(await expireGrace(at("2099-11-15T00:00:00"))).toEqual({ downgraded: 0 });
+    expect(await expireGrace(at("2099-11-20T00:00:00"))).toEqual({ downgraded: 1 });
     expect(await planNow()).toBe("FREE");
     expect(await holder.db.node.count({ where: { workspaceId: ws.id, type: "PROJECT" } })).toBe(4); // nothing deleted
     await expect(createProject(owner, ws.id, { name: "Over the limit" })).rejects.toMatchObject({ status: 402 });
   });
 
   it("recovers when the invoice is paid, and ends the plan when the subscription is deleted", async () => {
-    await handleStripeEvent(event("customer.subscription.updated", sub(), "2026-11-21T00:00:00"));
-    await handleStripeEvent(event("invoice.paid", { customer: "cus_1" }, "2026-11-21T00:01:00"));
+    await handleStripeEvent(event("customer.subscription.updated", sub(), "2099-11-21T00:00:00"));
+    await handleStripeEvent(event("invoice.paid", { customer: "cus_1" }, "2099-11-21T00:01:00"));
     expect(await planNow()).toBe("PRO");
     expect((await getBilling(owner, ws.id)).pastDue).toBe(false);
-    await handleStripeEvent(event("customer.subscription.deleted", sub(), "2026-12-01T00:00:00"));
+    await handleStripeEvent(event("customer.subscription.deleted", sub(), "2099-12-01T00:00:00"));
     expect(await planNow()).toBe("FREE");
     expect((await getBilling(owner, ws.id)).status).toBe("canceled");
   });

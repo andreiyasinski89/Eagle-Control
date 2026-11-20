@@ -1,3 +1,8 @@
 {
-  "crons": [{ "path": "/api/jobs/demo~reset", "schedule": "0 3 * * *" }, { "path": "/api/jobs/crm~day-scores", "schedule": "50 3 * * *" }, { "path": "/api/jobs/crm~stale-people", "schedule": "0 * * * *" }]
+  "crons": [
+    { "path": "/api/jobs/demo~reset", "schedule": "0 3 * * *" },
+    { "path": "/api/jobs/crm~day-scores", "schedule": "50 3 * * *" },
+    { "path": "/api/jobs/crm~stale-people", "schedule": "0 * * * *" },
+    { "path": "/api/jobs/calendar~poll", "schedule": "*/10 * * * *" }
+  ]
 }
