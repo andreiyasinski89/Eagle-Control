@@ -37,10 +37,16 @@ describe("afterResponse", () => {
 });
 
 describe("Google Calendar poll schedule", () => {
+  const crons = () => (JSON.parse(readFileSync(join(process.cwd(), "vercel.json"), "utf8")) as { crons: { path: string; schedule: string }[] }).crons;
+
   it("runs on Vercel Cron too, not only on Inngest: it is what catches up meetings that did not reach Google", () => {
-    const { crons } = JSON.parse(readFileSync(join(process.cwd(), "vercel.json"), "utf8")) as { crons: { path: string; schedule: string }[] };
-    const poll = crons.find((c) => c.path === "/api/jobs/calendar~poll");
-    expect(poll, "calendar~poll missing from vercel.json").toBeTruthy();
-    expect(poll?.schedule).toMatch(/^\*\/(1|2|3|5|10|15) \* \* \* \*$/); // at least every quarter of an hour
+    expect(crons().find((c) => c.path === "/api/jobs/calendar~poll"), "calendar~poll missing from vercel.json").toBeTruthy();
+  });
+
+  it("shares the minute of the hourly job, so the free database is not woken an extra time for it", () => {
+    const poll = crons().find((c) => c.path === "/api/jobs/calendar~poll");
+    const hourly = crons().find((c) => c.path === "/api/jobs/crm~stale-people");
+    expect(poll?.schedule).toBe(hourly?.schedule);
+    expect(poll?.schedule).toBe("0 * * * *");
   });
 });

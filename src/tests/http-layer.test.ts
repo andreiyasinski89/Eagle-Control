@@ -113,7 +113,7 @@ const OWN_PROTECTION: Record<string, string> = {
   "api/billing/webhook/route.ts": "Stripe signature",
   "api/demo/login/route.ts": "404 unless DEMO_MODE; rate limited; only the shared sample workspace",
   "api/signin-confirm/route.ts": "only forwards to the Auth.js e-mail callback; checks the target",
-  "api/health/route.ts": "reveals only up/down",
+  "api/health/route.ts": "reveals only up/down and a short reason from a fixed list",
   "api/inngest/route.ts": "Inngest signing key",
   "api/jobs/[name]/route.ts": "CRON_SECRET bearer, off when unset",
   "api/integrations/google/callback/route.ts": "signed state bound to the signed-in user",
