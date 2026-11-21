@@ -823,3 +823,10 @@
 
 - The Google Calendar poll added to Vercel Cron in 0.77.0 ran every 10 minutes, which keeps a free Neon database awake almost all day (it sleeps after 5 minutes idle) and spends its monthly compute quota. It now runs once an hour, at the same minute as the other hourly job, so it wakes the database no extra time. Meetings are still sent at once (0.77.0); the poll is only the safety net.
 - `/api/health` no longer hides why it answers "down": it adds a short word from a fixed list (`unreachable`, `timeout`, `pool_timeout`, `login_refused`, `closed`, `other`) and how long it waited. No address, message or secret is ever included. The error code is also logged.
+
+## 0.79.0 — Background jobs share one beat, so the database can sleep
+
+- **Why:** on the free Neon plan the database sleeps after 5 idle minutes, and the time it is awake is the monthly quota (100 CU-hrs). Jobs that ran every 5 or 10 minutes, each on its own beat, kept it awake nearly all month: the quota was used up on 21 November and Neon switched the database off.
+- **What changed:** the frequent jobs (sending the outbox to e-mail/Telegram, reminders, outgoing webhooks, the agent clock) now run together on the quarter hours (:00, :15, :30, :45); the Google poll every 30 minutes; the hourly account-erasure job moved from minute 20 to minute 0. Expected cost: the database is awake about 6 of every 15 minutes at most (before: almost always).
+- **What it means for you:** a reminder, an e-mail/Telegram message or an outgoing webhook can come up to 15 minutes after the event (before: up to 5). In-app notifications and everything you do on screen are as fast as before. Meetings still go to Google at once (0.77.0). A test keeps every job that runs more than once an hour on this beat.
+- On a paid Neon plan nothing needs to be undone: the beat is simply cheaper and calmer.
